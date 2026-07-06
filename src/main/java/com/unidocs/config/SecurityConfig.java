@@ -24,6 +24,7 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login") // Khai báo dùng trang đăng nhập custom
+                .loginProcessingUrl("/admin/auth/submit")
                 .defaultSuccessUrl("/admin/documents", true)
                 .permitAll()
             )

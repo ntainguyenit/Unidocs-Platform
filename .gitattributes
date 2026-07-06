@@ -1,2 +1,6 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+
+src/main/resources/templates/utilities/* linguist-vendored=true
+src/main/resources/static/js/* linguist-vendored=true
+src/main/resources/static/css/* linguist-vendored=true
