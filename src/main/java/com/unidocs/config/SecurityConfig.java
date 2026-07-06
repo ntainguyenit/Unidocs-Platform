@@ -23,8 +23,8 @@ public class SecurityConfig {
                 .anyRequest().permitAll()
             )
             .formLogin(form -> form
-                .loginPage("/login") // Khai báo dùng trang đăng nhập custom
-                .loginProcessingUrl("/admin/auth/submit")
+                .loginPage("/login")
+                .loginProcessingUrl("/system/auth/process")
                 .defaultSuccessUrl("/admin/documents", true)
                 .permitAll()
             )
