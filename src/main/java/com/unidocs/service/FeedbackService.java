@@ -115,8 +115,10 @@ public class FeedbackService {
                 emitter.send(SseEmitter.event()
                         .name(eventName)
                         .data(feedback));
-            } catch (IOException e) {
-                emitter.complete();
+            } catch (Exception e) {
+                try {
+                    emitter.complete();
+                } catch (Exception ignored) {}
                 emitters.remove(emitter);
             }
         }

@@ -58,6 +58,30 @@
         body.dark-mode header.bg-primary { background-color: #1e3a8a; }
         body.dark-mode .shadow-sm, body.dark-mode .shadow-md, body.dark-mode .shadow-xl { box-shadow: none; border: 1px solid #374151; }
     </style>
+    <!-- WebMCP Agent Integration -->
+    <script th:inline="javascript">
+        if (navigator.modelContext && navigator.modelContext.provideContext) {
+            navigator.modelContext.provideContext({
+                tools: [
+                    {
+                        name: "search_documents",
+                        description: "Search for documents on UniDocs",
+                        inputSchema: {
+                            type: "object",
+                            properties: {
+                                query: { type: "string" }
+                            },
+                            required: ["query"]
+                        },
+                        execute: async (args) => {
+                            window.location.href = "/search?q=" + encodeURIComponent(args.query);
+                            return { status: "redirecting" };
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
 </head>
 <body>
     <header th:fragment="navbar" class="bg-primary text-white shadow-md sticky top-0 z-40">

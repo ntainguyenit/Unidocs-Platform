@@ -4,3 +4,4 @@ Disallow: /api/
 Allow: /
 
 Sitemap: https://unidocs-husc.pages.dev/sitemap.xml
+Content-Signal: ai-train=no, search=yes, ai-input=no
