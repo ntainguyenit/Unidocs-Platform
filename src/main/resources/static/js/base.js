@@ -243,3 +243,171 @@ function closeManualModal() {
 function applyLanguage() {}
 applyLanguage();
 applyTheme();
+
+// --- Bookmarks Logic ---
+const BOOKMARKS_KEY = 'unidocs_bookmarks';
+
+function getBookmarks() {
+    try {
+        const stored = localStorage.getItem(BOOKMARKS_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveBookmarks(bookmarks) {
+    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(bookmarks));
+    updateBookmarkBadge();
+}
+
+function toggleBookmarkFromBtn(btn) {
+    const id = btn.getAttribute('data-doc-id');
+    const title = btn.getAttribute('data-doc-title');
+    const slug = btn.getAttribute('data-doc-slug');
+    const fileType = btn.getAttribute('data-doc-filetype');
+    toggleBookmark(btn, id, title, slug, fileType);
+}
+
+function toggleBookmark(btn, id, title, slug, fileType) {
+    let bookmarks = getBookmarks();
+    const index = bookmarks.findIndex(b => b.id == id);
+    
+    if (index !== -1) {
+        // Remove
+        bookmarks.splice(index, 1);
+        btn.classList.remove('text-blue-500', 'bg-blue-50');
+        btn.classList.add('text-gray-400');
+        btn.querySelector('svg').setAttribute('fill', 'none');
+        Toastify({
+            text: "Đã bỏ lưu tài liệu",
+            duration: 2000,
+            close: true,
+            gravity: "bottom",
+            position: "right",
+            style: { background: "#4B5563" }
+        }).showToast();
+    } else {
+        // Add
+        bookmarks.push({ id, title, slug, fileType, dateSaved: new Date().toISOString() });
+        btn.classList.add('text-blue-500', 'bg-blue-50');
+        btn.classList.remove('text-gray-400');
+        btn.querySelector('svg').setAttribute('fill', 'currentColor');
+        Toastify({
+            text: "Đã lưu tài liệu",
+            duration: 2000,
+            close: true,
+            gravity: "bottom",
+            position: "right",
+            style: { background: "#3b82f6" }
+        }).showToast();
+    }
+    
+    saveBookmarks(bookmarks);
+    
+    // If modal is open, re-render
+    if (document.getElementById('bookmarksModal') && !document.getElementById('bookmarksModal').classList.contains('hidden')) {
+        renderBookmarks();
+    }
+}
+
+function removeBookmark(id) {
+    let bookmarks = getBookmarks();
+    bookmarks = bookmarks.filter(b => b.id != id);
+    saveBookmarks(bookmarks);
+    renderBookmarks();
+    
+    // Update button in course page if it exists
+    const btn = document.querySelector(`.btn-bookmark[data-doc-id="${id}"]`);
+    if (btn) {
+        btn.classList.remove('text-blue-500', 'bg-blue-50');
+        btn.classList.add('text-gray-400');
+        btn.querySelector('svg').setAttribute('fill', 'none');
+    }
+}
+
+function updateBookmarkBadge() {
+    const badge = document.getElementById('bookmarkBadge');
+    if (!badge) return;
+    const count = getBookmarks().length;
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+}
+
+function openBookmarksModal() {
+    const modal = document.getElementById('bookmarksModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        renderBookmarks();
+    }
+}
+
+function closeBookmarksModal() {
+    const modal = document.getElementById('bookmarksModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function renderBookmarks() {
+    const container = document.getElementById('bookmarksContainer');
+    const emptyState = document.getElementById('emptyBookmarksState');
+    if (!container || !emptyState) return;
+    
+    // Clear existing
+    const existingCards = container.querySelectorAll('.bookmark-card');
+    existingCards.forEach(c => c.remove());
+    
+    const bookmarks = getBookmarks();
+    
+    if (bookmarks.length === 0) {
+        emptyState.classList.remove('hidden');
+    } else {
+        emptyState.classList.add('hidden');
+        
+        // Sort by date descending
+        bookmarks.sort((a, b) => new Date(b.dateSaved) - new Date(a.dateSaved));
+        
+        bookmarks.forEach(doc => {
+            let iconHtml = '';
+            if (doc.fileType === 'PDF') iconHtml = `<div class="w-10 h-10 flex items-center justify-center rounded bg-red-50 text-red-600 shrink-0"><span class="font-bold text-[10px]">PDF</span></div>`;
+            else if (doc.fileType === 'DOCX') iconHtml = `<div class="w-10 h-10 flex items-center justify-center rounded bg-blue-50 text-blue-600 shrink-0"><span class="font-bold text-[10px]">DOCX</span></div>`;
+            else if (doc.fileType === 'PPTX') iconHtml = `<div class="w-10 h-10 flex items-center justify-center rounded bg-orange-50 text-orange-600 shrink-0"><span class="font-bold text-[10px]">PPTX</span></div>`;
+            else iconHtml = `<div class="w-10 h-10 flex items-center justify-center rounded bg-green-50 text-green-600 shrink-0"><span class="font-bold text-[10px]">IMG</span></div>`;
+
+            const card = document.createElement('div');
+            card.className = 'bookmark-card flex items-start justify-between gap-3 p-3 mb-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow';
+            card.innerHTML = `
+                <div class="flex items-start gap-3 min-w-0">
+                    ${iconHtml}
+                    <div class="min-w-0">
+                        <a href="/document/${doc.slug}/view" target="_blank" class="block font-bold text-gray-900 text-sm hover:text-primary truncate" title="${doc.title}">${doc.title}</a>
+                        <p class="text-xs text-gray-500 mt-1">Đã lưu: ${new Date(doc.dateSaved).toLocaleDateString('vi-VN')}</p>
+                    </div>
+                </div>
+                <button type="button" onclick="removeBookmark(${doc.id})" class="shrink-0 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" title="Bỏ lưu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            `;
+            container.appendChild(card);
+        });
+    }
+}
+
+// Initialize bookmark buttons on page load
+document.addEventListener('DOMContentLoaded', () => {
+    updateBookmarkBadge();
+    
+    const bookmarks = getBookmarks();
+    const buttons = document.querySelectorAll('.btn-bookmark');
+    buttons.forEach(btn => {
+        const id = btn.getAttribute('data-doc-id');
+        if (bookmarks.some(b => b.id == id)) {
+            btn.classList.add('text-blue-500', 'bg-blue-50');
+            btn.classList.remove('text-gray-400');
+            btn.querySelector('svg').setAttribute('fill', 'currentColor');
+        }
+    });
+});
