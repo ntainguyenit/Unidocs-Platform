@@ -98,6 +98,7 @@
                                         <span th:text="${note.title}">Tiêu đề</span>
                                         <span th:if="${noteStat.index == 0}" class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white leading-none relative -top-0.5 shadow-sm animate-pulse">NEW</span>
                                     </h3>
+                                    <p class="mt-1 text-xs text-gray-400 font-medium" th:if="${not #strings.isEmpty(note.timestamp)}" th:text="${note.timestamp}"></p>
                                     <p class="mt-1 text-sm text-gray-500 line-clamp-2" th:text="${note.content}">Nội dung</p>
                                 </div>
                             </div>

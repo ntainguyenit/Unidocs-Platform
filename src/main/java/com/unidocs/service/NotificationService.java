@@ -52,7 +52,10 @@ public class NotificationService {
                 Element contentElement = titleElement.parent().nextElementSibling();
                 String content = contentElement != null ? contentElement.text() : "";
                 
-                newNotifications.add(new NotificationDto(title, link, content));
+                Element timeElement = titleElement.parent().select("small.text-muted").first();
+                String timestamp = timeElement != null ? timeElement.text() : "";
+                
+                newNotifications.add(new NotificationDto(title, link, content, timestamp));
             }
             
             if (!newNotifications.isEmpty()) {
