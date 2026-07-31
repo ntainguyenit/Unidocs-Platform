@@ -103,6 +103,9 @@
                 <button onclick="cycleTheme()" class="hide-on-mobile text-white hover:text-blue-200 transition-colors relative" title="Chuyển đổi giao diện">
                     <svg id="themeIconSvg" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
                 </button>
+                <button onclick="openStatsModal()" class="hide-on-mobile text-white hover:text-blue-200 transition-colors relative" title="Thống kê truy cập">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </button>
                 <button onclick="openBookmarksModal()" class="hide-on-mobile text-white hover:text-blue-200 transition-colors relative" title="Tài liệu đã lưu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
                     <span id="bookmarkBadge" style="top: -6px; right: -8px;" class="absolute bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-sm hidden">0</span>
@@ -187,6 +190,27 @@
                         <p class="text-lg font-medium text-gray-600" data-i18n="header.bookmarks.empty">Bạn chưa lưu tài liệu nào</p>
                         <p class="text-sm mt-1" data-i18n="header.bookmarks.empty.desc">Hãy bấm vào biểu tượng cờ trên các tài liệu để lưu lại nhé.</p>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Modal (Looker Studio) -->
+        <div id="statsModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4">
+            <div class="absolute inset-0 backdrop-blur-sm bg-black/50" onclick="closeStatsModal()"></div>
+            <div class="bg-white rounded-xl shadow-2xl z-10 w-full max-w-5xl overflow-hidden flex flex-col h-[90vh]">
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            Thống kê truy cập (Real-time)
+                        </h3>
+                    </div>
+                    <button type="button" onclick="closeStatsModal()" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="flex-grow w-full h-full bg-gray-50/30">
+                    <iframe src="https://datastudio.google.com/embed/reporting/0178f282-3bf6-45d2-ac83-2dc884cde3b8/page/lZG5F" class="w-full h-full border-0" frameborder="0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
                 </div>
             </div>
         </div>

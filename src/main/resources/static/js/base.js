@@ -418,6 +418,20 @@ function closeBookmarksModal() {
     if (modal) modal.classList.add('hidden');
 }
 
+function openStatsModal() {
+    const modal = document.getElementById('statsModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeStatsModal() {
+    const modal = document.getElementById('statsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
 function renderBookmarks() {
     const container = document.getElementById('bookmarksContainer');
     const emptyState = document.getElementById('emptyBookmarksState');
