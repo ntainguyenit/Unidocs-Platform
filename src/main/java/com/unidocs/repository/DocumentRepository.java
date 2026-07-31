@@ -31,4 +31,13 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     Page<Document> findByStatus(DocumentStatus status, Pageable pageable);
     
     boolean existsByCourseIdAndTitle(Long courseId, String title);
+
+    @org.springframework.data.jpa.repository.Query("SELECT d FROM Document d WHERE d.course.id = :courseId AND d.status = :status ORDER BY (d.views + d.downloads) DESC")
+    List<Document> findTrendingDocumentsByCourse(@org.springframework.data.repository.query.Param("courseId") Long courseId, @org.springframework.data.repository.query.Param("status") DocumentStatus status, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT d FROM Document d WHERE d.course.id = :courseId AND d.folderName = :folderName AND d.id <> :excludeId AND d.status = :status ORDER BY (d.views + d.downloads) DESC")
+    List<Document> findRelatedDocumentsSameFolder(@org.springframework.data.repository.query.Param("courseId") Long courseId, @org.springframework.data.repository.query.Param("folderName") String folderName, @org.springframework.data.repository.query.Param("excludeId") Long excludeId, @org.springframework.data.repository.query.Param("status") DocumentStatus status, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT d FROM Document d WHERE d.course.id = :courseId AND d.id <> :excludeId AND d.status = :status ORDER BY (d.views + d.downloads) DESC")
+    List<Document> findRelatedDocumentsSameCourse(@org.springframework.data.repository.query.Param("courseId") Long courseId, @org.springframework.data.repository.query.Param("excludeId") Long excludeId, @org.springframework.data.repository.query.Param("status") DocumentStatus status, Pageable pageable);
 }

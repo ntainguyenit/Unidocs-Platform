@@ -31,6 +31,9 @@ public class DocumentWebController {
         documentService.incrementViews(doc.getId());
         model.addAttribute("document", doc);
         
+        java.util.List<Document> relatedDocs = documentService.getRelatedDocuments(doc, 4);
+        model.addAttribute("relatedDocs", relatedDocs);
+        
         return "document-view";
     }
 

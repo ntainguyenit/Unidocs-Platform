@@ -88,6 +88,9 @@ public class HomeController {
         model.addAttribute("course", course);
         model.addAttribute("turnstileSiteKey", turnstileSiteKey);
         
+        java.util.List<com.unidocs.domain.Document> trendingDocs = documentService.getTrendingDocumentsForCourse(course.getId(), 4);
+        model.addAttribute("trendingDocs", trendingDocs);
+        
         if (folder == null) {
             // Get unique folder names, optionally sort them
             java.util.List<String> folders = allDocs.stream()

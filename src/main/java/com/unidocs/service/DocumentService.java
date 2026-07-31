@@ -233,4 +233,36 @@ public class DocumentService {
     public Document saveDirectly(Document document) {
         return documentRepository.save(document);
     }
+
+    public List<Document> getTrendingDocumentsForCourse(Long courseId, int limit) {
+        return documentRepository.findTrendingDocumentsByCourse(courseId, DocumentStatus.APPROVED, PageRequest.of(0, limit));
+    }
+
+    public List<Document> getRelatedDocuments(Document document, int limit) {
+        Long courseId = document.getCourse().getId();
+        Long excludeId = document.getId();
+        String folderName = document.getFolderName();
+        
+        List<Document> related = new java.util.ArrayList<>();
+        
+        // Priority 1: Same folder
+        if (folderName != null) {
+            related.addAll(documentRepository.findRelatedDocumentsSameFolder(courseId, folderName, excludeId, DocumentStatus.APPROVED, PageRequest.of(0, limit)));
+        }
+        
+        // Priority 2: Same course if we need more
+        if (related.size() < limit) {
+            int needed = limit - related.size();
+            List<Document> sameCourse = documentRepository.findRelatedDocumentsSameCourse(courseId, excludeId, DocumentStatus.APPROVED, PageRequest.of(0, limit));
+            
+            for (Document d : sameCourse) {
+                if (related.size() >= limit) break;
+                if (related.stream().noneMatch(r -> r.getId().equals(d.getId()))) {
+                    related.add(d);
+                }
+            }
+        }
+        
+        return related;
+    }
 }
