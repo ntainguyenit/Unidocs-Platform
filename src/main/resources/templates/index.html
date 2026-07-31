@@ -11,8 +11,8 @@
         
         <div class="bg-primary-dark text-white rounded-xl p-8 mb-8 shadow-lg relative overflow-hidden">
             <div class="relative z-10">
-                <h1 class="text-3xl md:text-4xl font-bold mb-4 text-white">Đề Thi & Tài Liệu</h1>
-                <p class="text-gray-300 text-lg max-w-2xl">Không cần đăng nhập, tất cả đều miễn phí.</p>
+                <h1 class="text-3xl md:text-4xl font-bold mb-4 text-white" data-i18n="home.title">Đề Thi & Tài Liệu</h1>
+                <p class="text-gray-300 text-lg max-w-2xl" data-i18n="home.subtitle">Không cần đăng nhập, tất cả đều miễn phí.</p>
             </div>
             <div class="absolute top-0 right-0 opacity-10">
                 <svg width="400" height="400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
@@ -25,7 +25,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
-                    Sao chép liên kết trang web
+                    <span data-i18n="home.copy_link">Sao chép liên kết trang web</span>
                 </button>
             </div>
         </div>
@@ -40,11 +40,10 @@
         <div class="mb-12">
             <div class="flex justify-between items-end mb-6 border-b border-divider pb-2">
                 <div class="flex items-center gap-3">
-                    <h2 class="text-2xl text-text">Trường đại học</h2>
+                    <h2 class="text-2xl text-text" data-i18n="home.university">Trường đại học</h2>
                     <a href="#" onclick="showManualModal(); return false;" class="text-gray-500 hover:text-primary transition-colors flex items-center gap-1 text-sm font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Hướng dẫn sử dụng
-                    </a>
+                        <span data-i18n="home.manual">Hướng dẫn sử dụng</span></a>
                 </div>
             </div>
             
@@ -65,10 +64,10 @@
         <div class="mb-12">
             <div class="flex flex-wrap justify-between items-center border-b border-gray-200 pb-4 mb-6 gap-2">
                 <h2 class="text-2xl text-text flex flex-wrap items-center">
-                    Thông báo từ nhà trường 
-                    <span class="text-gray-500 text-sm font-normal ml-1 md:ml-2">(Tổng hợp 5 thông báo mới nhất)</span>
+                    <span data-i18n="home.notices">Thông báo từ nhà trường</span> 
+                    <span class="text-gray-500 text-sm font-normal ml-1 md:ml-2" data-i18n="home.notices.desc">(Tổng hợp 5 thông báo mới nhất)</span>
                 </h2>
-                <a href="https://ums.husc.edu.vn/" target="_blank" class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors whitespace-nowrap">
+                <a href="https://ums.husc.edu.vn/" target="_blank" class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors whitespace-nowrap" data-i18n="home.view_all">
                     Xem tất cả
                 </a>
             </div>
@@ -110,7 +109,7 @@
 
         <div class="mb-12" id="utilities">
             <div class="flex justify-between items-end mb-6 border-b border-divider pb-2">
-                <h2 class="text-2xl text-text">Tiện ích sinh viên <span class="block sm:inline text-gray-500 text-sm font-normal mt-1 sm:mt-0">(Sử dụng miễn phí)</span></h2>
+                <h2 class="text-2xl text-text"><span data-i18n="home.utilities">Tiện ích sinh viên</span> <span class="block sm:inline text-gray-500 text-sm font-normal mt-1 sm:mt-0" data-i18n="home.utilities.desc">(Sử dụng miễn phí)</span></h2>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
@@ -122,8 +121,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Giả lập Thi</h3>
-                        <p class="text-sm text-gray-500 mt-1">Phòng thi mô phỏng với đồng hồ đếm ngược, rèn luyện áp lực thời gian.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.exam_sim">Giả lập Thi</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.exam_sim.desc">Phòng thi mô phỏng với đồng hồ đếm ngược, rèn luyện áp lực thời gian.</p>
                     </div>
                 </a>
 
@@ -135,8 +134,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tạo lịch biểu</h3>
-                        <p class="text-sm text-gray-500 mt-1">Thiết kế thời khóa biểu cá nhân trực quan và xuất file PDF tiện lợi.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.timetable">Tạo lịch biểu</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.timetable.desc">Thiết kế thời khóa biểu cá nhân trực quan và xuất file PDF tiện lợi.</p>
                     </div>
                 </a>
 
@@ -148,9 +147,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900">Đăng ký tín chỉ</h3>
-                        <p class="text-sm text-gray-500 mt-1">Hướng dẫn sử dụng trang tín chỉ. Vui lòng truy cập <a href="https://drive.google.com/file/d/1DCdsiGrpOrqW1k8ruilcowmN-6Ep-4U8/view" target="_blank" class="text-blue-800 font-bold hover:underline transition-colors">Tại đây</a>.</p>
-                        <p class="text-sm text-gray-500 mt-1"><a href="javascript:void(0)" onclick="openInfoModal('TinChi')" class="text-blue-800 font-bold hover:underline transition-colors">Mẹo đăng ký tín chỉ</a></p>
+                        <h3 class="font-bold text-gray-900" data-i18n="home.util.course_reg">Đăng ký tín chỉ</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.course_reg.desc">Hướng dẫn sử dụng trang tín chỉ. Vui lòng truy cập <a href="https://drive.google.com/file/d/1DCdsiGrpOrqW1k8ruilcowmN-6Ep-4U8/view" target="_blank" class="text-blue-800 font-bold hover:underline transition-colors">Tại đây</a>.</p>
+                        <p class="text-sm text-gray-500 mt-1"><a href="javascript:void(0)" onclick="openInfoModal(\'TinChi\')" class="text-blue-800 font-bold hover:underline transition-colors" data-i18n="home.util.course_reg.tips">Mẹo đăng ký tín chỉ</a></p>
                     </div>
                 </div>
 
@@ -162,8 +161,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Biểu mẫu</h3>
-                        <p class="text-sm text-gray-500 mt-1">Các biểu mẫu dành cho sinh viên lấy từ website trường Đại học Khoa học Huế.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.forms">Biểu mẫu</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.forms.desc">Các biểu mẫu dành cho sinh viên lấy từ website trường Đại học Khoa học Huế.</p>
                     </div>
                 </a>
 
@@ -177,8 +176,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Điều kiện tốt nghiệp</h3>
-                        <p class="text-sm text-gray-500 mt-1">Thông tin chi tiết các điều kiện để được xét công nhận tốt nghiệp.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.grad_req">Điều kiện tốt nghiệp</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.grad_req.desc">Thông tin chi tiết các điều kiện để được xét công nhận tốt nghiệp.</p>
                     </div>
                 </div>
 
@@ -190,8 +189,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Lối tắt truy cập nhanh</h3>
-                        <p class="text-sm text-gray-500 mt-1">Tổng hợp các đường link quan trọng và hữu ích dành cho sinh viên.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.shortcuts">Lối tắt truy cập nhanh</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.shortcuts.desc">Tổng hợp các đường link quan trọng và hữu ích dành cho sinh viên.</p>
                     </div>
                 </div>
 
@@ -203,8 +202,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Sơ đồ trường</h3>
-                        <p class="text-sm text-gray-500 mt-1">Bản đồ trực quan và chú thích các phòng học tại trường.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.map">Sơ đồ trường</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.map.desc">Bản đồ trực quan và chú thích các phòng học tại trường.</p>
                     </div>
                 </div>
 
@@ -216,8 +215,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Làm đẹp ảnh chụp</h3>
-                        <p class="text-sm text-gray-500 mt-1">Trang trí ảnh chụp màn hình với viền bóng, gradient cực đẹp.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.screenshot">Làm đẹp ảnh chụp</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.screenshot.desc">Trang trí ảnh chụp màn hình với viền bóng, gradient cực đẹp.</p>
                     </div>
                 </a>
 
@@ -230,8 +229,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Bốt chụp ảnh</h3>
-                        <p class="text-sm text-gray-500 mt-1">Chụp ảnh selfie với các bộ lọc màu, sticker và khung viền vui nhộn.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.photo_booth">Bốt chụp ảnh</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.photo_booth.desc">Chụp ảnh selfie với các bộ lọc màu, sticker và khung viền vui nhộn.</p>
                     </div>
                 </a>
 
@@ -243,8 +242,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tốc độ gõ</h3>
-                        <p class="text-sm text-gray-500 mt-1">Kiểm tra tốc độ gõ phím WPM và độ chính xác của bạn.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.typing">Tốc độ gõ</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.typing.desc">Kiểm tra tốc độ gõ phím WPM và độ chính xác của bạn.</p>
                     </div>
                 </a>
 
@@ -257,8 +256,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Vòng quay may mắn</h3>
-                        <p class="text-sm text-gray-500 mt-1">Nhập danh sách và quay ngẫu nhiên. Lý tưởng để chia nhóm.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.lucky_wheel">Vòng quay may mắn</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.lucky_wheel.desc">Nhập danh sách và quay ngẫu nhiên. Lý tưởng để chia nhóm.</p>
                     </div>
                 </a>
 
@@ -270,8 +269,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Đếm ngược mùa thi</h3>
-                        <p class="text-sm text-gray-500 mt-1">Lên lịch thi và tạo bộ đếm ngược thời gian đầy động lực.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.exam_countdown">Đếm ngược mùa thi</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.exam_countdown.desc">Lên lịch thi và tạo bộ đếm ngược thời gian đầy động lực.</p>
                     </div>
                 </a>
 
@@ -283,8 +282,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Thẻ nhớ thông minh</h3>
-                        <p class="text-sm text-gray-500 mt-1">Học thuật bằng Flashcards với thuật toán lặp lại ngắt quãng.</p>
+                        <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.flashcards">Thẻ nhớ thông minh</h3>
+                        <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.flashcards.desc">Học thuật bằng Flashcards với thuật toán lặp lại ngắt quãng.</p>
                     </div>
                 </a>
             </div>
@@ -294,29 +293,29 @@
         <div class="mb-12">
             <div class="border-b border-gray-200 pb-4 mb-6">
                 <h2 class="text-xl md:text-2xl font-bold text-gray-900">
-                    Góp ý & Phản hồi
-                    <span class="block sm:inline text-gray-500 text-sm font-normal mt-1 sm:mt-0">(Giúp cải thiện UniDocs tốt hơn)</span>
+                    <span data-i18n="home.feedback">Góp ý & Phản hồi</span>
+                    <span class="block sm:inline text-gray-500 text-sm font-normal mt-1 sm:mt-0" data-i18n="home.feedback.desc">(Giúp cải thiện UniDocs tốt hơn)</span>
                 </h2>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Form Góp Ý -->
                 <div class="lg:col-span-1">
                     <div class="bg-white rounded-lg shadow-sm border border-divider p-6 h-full">
-                        <h3 class="text-lg font-bold mb-4">Gửi Góp Ý</h3>
+                        <h3 class="text-lg font-bold mb-4" data-i18n="home.feedback.send">Gửi Góp Ý</h3>
                         <form id="feedbackForm" onsubmit="submitFeedback(event)">
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tên hiển thị</label>
-                                <input type="text" value="Người dùng" readonly disabled class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed">
+                                <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="home.feedback.name">Tên hiển thị</label>
+                                <input type="text" value="Người dùng" data-i18n-value="home.feedback.user" readonly disabled class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed">
                             </div>
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nội dung <span class="text-red-500">*</span></label>
-                                <textarea id="content" name="content" rows="4" maxlength="500" required placeholder="Vui lòng nhập góp ý tại đây nhé..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"></textarea>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="home.feedback.content">Nội dung <span class="text-red-500">*</span></label>
+                                <textarea id="content" name="content" rows="4" maxlength="500" required placeholder="Vui lòng nhập góp ý tại đây nhé..." data-i18n-placeholder="home.feedback.placeholder" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"></textarea>
                                 <div class="flex justify-between mt-1 mb-2">
                                     <span id="charCount" class="text-xs text-gray-500">0/500</span>
                                 </div>
                                 <div class="flex items-center mb-4 mt-2">
                                     <input id="termsConsent" name="termsConsent" type="checkbox" required class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer">
-                                    <label for="termsConsent" class="ml-2 block text-sm text-gray-700 cursor-pointer select-none">
+                                    <label for="termsConsent" class="ml-2 block text-sm text-gray-700 cursor-pointer select-none" data-i18n="home.feedback.agree">
                                         Tôi đồng ý với <a href="/terms" class="text-primary font-bold hover:underline">Điều khoản sử dụng</a> và <a href="/privacy" class="text-primary font-bold hover:underline">Chính sách bảo mật.</a>
                                     </label>
                                 </div>
@@ -333,7 +332,7 @@
                 <div class="lg:col-span-2">
                     <div class="bg-white rounded-lg shadow-sm border border-divider p-6 h-full flex flex-col">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold">Danh sách Góp ý</h3>
+                            <h3 class="text-lg font-bold" data-i18n="home.feedback.list">Danh sách Góp ý</h3>
                             <div class="flex items-center gap-3">
                                 <button type="button" onclick="toggleSort()" class="text-gray-500 hover:text-primary transition-colors flex items-center gap-1" title="Sắp xếp Mới nhất/Cũ nhất">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

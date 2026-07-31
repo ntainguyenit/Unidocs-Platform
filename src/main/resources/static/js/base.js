@@ -63,11 +63,6 @@ Object.defineProperty(window, 'isFormDirty', {
 document.addEventListener('DOMContentLoaded', () => {
     const dateEl = document.getElementById('realtimeDate');
     if (dateEl) {
-        const updateDate = () => {
-            const now = new Date();
-            const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-            dateEl.textContent = `${days[now.getDay()]}, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
-        };
         updateDate();
         setInterval(updateDate, 60000);
     }
@@ -200,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Theme Toggle Logic
-const themes = ['light', 'dark', 'system'];
+const themes = ['light', 'dark'];
 let currentThemeIndex = 0; 
 const savedTheme = localStorage.getItem('unidocs_theme');
 if (savedTheme) {
@@ -209,9 +204,15 @@ if (savedTheme) {
 
 function applyTheme() {
     const theme = themes[currentThemeIndex];
-    const themeNames = ['Sáng', 'Tối', 'Hệ thống'];
-    const currentThemeEl = document.getElementById('currentTheme');
-    if (currentThemeEl) currentThemeEl.textContent = themeNames[currentThemeIndex];
+    
+    const themeIconSvg = document.getElementById('themeIconSvg');
+    if (themeIconSvg) {
+        if (theme === 'light') {
+            themeIconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+        } else if (theme === 'dark') {
+            themeIconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+        }
+    }
     
     // Determine actual theme
     const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -240,7 +241,73 @@ function closeManualModal() {
 }
 
 // Init
-function applyLanguage() {}
+// Language Toggle Logic
+const langs = ['vi', 'en', 'ja'];
+let currentLangIndex = 0;
+const savedLang = localStorage.getItem('unidocs_lang');
+if (savedLang) {
+    currentLangIndex = langs.indexOf(savedLang) !== -1 ? langs.indexOf(savedLang) : 0;
+}
+
+function applyLanguage() {
+    const lang = langs[currentLangIndex];
+    const langNames = ['VIE', 'ENG', 'JPN'];
+    
+    const currentLangText = document.getElementById('currentLangText');
+    if (currentLangText) currentLangText.textContent = langNames[currentLangIndex];
+    
+    updateDate();
+    
+    if (typeof I18N_DICT !== 'undefined' && I18N_DICT[lang]) {
+        const dict = I18N_DICT[lang];
+        
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (dict[key]) el.innerHTML = dict[key];
+        });
+        
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (dict[key]) el.setAttribute('placeholder', dict[key]);
+        });
+        
+        document.querySelectorAll('[data-i18n-value]').forEach(el => {
+            const key = el.getAttribute('data-i18n-value');
+            if (dict[key]) el.value = dict[key];
+        });
+        
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            if (dict[key]) el.setAttribute('title', dict[key]);
+        });
+    }
+}
+
+function cycleLanguage() {
+    currentLangIndex = (currentLangIndex + 1) % langs.length;
+    localStorage.setItem('unidocs_lang', langs[currentLangIndex]);
+    applyLanguage();
+}
+
+function updateDate() {
+    const dateEl = document.getElementById('realtimeDate');
+    if (!dateEl) return;
+    
+    const now = new Date();
+    const lang = langs[currentLangIndex];
+    if (lang === 'vi') {
+        const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+        dateEl.textContent = `${days[now.getDay()]}, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
+    } else if (lang === 'en') {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        dateEl.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+    } else if (lang === 'ja') {
+        const days = ['日', '月', '火', '水', '木', '金', '土'];
+        dateEl.textContent = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 (${days[now.getDay()]})`;
+    }
+}
+
 applyLanguage();
 applyTheme();
 
