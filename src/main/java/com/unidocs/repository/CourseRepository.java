@@ -14,8 +14,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Cacheable(value = "course", key = "#slug")
     Optional<Course> findBySlug(String slug);
     
-    Optional<Course> findByNameAndFaculty(String name, Faculty faculty);
-    
     List<Course> findByNameContainingIgnoreCase(String keyword);
 
     @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c LEFT JOIN FETCH c.faculty")
