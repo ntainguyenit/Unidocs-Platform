@@ -422,6 +422,11 @@ function openStatsModal() {
     const modal = document.getElementById('statsModal');
     if (modal) {
         modal.classList.remove('hidden');
+        // Lazy load iframe to prevent rendering issues in hidden container
+        const iframe = document.getElementById('lookerStudioIframe');
+        if (iframe && !iframe.getAttribute('src')) {
+            iframe.setAttribute('src', iframe.getAttribute('data-src'));
+        }
     }
 }
 

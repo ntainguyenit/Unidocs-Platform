@@ -209,8 +209,15 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
-                <div class="flex-grow w-full h-full bg-gray-50/30">
-                    <iframe src="https://datastudio.google.com/embed/reporting/0178f282-3bf6-45d2-ac83-2dc884cde3b8/page/lZG5F" class="w-full h-full border-0" frameborder="0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+                <div class="flex-grow w-full h-full bg-gray-50/30 relative">
+                    <!-- Loading skeleton/text (optional) -->
+                    <div class="absolute inset-0 flex items-center justify-center -z-10">
+                        <div class="animate-pulse flex flex-col items-center">
+                            <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <p class="mt-4 text-gray-500 font-medium">Đang tải dữ liệu báo cáo...</p>
+                        </div>
+                    </div>
+                    <iframe id="lookerStudioIframe" data-src="https://datastudio.google.com/embed/reporting/0178f282-3bf6-45d2-ac83-2dc884cde3b8/page/lZG5F" src="" class="w-full h-full border-0" frameborder="0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
                 </div>
             </div>
         </div>
