@@ -2,6 +2,7 @@ package com.unidocs.repository;
 
 import com.unidocs.domain.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -9,7 +10,11 @@ import java.util.List;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
+
+    @Cacheable(value = "course", key = "#slug")
     Optional<Course> findBySlug(String slug);
+    
+    Optional<Course> findByNameAndFaculty(String name, Faculty faculty);
     
     List<Course> findByNameContainingIgnoreCase(String keyword);
 
