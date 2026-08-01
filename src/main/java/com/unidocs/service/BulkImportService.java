@@ -46,6 +46,7 @@ public class BulkImportService {
     private final StorageService storageService;
 
     private final com.unidocs.repository.UniversityRepository universityRepository;
+    private final java.util.concurrent.ExecutorService thumbnailExecutor = java.util.concurrent.Executors.newFixedThreadPool(2);
 
     public BulkImportService(FacultyRepository facultyRepository, 
                              CourseRepository courseRepository, 
@@ -175,6 +176,7 @@ public class BulkImportService {
     }
 
     private void processDocument(java.io.InputStream is, String fileName, Course course, String folderName) throws Exception {
+        log.info("Processing file: {}", fileName);
         java.io.File entryTempFile = java.io.File.createTempFile("entry-", ".tmp");
         try {
             try (java.io.FileOutputStream fos = new java.io.FileOutputStream(entryTempFile)) {
@@ -223,11 +225,27 @@ public class BulkImportService {
 
             String thumbnailUrl = null;
             if (fileType == DocumentType.PDF && entryTempFile.length() < 50_000_000) { // Limit thumbnail generation to PDFs < 50MB
+                log.info("Generating thumbnail for: {}", fileName);
                 try (java.io.InputStream bais = new java.io.FileInputStream(entryTempFile)) {
-                    byte[] thumbBytes = com.unidocs.util.PdfThumbnailUtil.generateThumbnail(bais);
-                    if (thumbBytes != null) {
-                        String thumbFilename = "thumb_" + UUID.randomUUID().toString() + ".jpg";
-                        thumbnailUrl = storageService.uploadFile(thumbBytes, thumbFilename, "image/jpeg");
+                    java.util.concurrent.Future<byte[]> future = thumbnailExecutor.submit(() -> {
+                        try {
+                            return com.unidocs.util.PdfThumbnailUtil.generateThumbnail(bais);
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    });
+                    
+                    try {
+                        byte[] thumbBytes = future.get(15, java.util.concurrent.TimeUnit.SECONDS);
+                        if (thumbBytes != null) {
+                            String thumbFilename = "thumb_" + UUID.randomUUID().toString() + ".jpg";
+                            thumbnailUrl = storageService.uploadFile(thumbBytes, thumbFilename, "image/jpeg");
+                        }
+                    } catch (java.util.concurrent.TimeoutException te) {
+                        log.warn("Thumbnail generation timed out for: {}", fileName);
+                        future.cancel(true);
+                    } catch (Exception e) {
+                        log.warn("Error generating thumbnail for: {}", fileName, e);
                     }
                 }
             }
