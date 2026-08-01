@@ -392,10 +392,10 @@
             <div class="relative group pointer-events-auto flex items-center justify-end w-64 h-full">
                 <!-- Trigger 4 dashes -->
                 <div class="flex flex-col gap-2 p-3 cursor-pointer bg-white/50 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 group-hover:opacity-0 transition-opacity duration-300 absolute right-0">
-                    <div class="w-6 h-1 bg-gray-800 rounded-full"></div>
-                    <div class="w-6 h-1 bg-gray-300 rounded-full"></div>
-                    <div class="w-6 h-1 bg-gray-300 rounded-full"></div>
-                    <div class="w-6 h-1 bg-gray-300 rounded-full"></div>
+                    <div class="toc-dash w-6 h-1 bg-gray-800 rounded-full transition-colors duration-300"></div>
+                    <div class="toc-dash w-6 h-1 bg-gray-300 rounded-full transition-colors duration-300"></div>
+                    <div class="toc-dash w-6 h-1 bg-gray-300 rounded-full transition-colors duration-300"></div>
+                    <div class="toc-dash w-6 h-1 bg-gray-300 rounded-full transition-colors duration-300"></div>
                 </div>
                 
                 <!-- Menu -->
@@ -616,6 +616,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const tocLinks = document.querySelectorAll('.toc-link');
+            const tocDashes = document.querySelectorAll('.toc-dash');
             const sections = Array.from(tocLinks).map(link => {
                 const id = link.getAttribute('href');
                 return document.querySelector(id);
@@ -631,15 +632,24 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         // reset all
-                        tocLinks.forEach(link => {
+                        tocLinks.forEach((link, index) => {
                             link.classList.remove('text-blue-600');
                             link.classList.add('text-gray-500');
+                            if (tocDashes[index]) {
+                                tocDashes[index].classList.remove('bg-gray-800');
+                                tocDashes[index].classList.add('bg-gray-300');
+                            }
                         });
                         // active current
                         const activeLink = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
                         if (activeLink) {
                             activeLink.classList.remove('text-gray-500');
                             activeLink.classList.add('text-blue-600');
+                            const activeIndex = Array.from(tocLinks).indexOf(activeLink);
+                            if (activeIndex !== -1 && tocDashes[activeIndex]) {
+                                tocDashes[activeIndex].classList.remove('bg-gray-300');
+                                tocDashes[activeIndex].classList.add('bg-gray-800');
+                            }
                         }
                     }
                 });
@@ -650,14 +660,22 @@
             });
 
             // Handle click directly to avoid observer delay
-            tocLinks.forEach(link => {
+            tocLinks.forEach((link, index) => {
                 link.addEventListener('click', () => {
-                    tocLinks.forEach(l => {
+                    tocLinks.forEach((l, i) => {
                         l.classList.remove('text-blue-600');
                         l.classList.add('text-gray-500');
+                        if (tocDashes[i]) {
+                            tocDashes[i].classList.remove('bg-gray-800');
+                            tocDashes[i].classList.add('bg-gray-300');
+                        }
                     });
                     link.classList.remove('text-gray-500');
                     link.classList.add('text-blue-600');
+                    if (tocDashes[index]) {
+                        tocDashes[index].classList.remove('bg-gray-300');
+                        tocDashes[index].classList.add('bg-gray-800');
+                    }
                 });
             });
         });
