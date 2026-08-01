@@ -8,6 +8,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.unidocs.repository.CourseRepository;
+import com.unidocs.repository.DocumentRepository;
+import com.unidocs.repository.FacultyRepository;
+import com.unidocs.repository.DocumentReportRepository;
 import com.unidocs.repository.StudyGroupInteractionRepository;
 import com.unidocs.repository.StudyGroupReportRepository;
 import com.unidocs.repository.StudyGroupRepository;
@@ -26,6 +29,7 @@ public class AdminController {
     private final FacultyRepository facultyRepository;
     private final CourseRepository courseRepository;
     private final DocumentRepository documentRepository;
+    private final DocumentReportRepository reportRepository;
     private final FeedbackService feedbackService;
     private final StudyGroupInteractionRepository studyGroupInteractionRepository;
     private final StudyGroupReportRepository studyGroupReportRepository;
