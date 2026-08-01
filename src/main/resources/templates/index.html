@@ -37,7 +37,7 @@
 
         
 
-        <div class="mb-12">
+        <div class="mb-12" id="section-university">
             <div class="flex justify-between items-end mb-6 border-b border-divider pb-2">
                 <div class="flex items-center gap-3">
                     <h2 class="text-2xl text-text" data-i18n="home.university">Trường đại học</h2>
@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        <div class="mb-12">
+        <div class="mb-12" id="section-notices">
             <div class="flex flex-wrap justify-between items-center border-b border-gray-200 pb-4 mb-6 gap-2">
                 <h2 class="text-2xl text-text flex flex-wrap items-center">
                     <span data-i18n="home.notices">Thông báo từ nhà trường</span> 
@@ -305,7 +305,7 @@
         </div>
 
         <!-- Góp ý & Phản hồi -->
-        <div class="mb-12">
+        <div class="mb-12" id="section-feedback">
             <div class="border-b border-gray-200 pb-4 mb-6">
                 <h2 class="text-xl md:text-2xl font-bold text-gray-900">
                     <span data-i18n="home.feedback">Góp ý & Phản hồi</span>
@@ -383,6 +383,35 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Navigation -->
+        <div class="fixed right-0 top-1/2 -translate-y-1/2 z-[90] flex items-center justify-end pr-4 h-64 pointer-events-none hidden md:flex">
+            <div class="relative group pointer-events-auto flex items-center justify-end w-64 h-full">
+                <!-- Trigger 4 dashes -->
+                <div class="flex flex-col gap-2 p-3 cursor-pointer bg-white/50 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 group-hover:opacity-0 transition-opacity duration-300 absolute right-0">
+                    <div class="w-6 h-1 bg-gray-800 rounded-full"></div>
+                    <div class="w-6 h-1 bg-gray-300 rounded-full"></div>
+                    <div class="w-6 h-1 bg-gray-300 rounded-full"></div>
+                    <div class="w-6 h-1 bg-gray-300 rounded-full"></div>
+                </div>
+                
+                <!-- Menu -->
+                <div class="flex flex-col bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 overflow-hidden transform translate-x-8 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 origin-right min-w-[240px] absolute right-0">
+                    <a href="#section-university" class="px-5 py-3.5 text-sm font-medium text-blue-600 hover:bg-gray-100 transition-colors block">
+                        Trường đại học
+                    </a>
+                    <a href="#section-notices" class="px-5 py-3.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors block">
+                        Thông báo từ nhà trường
+                    </a>
+                    <a href="#utilities" class="px-5 py-3.5 text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors block border-b border-gray-50">
+                        Tiện ích sinh viên
+                    </a>
+                    <a href="#section-feedback" class="px-5 py-3.5 text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors block">
+                        Góp ý & Phản hồi
+                    </a>
                 </div>
             </div>
         </div>
