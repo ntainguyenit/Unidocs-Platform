@@ -165,10 +165,12 @@ public class AdminController {
     @PostMapping("/system/import-zip")
     public String importZip(@RequestParam("zipFile") org.springframework.web.multipart.MultipartFile zipFile, RedirectAttributes redirectAttributes) {
         try {
-            bulkImportService.importFromZip(zipFile);
-            redirectAttributes.addFlashAttribute("successMessage", "Nhập liệu hàng loạt từ file ZIP thành công!");
+            java.io.File tempFile = java.io.File.createTempFile("import-", ".zip");
+            zipFile.transferTo(tempFile);
+            bulkImportService.importFromZipAsync(tempFile);
+            redirectAttributes.addFlashAttribute("successMessage", "Tiến trình tải lên đang được chạy ngầm. Vui lòng chờ ít phút để các file xuất hiện trên hệ thống!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi nhập liệu: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi hệ thống: " + e.getMessage());
         }
         return "redirect:/admin/documents";
     }

@@ -51,14 +51,11 @@ public class BulkImportService {
         this.universityRepository = universityRepository;
     }
 
-    @Transactional
-    public void importFromZip(MultipartFile zipFile) throws Exception {
-        com.unidocs.domain.University defaultUniversity = universityRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new RuntimeException("No university found in DB to link faculties"));
-
-        java.io.File tempFile = java.io.File.createTempFile("import-", ".zip");
+    @org.springframework.scheduling.annotation.Async
+    public void importFromZipAsync(java.io.File tempFile) {
         try {
-            zipFile.transferTo(tempFile);
+            com.unidocs.domain.University defaultUniversity = universityRepository.findAll().stream().findFirst()
+                    .orElseThrow(() -> new RuntimeException("No university found in DB to link faculties"));
 
             try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(tempFile)) {
                 java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zip.entries();
@@ -102,6 +99,8 @@ public class BulkImportService {
                     }
                 }
             }
+        } catch (Exception e) {
+            log.error("Error during async bulk import", e);
         } finally {
             if (tempFile.exists()) {
                 tempFile.delete();
