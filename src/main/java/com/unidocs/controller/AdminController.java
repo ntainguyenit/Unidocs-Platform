@@ -11,6 +11,9 @@ import com.unidocs.repository.CourseRepository;
 import com.unidocs.repository.DocumentRepository;
 import com.unidocs.repository.FacultyRepository;
 import com.unidocs.repository.DocumentReportRepository;
+import com.unidocs.repository.StudyGroupInteractionRepository;
+import com.unidocs.repository.StudyGroupReportRepository;
+import com.unidocs.repository.StudyGroupRepository;
 import com.unidocs.service.FeedbackService;
 import java.util.List;
 
@@ -27,6 +30,9 @@ public class AdminController {
     private final DocumentRepository documentRepository;
     private final DocumentReportRepository reportRepository;
     private final FeedbackService feedbackService;
+    private final StudyGroupInteractionRepository studyGroupInteractionRepository;
+    private final StudyGroupReportRepository studyGroupReportRepository;
+    private final StudyGroupRepository studyGroupRepository;
 
     public AdminController(DocumentService documentService, 
                            com.unidocs.service.ReportService reportService,
@@ -36,7 +42,10 @@ public class AdminController {
                            CourseRepository courseRepository,
                            DocumentRepository documentRepository,
                            DocumentReportRepository reportRepository,
-                           FeedbackService feedbackService) {
+                           FeedbackService feedbackService,
+                           StudyGroupInteractionRepository studyGroupInteractionRepository,
+                           StudyGroupReportRepository studyGroupReportRepository,
+                           StudyGroupRepository studyGroupRepository) {
         this.documentService = documentService;
         this.reportService = reportService;
         this.deduplicationService = deduplicationService;
@@ -46,6 +55,9 @@ public class AdminController {
         this.documentRepository = documentRepository;
         this.reportRepository = reportRepository;
         this.feedbackService = feedbackService;
+        this.studyGroupInteractionRepository = studyGroupInteractionRepository;
+        this.studyGroupReportRepository = studyGroupReportRepository;
+        this.studyGroupRepository = studyGroupRepository;
     }
 
     @GetMapping("/documents")
@@ -179,6 +191,23 @@ public class AdminController {
     @ResponseBody
     public org.springframework.http.ResponseEntity<com.unidocs.service.BulkImportService.ImportProgress> getImportStatus() {
         return org.springframework.http.ResponseEntity.ok(com.unidocs.service.BulkImportService.currentProgress);
+    }
+
+    @PostMapping("/system/clear-database")
+    public String clearDatabase(RedirectAttributes redirectAttributes) {
+        try {
+            studyGroupInteractionRepository.deleteAll();
+            studyGroupReportRepository.deleteAll();
+            studyGroupRepository.deleteAll();
+            reportRepository.deleteAll();
+            documentRepository.deleteAll();
+            courseRepository.deleteAll();
+            facultyRepository.deleteAll();
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa sạch toàn bộ dữ liệu hệ thống (Tài liệu, Môn học, Khoa, Nhóm học) thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi xóa dữ liệu: " + e.getMessage());
+        }
+        return "redirect:/admin/documents";
     }
 
     @GetMapping("/duplicates")

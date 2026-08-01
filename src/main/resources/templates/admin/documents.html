@@ -41,6 +41,14 @@
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-2xl font-bold text-gray-900">Quản lý Tài liệu</h1>
             <div class="flex gap-3">
+                <form th:action="@{/admin/system/clear-database}" method="post" onsubmit="return confirm('CẢNH BÁO NGUY HIỂM:\nHành động này sẽ XÓA SẠCH toàn bộ Tài liệu, Nhóm học, Học phần và Khoa khỏi hệ thống.\nDữ liệu KHÔNG THỂ KHÔI PHỤC.\nBạn có chắc chắn muốn tiếp tục không?');">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 text-white font-medium rounded hover:bg-red-700 transition-colors cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Xóa toàn bộ CSDL
+                    </button>
+                </form>
 
                 <button type="button" onclick="document.getElementById('importModal').classList.remove('hidden')" class="inline-flex items-center px-4 py-2 bg-primary text-white font-medium rounded hover:bg-blue-700 transition-colors cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
