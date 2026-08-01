@@ -32,6 +32,14 @@ public class BulkImportService {
 
     private static final Logger log = LoggerFactory.getLogger(BulkImportService.class);
 
+    public static class ImportProgress {
+        public int totalFiles = 0;
+        public int processedFiles = 0;
+        public int failedFiles = 0;
+        public String status = "IDLE";
+    }
+    public static final ImportProgress currentProgress = new ImportProgress();
+
     private final FacultyRepository facultyRepository;
     private final CourseRepository courseRepository;
     private final DocumentRepository documentRepository;
@@ -53,54 +61,71 @@ public class BulkImportService {
 
     @org.springframework.scheduling.annotation.Async
     public void importFromZipAsync(java.io.File tempFile) {
+        currentProgress.status = "RUNNING";
+        currentProgress.totalFiles = 0;
+        currentProgress.processedFiles = 0;
+        currentProgress.failedFiles = 0;
+
         try {
             com.unidocs.domain.University defaultUniversity = universityRepository.findAll().stream().findFirst()
                     .orElseThrow(() -> new RuntimeException("No university found in DB to link faculties"));
 
             try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(tempFile)) {
+                currentProgress.totalFiles = zip.size();
                 java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zip.entries();
                 while (entries.hasMoreElements()) {
                     java.util.zip.ZipEntry entry = entries.nextElement();
                     if (!entry.isDirectory()) {
-                        String filePath = entry.getName();
-                        // Normalize separators
-                        filePath = filePath.replace("\\", "/");
-                        String[] parts = filePath.split("/");
-                        
-                        if (parts.length >= 2) { 
-                            int startIndex = 0;
+                        try {
+                            String filePath = entry.getName();
+                            // Normalize separators
+                            filePath = filePath.replace("\\", "/");
+                            String[] parts = filePath.split("/");
                             
-                            // Detect Root Folder and skip it (e.g. OneDrive exports or wrapper folders)
-                            if (parts.length >= 3) {
-                                String p0 = parts[0];
-                                String p1 = parts[1];
-                                if ((!isFacultyPrefix(p0) && isFacultyPrefix(p1)) || p0.toLowerCase().startsWith("onedrive") || p0.toLowerCase().startsWith("export")) {
-                                    startIndex = 1;
+                            if (parts.length >= 2) { 
+                                int startIndex = 0;
+                                
+                                // Detect Root Folder and skip it (e.g. OneDrive exports or wrapper folders)
+                                if (parts.length >= 3) {
+                                    String p0 = parts[0];
+                                    String p1 = parts[1];
+                                    if ((!isFacultyPrefix(p0) && isFacultyPrefix(p1)) || p0.toLowerCase().startsWith("onedrive") || p0.toLowerCase().startsWith("export")) {
+                                        startIndex = 1;
+                                    }
+                                }
+                                
+                                String facultyName = parts[startIndex].trim();
+                                String courseName = parts.length > startIndex + 1 ? parts[startIndex + 1].trim() : "Khoa Khác";
+                                
+                                // Extract Folder Name (Academic Year) and keep original file name
+                                String folderName = "Khác (Tài liệu không xác định năm)";
+                                if (parts.length > startIndex + 2) {
+                                    folderName = String.join(" - ", java.util.Arrays.copyOfRange(parts, startIndex + 2, parts.length - 1));
+                                }
+                                String fileName = parts[parts.length - 1].trim();
+
+                                Faculty faculty = upsertFaculty(facultyName, defaultUniversity);
+                                Course course = upsertCourse(courseName, faculty);
+                                
+                                try (java.io.InputStream is = zip.getInputStream(entry)) {
+                                    processDocument(is, fileName, course, folderName);
                                 }
                             }
-                            
-                            String facultyName = parts[startIndex].trim();
-                            String courseName = parts.length > startIndex + 1 ? parts[startIndex + 1].trim() : "Khoa Khác";
-                            
-                            // Extract Folder Name (Academic Year) and keep original file name
-                            String folderName = "Khác (Tài liệu không xác định năm)";
-                            if (parts.length > startIndex + 2) {
-                                folderName = String.join(" - ", java.util.Arrays.copyOfRange(parts, startIndex + 2, parts.length - 1));
-                            }
-                            String fileName = parts[parts.length - 1].trim();
-
-                            Faculty faculty = upsertFaculty(facultyName, defaultUniversity);
-                            Course course = upsertCourse(courseName, faculty);
-                            
-                            try (java.io.InputStream is = zip.getInputStream(entry)) {
-                                processDocument(is, fileName, course, folderName);
-                            }
+                            currentProgress.processedFiles++;
+                        } catch (Exception fileEx) {
+                            log.error("Error processing file in ZIP: {}", entry.getName(), fileEx);
+                            currentProgress.failedFiles++;
+                            currentProgress.processedFiles++;
                         }
+                    } else {
+                        currentProgress.processedFiles++;
                     }
                 }
             }
+            currentProgress.status = "COMPLETED";
         } catch (Exception e) {
             log.error("Error during async bulk import", e);
+            currentProgress.status = "FAILED";
         } finally {
             if (tempFile.exists()) {
                 tempFile.delete();

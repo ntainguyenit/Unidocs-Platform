@@ -175,6 +175,12 @@ public class AdminController {
         return "redirect:/admin/documents";
     }
 
+    @GetMapping("/system/import-status")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<com.unidocs.service.BulkImportService.ImportProgress> getImportStatus() {
+        return org.springframework.http.ResponseEntity.ok(com.unidocs.service.BulkImportService.currentProgress);
+    }
+
     @GetMapping("/duplicates")
     public String viewDuplicates(@RequestParam(defaultValue = "0") int page, 
                                  @RequestParam(defaultValue = "10") int size, 
