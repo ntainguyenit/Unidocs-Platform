@@ -8,13 +8,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.unidocs.repository.CourseRepository;
-import com.unidocs.repository.DocumentRepository;
-import com.unidocs.repository.FacultyRepository;
-import com.unidocs.repository.DocumentReportRepository;
 import com.unidocs.repository.StudyGroupInteractionRepository;
 import com.unidocs.repository.StudyGroupReportRepository;
 import com.unidocs.repository.StudyGroupRepository;
 import com.unidocs.service.FeedbackService;
+import org.springframework.cache.CacheManager;
 import java.util.List;
 
 @Controller
@@ -28,11 +26,11 @@ public class AdminController {
     private final FacultyRepository facultyRepository;
     private final CourseRepository courseRepository;
     private final DocumentRepository documentRepository;
-    private final DocumentReportRepository reportRepository;
     private final FeedbackService feedbackService;
     private final StudyGroupInteractionRepository studyGroupInteractionRepository;
     private final StudyGroupReportRepository studyGroupReportRepository;
     private final StudyGroupRepository studyGroupRepository;
+    private final CacheManager cacheManager;
 
     public AdminController(DocumentService documentService, 
                            com.unidocs.service.ReportService reportService,
@@ -45,7 +43,8 @@ public class AdminController {
                            FeedbackService feedbackService,
                            StudyGroupInteractionRepository studyGroupInteractionRepository,
                            StudyGroupReportRepository studyGroupReportRepository,
-                           StudyGroupRepository studyGroupRepository) {
+                           StudyGroupRepository studyGroupRepository,
+                           CacheManager cacheManager) {
         this.documentService = documentService;
         this.reportService = reportService;
         this.deduplicationService = deduplicationService;
@@ -58,6 +57,7 @@ public class AdminController {
         this.studyGroupInteractionRepository = studyGroupInteractionRepository;
         this.studyGroupReportRepository = studyGroupReportRepository;
         this.studyGroupRepository = studyGroupRepository;
+        this.cacheManager = cacheManager;
     }
 
     @GetMapping("/documents")
@@ -203,6 +203,17 @@ public class AdminController {
             documentRepository.deleteAll();
             courseRepository.deleteAll();
             facultyRepository.deleteAll();
+            
+            // Clear caches so the frontend doesn't show old deleted entities
+            if (cacheManager != null) {
+                cacheManager.getCacheNames().forEach(cacheName -> {
+                    org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);
+                    if (cache != null) {
+                        cache.clear();
+                    }
+                });
+            }
+            
             redirectAttributes.addFlashAttribute("successMessage", "Đã xóa sạch toàn bộ dữ liệu hệ thống (Tài liệu, Môn học, Khoa, Nhóm học) thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi xóa dữ liệu: " + e.getMessage());
