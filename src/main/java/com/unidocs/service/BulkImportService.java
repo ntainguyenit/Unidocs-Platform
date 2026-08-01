@@ -44,6 +44,7 @@ public class BulkImportService {
     private final CourseRepository courseRepository;
     private final DocumentRepository documentRepository;
     private final StorageService storageService;
+    private final org.springframework.cache.CacheManager cacheManager;
 
     private final com.unidocs.repository.UniversityRepository universityRepository;
     private final java.util.concurrent.ExecutorService thumbnailExecutor = java.util.concurrent.Executors.newFixedThreadPool(2);
@@ -52,12 +53,14 @@ public class BulkImportService {
                              CourseRepository courseRepository, 
                              DocumentRepository documentRepository, 
                              StorageService storageService,
-                             com.unidocs.repository.UniversityRepository universityRepository) {
+                             com.unidocs.repository.UniversityRepository universityRepository,
+                             org.springframework.cache.CacheManager cacheManager) {
         this.facultyRepository = facultyRepository;
         this.courseRepository = courseRepository;
         this.documentRepository = documentRepository;
         this.storageService = storageService;
         this.universityRepository = universityRepository;
+        this.cacheManager = cacheManager;
     }
 
     @org.springframework.scheduling.annotation.Async
@@ -123,7 +126,23 @@ public class BulkImportService {
                     }
                 }
             }
-            currentProgress.status = "COMPLETED";
+            if (currentProgress.failedFiles == 0) {
+                currentProgress.status = "COMPLETED";
+            } else {
+                currentProgress.status = "COMPLETED_WITH_ERRORS";
+            }
+            log.info("Bulk import finished. Total: {}, Processed: {}, Failed: {}", 
+                currentProgress.totalFiles, currentProgress.processedFiles, currentProgress.failedFiles);
+                
+            // Clear caches so the frontend shows the newly imported data
+            if (cacheManager != null) {
+                cacheManager.getCacheNames().forEach(cacheName -> {
+                    org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);
+                    if (cache != null) {
+                        cache.clear();
+                    }
+                });
+            }
         } catch (Exception e) {
             log.error("Error during async bulk import", e);
             currentProgress.status = "FAILED";
