@@ -50,10 +50,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <a th:each="uni : ${universities}" th:href="@{/university/{slug}(slug=${uni.slug})}" class="card group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer flex flex-col items-center justify-center p-6 text-center h-full min-h-[12rem]">
                     <div class="w-16 h-16 mb-4 flex items-center justify-center">
-                        <img th:if="${uni.logoUrl}" th:src="${uni.logoUrl}" alt="Logo" class="w-full h-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
-                        <div th:unless="${uni.logoUrl}" th:class="${uni.color} + ' text-white rounded-full w-full h-full flex items-center justify-center font-bold text-xl shadow-inner group-hover:scale-110 transition-transform duration-300'">
-                            <span th:text="${#strings.substring(uni.shortName,0,2)}"></span>
-                        </div>
+                        <img th:src="${uni.logoUrl != null and !uni.logoUrl.isEmpty() ? uni.logoUrl : '/images/logo-uni.png'}" alt="Logo" class="w-full h-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
                     </div>
                     <h3 class="text-sm font-bold text-text group-hover:text-primary transition-colors" th:text="${uni.name}">Đại học</h3>
                     <p class="text-xs text-gray-500 mt-1 font-medium" th:text="${uni.shortName}">SHORT</p>
@@ -167,7 +164,7 @@
                     <div>
                         <h3 class="font-bold text-gray-900" data-i18n="home.util.course_reg">Đăng ký tín chỉ</h3>
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.course_reg.desc">Hướng dẫn sử dụng trang tín chỉ. Vui lòng truy cập <a href="https://drive.google.com/file/d/1DCdsiGrpOrqW1k8ruilcowmN-6Ep-4U8/view" target="_blank" class="text-blue-800 font-bold hover:underline transition-colors">Tại đây</a>.</p>
-                        <p class="text-sm text-gray-500 mt-1"><a href="javascript:void(0)" onclick="openInfoModal(\'TinChi\')" class="text-blue-800 font-bold hover:underline transition-colors" data-i18n="home.util.course_reg.tips">Mẹo đăng ký tín chỉ</a></p>
+                        <p class="text-sm text-gray-500 mt-1"><a href="javascript:void(0)" onclick="openInfoModal('TinChi')" class="text-blue-800 font-bold hover:underline transition-colors" data-i18n="home.util.course_reg.tips">Mẹo đăng ký tín chỉ</a></p>
                     </div>
                 </div>
 
