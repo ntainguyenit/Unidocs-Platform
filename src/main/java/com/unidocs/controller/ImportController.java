@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.nio.charset.StandardCharsets;
 
 @Controller
 @RequestMapping("/admin/import")
+@ConditionalOnProperty(name = "feature.import.enabled", havingValue = "true")
 public class ImportController {
 
     private final DataSeederService dataSeederService;

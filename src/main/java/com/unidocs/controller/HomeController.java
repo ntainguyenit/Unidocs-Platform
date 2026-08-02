@@ -65,8 +65,26 @@ public class HomeController {
         com.unidocs.domain.Faculty faculty = facultyRepository.findBySlug(slug)
             .orElseThrow(() -> new IllegalArgumentException("Invalid faculty slug:" + slug));
         
+        java.time.LocalDateTime sevenDaysAgo = java.time.LocalDateTime.now().minusDays(7);
         java.util.List<com.unidocs.domain.Course> sortedCourses = faculty.getCourses().stream()
-                .sorted(java.util.Comparator.comparing(com.unidocs.domain.Course::getName))
+                .sorted((c1, c2) -> {
+                    boolean c1IsNew = c1.getCreatedAt() != null && c1.getCreatedAt().isAfter(sevenDaysAgo);
+                    boolean c2IsNew = c2.getCreatedAt() != null && c2.getCreatedAt().isAfter(sevenDaysAgo);
+                    
+                    if (c1IsNew && c2IsNew) {
+                        int dateCompare = c2.getCreatedAt().compareTo(c1.getCreatedAt()); // Descending
+                        if (dateCompare != 0) return dateCompare;
+                    } else if (c1IsNew) {
+                        return -1;
+                    } else if (c2IsNew) {
+                        return 1;
+                    }
+                    
+                    // Fallback to name ascending for all older or imported courses
+                    if (c1.getName() == null) return 1;
+                    if (c2.getName() == null) return -1;
+                    return c1.getName().compareTo(c2.getName());
+                })
                 .toList();
         model.addAttribute("faculty", faculty);
         model.addAttribute("courses", sortedCourses);

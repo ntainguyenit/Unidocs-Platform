@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/base :: head(${faculty.name} + ' - ' + ${faculty.university.shortName} + ' | UniDocs')}"></head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
     
@@ -66,16 +66,63 @@
         </div>
         
         <div id="dataContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-300">
-            <a th:each="course : ${courses}" th:id="${course.slug}" th:href="@{/course/{slug}(slug=${course.slug})}" class="card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-base font-bold text-text group-hover:text-primary transition-colors" th:text="${course.name}">Tên học phần</h3>
+            <!-- Thẻ tạo mới -->
+            <div onclick="openCreateCourseModal()" class="card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-50 flex items-center justify-center min-h-[80px]">
+                <div class="text-primary font-bold flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Đóng góp Học phần mới
+                </div>
+            </div>
+
+            <a th:each="course : ${courses}" th:id="'course-card-' + ${course.id}" th:href="@{/course/{slug}(slug=${course.slug})}" class="card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
+                <div class="flex justify-between items-start w-full gap-2">
+                    <div class="flex-1">
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <h3 th:id="'course-name-' + ${course.id}" class="text-base font-bold text-text group-hover:text-primary transition-colors" th:text="${course.name}">Tên học phần</h3>
+                            <!-- Tag Mới -->
+                            <span th:if="${course.createdAt != null and course.createdAt.isAfter(T(java.time.LocalDateTime).now().minusDays(7))}" 
+                                  class="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 shrink-0">
+                                Mới
+                            </span>
+                        </div>
                     </div>
                 </div>
             </a>
         </div>
 
     </main>
+
+    <!-- Create Course Modal -->
+    <div id="createCourseModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black bg-opacity-50 transition-opacity backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="createCourseModalContent">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+                <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Đóng góp Học phần Mới
+                </h3>
+                <button onclick="closeCreateCourseModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <label for="courseNameInput" class="block text-sm font-medium text-gray-700 mb-1">Tên học phần <span class="text-red-500">*</span></label>
+                    <input type="text" id="courseNameInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="VD: Công Nghệ Phần Mềm">
+                    <p class="mt-2 text-xs text-blue-700 bg-blue-50/80 p-2.5 rounded border border-blue-100 flex items-start gap-1.5 leading-relaxed">
+                        <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Lưu ý: Bắt buộc <strong>viết hoa chữ cái đầu</strong> cho toàn bộ tên học phần để đồng bộ giao diện chung bạn nhé. (Hệ thống sẽ tự động điều chỉnh nếu bạn lỡ quên).</span>
+                    </p>
+                    <p id="createCourseError" class="mt-2 text-sm text-red-600 hidden"></p>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button onclick="closeCreateCourseModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">Hủy</button>
+                    <button id="btnSubmitCourse" onclick="submitCreateCourse()" class="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-blue-700 rounded-lg shadow-sm transition-all flex items-center gap-2">
+                        <span>Tạo mới</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         let initialOrder = [];
@@ -104,11 +151,15 @@
                 btnGrid.classList.remove('bg-white', 'shadow-sm', 'text-primary');
                 btnGrid.classList.add('text-gray-500', 'hover:text-gray-700');
                 
+                // Keep the first item (Create Course) at top, sort the rest
+                const createBtn = items.shift();
                 items.sort((a, b) => {
-                    const textA = a.querySelector('h3').textContent.trim();
-                    const textB = b.querySelector('h3').textContent.trim();
+                    const textA = a.querySelector('h3') ? a.querySelector('h3').textContent.trim() : '';
+                    const textB = b.querySelector('h3') ? b.querySelector('h3').textContent.trim() : '';
                     return textA.localeCompare(textB, 'vi');
                 });
+                items.unshift(createBtn);
+                
             } else {
                 container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-300';
                 btnGrid.classList.add('bg-white', 'shadow-sm', 'text-primary');
@@ -121,6 +172,120 @@
             
             container.innerHTML = '';
             items.forEach(item => container.appendChild(item));
+        }
+    </script>
+    <script th:inline="javascript">
+        const facultyId = /*[[${faculty.id}]]*/ null;
+
+        function openCreateCourseModal() {
+            const modal = document.getElementById('createCourseModal');
+            const content = document.getElementById('createCourseModalContent');
+            const input = document.getElementById('courseNameInput');
+            document.getElementById('createCourseError').classList.add('hidden');
+            input.value = '';
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+                input.focus();
+            }, 10);
+        }
+
+        function closeCreateCourseModal() {
+            const modal = document.getElementById('createCourseModal');
+            const content = document.getElementById('createCourseModalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        async function submitCreateCourse() {
+            const input = document.getElementById('courseNameInput');
+            const errorEl = document.getElementById('createCourseError');
+            const btn = document.getElementById('btnSubmitCourse');
+            const name = input.value.trim();
+
+            if (!name) {
+                errorEl.textContent = 'Vui lòng nhập tên học phần';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin h-4 w-4 mr-1" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang tạo...';
+
+            try {
+                const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+                const headers = { 'Content-Type': 'application/json' };
+                if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+                const res = await fetch('/api/courses', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ name, facultyId })
+                });
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    throw new Error(data.message || 'Có lỗi xảy ra');
+                }
+
+                renderNewCourseCard(data);
+                closeCreateCourseModal();
+                
+                // Re-fetch initialOrder and update count
+                setTimeout(() => {
+                    const container = document.getElementById('dataContainer');
+                    initialOrder = Array.from(container.children);
+                    const countSpan = document.querySelector('h2 > span');
+                    if(countSpan) countSpan.textContent = parseInt(countSpan.textContent) + 1;
+                }, 100);
+
+            } catch (e) {
+                errorEl.textContent = e.message;
+                errorEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Tạo mới</span>';
+            }
+        }
+
+        function renderNewCourseCard(course) {
+            const container = document.getElementById('dataContainer');
+            const html = `
+                <div class="flex justify-between items-start w-full gap-2">
+                    <div class="flex-1">
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <h3 class="text-base font-bold text-text group-hover:text-primary transition-colors" id="course-name-${course.id}">${course.name}</h3>
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 shrink-0 animate-pulse">Mới</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const a = document.createElement('a');
+            a.id = `course-card-${course.id}`;
+            a.href = `/course/${course.slug}`;
+            a.className = 'card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer ring-2 ring-blue-400 ring-offset-2';
+            a.innerHTML = html;
+            
+            // Insert after the Create button (index 0)
+            if(container.children.length > 1) {
+                container.insertBefore(a, container.children[1]);
+            } else {
+                container.appendChild(a);
+            }
+
+            // Remove highlight ring after 3s
+            setTimeout(() => {
+                a.classList.remove('ring-2', 'ring-blue-400', 'ring-offset-2');
+            }, 3000);
         }
     </script>
     <div th:replace="~{fragments/base :: footer}"></div>

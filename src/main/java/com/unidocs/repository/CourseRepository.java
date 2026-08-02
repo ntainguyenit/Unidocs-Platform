@@ -18,4 +18,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c LEFT JOIN FETCH c.faculty")
     List<Course> findAllWithFaculty();
+
+    List<Course> findByCreatedAtIsNotNullOrderByCreatedAtDesc();
 }

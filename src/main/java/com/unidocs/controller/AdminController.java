@@ -83,6 +83,13 @@ public class AdminController {
         return "admin/documents";
     }
 
+    @GetMapping("/courses")
+    public String viewCourses(Model model) {
+        java.util.List<com.unidocs.domain.Course> newCourses = courseRepository.findByCreatedAtIsNotNullOrderByCreatedAtDesc();
+        model.addAttribute("newCourses", newCourses);
+        return "admin/courses";
+    }
+
     @PostMapping("/documents/{id}/rename")
     public String renameDocument(@PathVariable Long id, @RequestParam("newName") String newName, @RequestParam(value = "fromReports", required = false) Boolean fromReports, RedirectAttributes redirectAttributes) {
         try {

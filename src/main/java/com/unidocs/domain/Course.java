@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -28,4 +29,12 @@ public class Course {
     @JoinColumn(name = "faculty_id", nullable = false)
     @ToString.Exclude
     private Faculty faculty;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

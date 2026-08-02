@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@ConditionalOnProperty(name = "feature.import.enabled", havingValue = "true")
 public class DataSeederService {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeederService.class);
