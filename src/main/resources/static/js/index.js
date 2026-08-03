@@ -194,6 +194,7 @@
             
             if(feedbackList) {
                 feedbackList.insertBefore(fbDiv, feedbackList.firstChild);
+                updateFeedbackCount();
             }
         });
 
@@ -235,5 +236,17 @@
             });
             sortAsc = !sortAsc;
         }
-    
 
+        function updateFeedbackCount() {
+            const list = document.getElementById('feedbackList');
+            if (!list) return;
+            const count = list.querySelectorAll('div[id^="fb-"]').length;
+            const countDisplay = document.getElementById('feedbackCountDisplay');
+            if (countDisplay) {
+                countDisplay.innerText = count + ' lần góp ý';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateFeedbackCount();
+        });

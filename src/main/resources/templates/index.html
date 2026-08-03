@@ -109,7 +109,7 @@
                 <h2 class="text-2xl text-text"><span data-i18n="home.utilities">Tiện ích sinh viên</span> <span class="block sm:inline text-gray-500 text-sm font-normal mt-1 sm:mt-0" data-i18n="home.utilities.desc">(Sử dụng miễn phí)</span></h2>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6" id="utilities-grid">
                 <!-- Kết nối sinh viên -->
                 <a th:href="@{/utilities/study-groups/create}" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-2">
@@ -302,6 +302,9 @@
                     </div>
                 </a>
             </div>
+            
+            <!-- Phân trang Tiện ích sinh viên -->
+            <div id="utilities-pagination" class="flex justify-center items-center gap-2 mt-8 hidden"></div>
         </div>
 
         <!-- Góp ý & Phản hồi -->
@@ -349,6 +352,7 @@
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-lg font-bold" data-i18n="home.feedback.list">Danh sách Góp ý</h3>
                             <div class="flex items-center gap-3">
+                                <span id="feedbackCountDisplay" class="text-sm font-medium text-gray-400 mr-2">0 lần góp ý</span>
                                 <button type="button" onclick="toggleSort()" class="text-gray-500 hover:text-primary transition-colors flex items-center gap-1" title="Sắp xếp Mới nhất/Cũ nhất">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
@@ -681,7 +685,82 @@
         });
     </script>
 
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Phân trang tiện ích sinh viên
+            const itemsPerPage = 9;
+            const grid = document.getElementById('utilities-grid');
+            if (!grid) return;
+            
+            const items = Array.from(grid.children);
+            if (items.length <= itemsPerPage) return; // Không cần phân trang nếu số lượng <= 9
+            
+            let currentPage = 1;
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+            const paginationContainer = document.getElementById('utilities-pagination');
+            paginationContainer.classList.remove('hidden');
+
+            function renderItems() {
+                items.forEach((item, index) => {
+                    item.style.display = 'none';
+                    if (index >= (currentPage - 1) * itemsPerPage && index < currentPage * itemsPerPage) {
+                        item.style.display = 'flex'; // Sử dụng flex vì các utilities hiện tại dùng flex
+                    }
+                });
+            }
+
+            function createPageButton(text, page, disabled, isActive) {
+                const btn = document.createElement('button');
+                btn.innerHTML = text;
+                btn.disabled = disabled;
+                
+                // Mặc định cho nút (hình vuông xám tinh tế, lớn hơn dễ click)
+                btn.className = 'w-10 h-10 flex items-center justify-center rounded-md border text-base font-medium transition-colors cursor-pointer';
+                
+                if (isActive) {
+                    btn.classList.add('bg-primary', 'text-white', 'border-primary');
+                } else if (disabled) {
+                    btn.classList.add('bg-gray-50', 'text-gray-300', 'border-gray-200', 'cursor-not-allowed');
+                } else {
+                    btn.classList.add('bg-white', 'text-gray-600', 'border-gray-300', 'hover:bg-gray-50', 'hover:text-gray-900', 'hover:border-gray-400');
+                    btn.onclick = () => {
+                        currentPage = page;
+                        renderPagination();
+                        renderItems();
+                        document.getElementById('utilities').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    };
+                }
+                return btn;
+            }
+
+            function renderPagination() {
+                paginationContainer.innerHTML = '';
+                
+                // Nút First (<<) và Previous (<)
+                paginationContainer.appendChild(createPageButton('&laquo;', 1, currentPage === 1, false));
+                paginationContainer.appendChild(createPageButton('&lsaquo;', currentPage - 1, currentPage === 1, false));
+                
+                // Các số trang
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                        paginationContainer.appendChild(createPageButton(i, i, false, i === currentPage));
+                    } else if (i === currentPage - 2 || i === currentPage + 2) {
+                        const dots = document.createElement('span');
+                        dots.className = 'w-10 h-10 flex items-center justify-center text-gray-500 text-base';
+                        dots.innerHTML = '&hellip;';
+                        paginationContainer.appendChild(dots);
+                    }
+                }
+                
+                // Nút Next (>) và Last (>>)
+                paginationContainer.appendChild(createPageButton('&rsaquo;', currentPage + 1, currentPage === totalPages, false));
+                paginationContainer.appendChild(createPageButton('&raquo;', totalPages, currentPage === totalPages, false));
+            }
+
+            renderItems();
+            renderPagination();
+        });
+    </script>
 <script th:src="@{/js/index.js}"></script>
 </body>
 </html>
-
