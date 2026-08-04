@@ -29,6 +29,45 @@
 	<properties>
 		<java.version>21</java.version>
 	</properties>
+	
+	<repositories>
+		<repository>
+			<id>google-maven-mirror</id>
+			<name>Google Maven Central Mirror</name>
+			<url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>central</id>
+			<name>Maven Central</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+	</repositories>
+	
+	<pluginRepositories>
+		<pluginRepository>
+			<id>google-maven-mirror</id>
+			<name>Google Maven Central Mirror</name>
+			<url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>central</id>
+			<name>Maven Central</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</pluginRepository>
+	</pluginRepositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
