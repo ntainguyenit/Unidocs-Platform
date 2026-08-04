@@ -68,4 +68,14 @@ public class UtilitiesController {
     public String stopwatch() {
         return "utilities/stopwatch";
     }
+
+    @GetMapping("/percentage-calculator")
+    public String percentageCalculator() {
+        return "utilities/percentage-calculator";
+    }
+
+    @GetMapping("/password-generator")
+    public String passwordGenerator() {
+        return "utilities/password-generator";
+    }
 }

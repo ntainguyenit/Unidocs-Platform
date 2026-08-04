@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <div th:replace="~{fragments/base :: head('Tính tỉ lệ phần trăm | UniDocs')}"></div>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen text-text">
+    
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 mb-6 shadow-sm w-fit">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Quay lại
+        </a>
+        <nav class="flex text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a th:href="@{/}" class="hover:text-primary transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                        Trang chủ
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        <span class="ml-1 md:ml-2 text-text font-medium">Tính tỉ lệ phần trăm</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-900">Tính Tỉ Lệ Phần Trăm</h1>
+            <p class="text-gray-500 mt-2">Công cụ nhanh giúp bạn tính toán các bài toán phần trăm thường gặp.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Type 1 -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div class="mb-4">
+                    <h2 class="text-lg font-bold text-blue-800 truncate" title="1. Tính phần trăm của 1 số">1. Tính phần trăm của 1 số</h2>
+                    <p class="text-xs text-gray-500 mt-1 truncate" title="VD: 20% của 1000 là bao nhiêu?">VD: 20% của 1000 là bao nhiêu?</p>
+                </div>
+                <div class="space-y-4 flex-grow">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="t1_p" placeholder="20" class="w-20 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2 text-center font-semibold transition-colors">
+                            <span class="font-medium text-gray-600">% của</span>
+                        </div>
+                        <input type="number" id="t1_v" placeholder="1000" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2 font-semibold transition-colors">
+                    </div>
+                    <div class="pt-2">
+                        <div class="text-sm text-gray-500 mb-1">Kết quả:</div>
+                        <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center min-h-[60px] flex items-center justify-center">
+                            <span id="t1_res" class="text-2xl font-black text-blue-800">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Type 2 -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div class="mb-4">
+                    <h2 class="text-lg font-bold text-blue-800 truncate" title="2. Số A là bao nhiêu % của B?">2. Số A là bao nhiêu % của B?</h2>
+                    <p class="text-xs text-gray-500 mt-1 truncate" title="VD: 250 là bao nhiêu phần trăm của 1000?">VD: 250 là bao nhiêu phần trăm của 1000?</p>
+                </div>
+                <div class="space-y-4 flex-grow">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-gray-600 w-12">Số</span>
+                            <input type="number" id="t2_a" placeholder="250" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2 font-semibold transition-colors">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-gray-600 w-12">trong</span>
+                            <input type="number" id="t2_b" placeholder="1000" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2 font-semibold transition-colors">
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <div class="text-sm text-gray-500 mb-1">Kết quả:</div>
+                        <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center min-h-[60px] flex items-center justify-center">
+                            <span id="t2_res" class="text-2xl font-black text-blue-800">--</span><span id="t2_unit" class="text-lg font-bold text-blue-600 ml-1 hidden">%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Type 3 -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow">
+                <div class="mb-4">
+                    <h2 class="text-lg font-bold text-blue-800 truncate" title="3. Tăng/giảm bao nhiêu %?">3. Tăng/giảm bao nhiêu %?</h2>
+                    <p class="text-xs text-gray-500 mt-1 truncate" title="VD: Từ 1000 lên 1200 là thay đổi bao nhiêu %?">VD: Từ 1000 lên 1200 là thay đổi bao nhiêu %?</p>
+                </div>
+                <div class="space-y-4 flex-grow">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-gray-600 w-10">Từ</span>
+                            <input type="number" id="t3_old" placeholder="1000" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2 font-semibold transition-colors">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-gray-600 w-10">sang</span>
+                            <input type="number" id="t3_new" placeholder="1200" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2 font-semibold transition-colors">
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <div class="text-sm text-gray-500 mb-1">Kết quả:</div>
+                        <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center min-h-[60px] flex items-center justify-center flex-col">
+                            <span id="t3_status" class="text-xs font-bold uppercase mb-1"></span>
+                            <div class="flex items-baseline">
+                                <span id="t3_res" class="text-2xl font-black text-blue-800">--</span><span id="t3_unit" class="text-lg font-bold text-blue-600 ml-1 hidden">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <div th:replace="~{fragments/base :: scripts}"></div>
+
+    <script th:src="@{/js/percentage-calculator.js}"></script>
+</body>
+</html>
