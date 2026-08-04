@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="typography.title">Ghép Cặp Font Chữ - UniDocs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Load popular fonts for preview -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@500;700&family=Playfair+Display:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .font-roboto { font-family: 'Roboto', sans-serif; }
+        .font-opensans { font-family: 'Open Sans', sans-serif; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        .font-oswald { font-family: 'Oswald', sans-serif; }
+        .font-merriweather { font-family: 'Merriweather', serif; }
+        .font-lora { font-family: 'Lora', serif; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-6xl">
+        <div class="flex items-center justify-between mb-8">
+            <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 shadow-sm w-fit">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Quay lại
+            </a>
+            <div class="flex items-center text-sm text-gray-500">
+                <a th:href="@{/}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+                <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="text-gray-900 font-medium">Ghép cặp Font chữ</span>
+            </div>
+        </div>
+
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ghép Cặp Font Chữ (Typography)</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Công cụ tuyệt vời giúp sinh viên chọn ra bộ đôi Font chữ hoàn hảo cho slide thuyết trình hoặc đồ án website.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Sidebar / Controls -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4">Cài đặt Font</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Font Tiêu Đề</label>
+                            <select id="titleFontSel" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 p-2.5 outline-none">
+                                <option value="font-inter">Inter</option>
+                                <option value="font-roboto">Roboto</option>
+                                <option value="font-opensans">Open Sans</option>
+                                <option value="font-montserrat">Montserrat</option>
+                                <option value="font-oswald">Oswald</option>
+                                <option value="font-merriweather" selected>Merriweather</option>
+                                <option value="font-lora">Lora</option>
+                                <option value="font-playfair">Playfair Display</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Font Nội Dung</label>
+                            <select id="bodyFontSel" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 p-2.5 outline-none">
+                                <option value="font-inter" selected>Inter</option>
+                                <option value="font-roboto">Roboto</option>
+                                <option value="font-opensans">Open Sans</option>
+                                <option value="font-montserrat">Montserrat</option>
+                                <option value="font-merriweather">Merriweather</option>
+                                <option value="font-lora">Lora</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-sm font-bold text-gray-900 mb-3">Gợi ý bộ đôi kinh điển</h2>
+                    <ul class="space-y-2 text-sm text-blue-700">
+                        <li><button class="preset-btn hover:underline text-left w-full" data-title="font-merriweather" data-body="font-inter">Merriweather & Inter</button></li>
+                        <li><button class="preset-btn hover:underline text-left w-full" data-title="font-oswald" data-body="font-roboto">Oswald & Roboto</button></li>
+                        <li><button class="preset-btn hover:underline text-left w-full" data-title="font-playfair" data-body="font-montserrat">Playfair & Montserrat</button></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-12 min-h-[600px]">
+                    <!-- Toolbar for editing -->
+                    <div class="flex items-center gap-4 border-b border-gray-100 pb-4 mb-8">
+                        <button class="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1 bg-gray-100 rounded">Bạn có thể click trực tiếp vào chữ bên dưới để sửa!</button>
+                    </div>
+
+                    <div id="previewContainer">
+                        <h1 id="previewTitle" class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight outline-none" contenteditable="true">
+                            Tầm Quan Trọng Của Thiết Kế Trực Quan Trong Học Tập
+                        </h1>
+                        <h2 id="previewSubtitle" class="text-xl md:text-2xl font-bold text-gray-800 mt-8 mb-4 outline-none" contenteditable="true">
+                            Phần 1: Sự khởi đầu của cái đẹp
+                        </h2>
+                        <p id="previewBody1" class="text-lg text-gray-700 leading-relaxed mb-6 outline-none" contenteditable="true">
+                            Typography không chỉ là việc chọn font chữ sao cho "đẹp mắt", mà nó còn ảnh hưởng trực tiếp đến khả năng đọc hiểu và cảm nhận của người xem. Đối với sinh viên, việc trình bày một đồ án hay slide chuyên nghiệp phụ thuộc rất lớn vào cách kết hợp font chữ (Font Pairing).
+                        </p>
+                        <p id="previewBody2" class="text-lg text-gray-700 leading-relaxed outline-none" contenteditable="true">
+                            Nguyên tắc cơ bản nhất để ghép cặp font chữ thành công là tạo ra sự <strong>Tương phản (Contrast)</strong> chứ không phải sự <strong>Xung đột (Conflict)</strong>. Ví dụ, một font Serif (có chân) mang vẻ cổ điển, trang trọng thường kết hợp cực kỳ hoàn hảo với một font Sans-serif (không chân) mang phong cách hiện đại và sạch sẽ.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <script th:src="@{/js/typography-previewer.js}"></script>
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

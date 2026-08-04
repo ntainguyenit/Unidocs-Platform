@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="markdown.title">Trình Soạn Thảo Markdown - UniDocs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Thêm typography plugin của Tailwind để parse style dễ hơn, nhưng vì dùng CDN Tailwind nên chỉ cần base styles cơ bản -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Markdown Preview Styles */
+        .prose h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 1rem; color: #111827; }
+        .prose h2 { font-size: 1.5rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #1f2937; }
+        .prose h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #374151; }
+        .prose p { margin-bottom: 1rem; color: #4b5563; line-height: 1.6; }
+        .prose a { color: #2563eb; text-decoration: underline; }
+        .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; color: #4b5563; }
+        .prose ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1rem; color: #4b5563; }
+        .prose blockquote { border-left: 4px solid #e5e7eb; padding-left: 1rem; font-style: italic; color: #6b7280; margin-bottom: 1rem; }
+        .prose code { background-color: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.875em; color: #ef4444; font-family: monospace; }
+        .prose pre { background-color: #1f2937; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1rem; }
+        .prose pre code { background-color: transparent; color: #e5e7eb; padding: 0; }
+        .prose hr { margin: 2rem 0; border-color: #e5e7eb; }
+        
+        /* Layout */
+        .calc-height { height: calc(100vh - 200px); min-height: 500px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-7xl flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+            <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Quay lại
+            </a>
+            <div class="flex items-center text-sm text-gray-500">
+                <a th:href="@{/}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+                <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="text-gray-900 font-medium">Trình soạn Markdown</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-grow flex flex-col">
+            <div class="bg-gray-100 border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+                <h2 class="font-bold text-gray-800 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Markdown Editor
+                </h2>
+                <div class="flex gap-2">
+                    <button id="downloadBtn" class="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-1.5 px-3 rounded-md transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Tải .md
+                    </button>
+                    <button id="copyHtmlBtn" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded-md transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        Copy HTML
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row flex-grow calc-height">
+                <!-- Editor -->
+                <div class="w-full md:w-1/2 border-b md:border-b-0 md:border-r border-gray-200">
+                    <textarea id="markdownInput" class="w-full h-full p-6 resize-none focus:outline-none bg-gray-50 text-gray-800 font-mono text-sm" placeholder="Nhập Markdown vào đây..."></textarea>
+                </div>
+                <!-- Preview -->
+                <div class="w-full md:w-1/2 bg-white overflow-y-auto">
+                    <div id="markdownPreview" class="prose p-6 max-w-none">
+                        <!-- Nội dung render HTML -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <script th:src="@{/js/markdown-editor.js}"></script>
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

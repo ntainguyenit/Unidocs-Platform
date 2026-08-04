@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="mockup.title">Tạo Mockup Thiết Bị - UniDocs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- html2canvas để xuất ảnh -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* CSS Device Mockup: Macbook Base */
+        .macbook {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #111;
+            border-radius: 20px 20px 0 0;
+            padding: 20px 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .macbook-screen {
+            position: relative;
+            background: #222;
+            width: 100%;
+            aspect-ratio: 16/10;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        .macbook-base {
+            position: relative;
+            width: 110%;
+            left: -5%;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 0 0 20px 20px;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .macbook-base::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 15%; height: 5px;
+            background: #94a3b8;
+            border-radius: 0 0 10px 10px;
+        }
+
+        /* Gradient Backgrounds */
+        .bg-grad-1 { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+        .bg-grad-2 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+        .bg-grad-3 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+        .bg-grad-4 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-6xl">
+        <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 mb-6 shadow-sm w-fit">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Quay lại
+        </a>
+
+        <div class="flex items-center text-sm text-gray-500 mb-8">
+            <a th:href="@{/}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+            <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <span class="text-gray-900 font-medium">Tạo Mockup Thiết bị</span>
+        </div>
+
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Trình Tạo Mockup GitHub</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Tải ảnh chụp màn hình đồ án của bạn lên, công cụ sẽ tự động ghép vào viền laptop Macbook thật đẹp với phông nền rực rỡ để trình bày README hoặc Portfolio.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Sidebar Controls -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <label class="block text-sm font-bold text-gray-900 mb-4">1. Tải ảnh chụp màn hình</label>
+                    <div class="flex items-center justify-center w-full mb-6">
+                        <label for="imageUpload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-blue-300 border-dashed rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg class="w-8 h-8 mb-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                <p class="text-sm text-gray-600 font-medium">Click để chọn ảnh</p>
+                            </div>
+                            <input id="imageUpload" type="file" class="hidden" accept="image/*" />
+                        </label>
+                    </div>
+
+                    <label class="block text-sm font-bold text-gray-900 mb-4">2. Chọn màu nền</label>
+                    <div class="grid grid-cols-2 gap-2 mb-6">
+                        <button class="bg-btn h-12 rounded-lg bg-grad-1 border-2 border-transparent hover:border-gray-900 transition-all focus:border-gray-900" data-bg="bg-grad-1"></button>
+                        <button class="bg-btn h-12 rounded-lg bg-grad-2 border-2 border-transparent hover:border-gray-900 transition-all focus:border-gray-900" data-bg="bg-grad-2"></button>
+                        <button class="bg-btn h-12 rounded-lg bg-grad-3 border-2 border-transparent hover:border-gray-900 transition-all focus:border-gray-900" data-bg="bg-grad-3"></button>
+                        <button class="bg-btn h-12 rounded-lg bg-grad-4 border-2 border-transparent hover:border-gray-900 transition-all focus:border-gray-900" data-bg="bg-grad-4"></button>
+                    </div>
+
+                    <button id="downloadBtn" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-sm flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Lưu Mockup (.PNG)
+                    </button>
+                    <p class="text-xs text-center text-gray-500 mt-3">Quá trình xuất ảnh diễn ra 100% trên thiết bị của bạn.</p>
+                </div>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8 overflow-hidden">
+                    <!-- Khu vực này sẽ được chụp lại bằng html2canvas -->
+                    <div id="captureArea" class="bg-grad-1 p-8 md:p-16 rounded-xl flex items-center justify-center transition-all duration-300">
+                        
+                        <div class="macbook">
+                            <div class="macbook-screen">
+                                <!-- Chỗ chứa ảnh -->
+                                <div id="imagePlaceholder" class="absolute inset-0 flex items-center justify-center text-gray-500 bg-gray-800">
+                                    Chưa có ảnh (16:10)
+                                </div>
+                                <img id="mockupImage" src="" class="absolute inset-0 w-full h-full object-cover hidden" alt="Mockup">
+                            </div>
+                            <div class="macbook-base"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <script th:src="@{/js/mockup-generator.js}"></script>
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

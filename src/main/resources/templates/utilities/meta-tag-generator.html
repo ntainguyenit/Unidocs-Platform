@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="meta.title">Tạo Meta Tag - UniDocs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 mb-6 shadow-sm w-fit">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Quay lại
+        </a>
+
+        <div class="flex items-center text-sm text-gray-500 mb-8">
+            <a th:href="@{/}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+            <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <span class="text-gray-900 font-medium">Tạo thẻ Meta SEO</span>
+        </div>
+
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Tạo Thẻ Meta Tag Tối Ưu SEO</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Tự động sinh ra bộ code `<meta>` chuẩn xác nhất cho Google SEO, Facebook (Open Graph) và Twitter Cards. Sinh viên làm đồ án web không thể bỏ qua!</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <!-- Khu vực Form -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+                <h2 class="text-lg font-bold text-gray-900 mb-6 border-b border-gray-100 pb-3">Thông tin trang web</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tiêu đề trang (Title) *</label>
+                        <input type="text" id="metaTitle" placeholder="VD: UniDocs - Nền tảng chia sẻ tài liệu" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2.5 transition-colors">
+                        <p class="text-xs text-gray-500 mt-1">Độ dài lý tưởng: 50-60 ký tự</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả (Description) *</label>
+                        <textarea id="metaDesc" rows="3" placeholder="VD: Khám phá kho tài liệu khổng lồ dành riêng cho sinh viên..." class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2.5 transition-colors"></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Độ dài lý tưởng: 150-160 ký tự</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Từ khóa (Keywords)</label>
+                        <input type="text" id="metaKeys" placeholder="VD: tài liệu, đại học, đồ án, đề thi" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2.5 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tác giả (Author)</label>
+                        <input type="text" id="metaAuthor" placeholder="VD: Nguyễn Văn A" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2.5 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">URL trang web</label>
+                        <input type="url" id="metaUrl" placeholder="VD: https://unidocs.vn" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2.5 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Link Ảnh xem trước (Thumbnail)</label>
+                        <input type="url" id="metaImage" placeholder="VD: https://unidocs.vn/thumb.png" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-2.5 transition-colors">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khu vực Kết quả -->
+            <div class="sticky top-6">
+                <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 overflow-hidden text-gray-300 font-mono text-sm">
+                    <div class="flex items-center justify-between border-b border-gray-700 px-4 py-3 bg-gray-800">
+                        <div class="flex gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <button id="copyBtn" class="flex items-center text-xs font-medium bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded transition-colors">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            Copy Code
+                        </button>
+                    </div>
+                    <div class="p-6 overflow-x-auto whitespace-pre overflow-y-auto max-h-[500px]" id="codeOutput">
+<!-- Code sẽ sinh ra ở đây -->
+                    </div>
+                </div>
+                <div class="mt-4 bg-blue-50 text-blue-800 p-4 rounded-xl text-sm flex items-start">
+                    <svg class="w-5 h-5 mr-2 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                    <p>Copy đoạn mã trên và dán vào bên trong thẻ <code>&lt;head&gt;</code> của trang HTML của bạn.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <script th:src="@{/js/meta-tag-generator.js}"></script>
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

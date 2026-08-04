@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="converter.title">Chuyển Đổi Màu Sắc - UniDocs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.6.0/tinycolor.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 mb-6 shadow-sm w-fit">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Quay lại
+        </a>
+
+        <div class="flex items-center text-sm text-gray-500 mb-8">
+            <a th:href="@{/}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+            <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <span class="text-gray-900 font-medium">Chuyển Đổi Màu Sắc</span>
+        </div>
+
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Chuyển Đổi Màu Đa Định Dạng</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Nhập một mã màu bất kỳ (HEX, RGB, tên màu...), công cụ sẽ tự động xuất ra mọi định dạng phổ biến nhất dành cho Designer và Developer.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-4xl mx-auto">
+            <div class="p-6 md:p-8 border-b border-gray-100 bg-gray-50">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nhập màu sắc của bạn (hỗ trợ mọi định dạng)</label>
+                <div class="flex gap-4">
+                    <input type="color" id="colorPicker" value="#1e40af" class="w-14 h-14 rounded-lg cursor-pointer border-0 p-0 shadow-sm shrink-0">
+                    <input type="text" id="colorInput" value="#1e40af" placeholder="VD: #1e40af, rgb(30, 64, 175) hoặc blue" class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-800 focus:border-blue-800 p-3 text-lg transition-colors font-mono uppercase">
+                </div>
+                <div id="errorMsg" class="text-red-500 text-sm mt-2 hidden">Định dạng màu không hợp lệ!</div>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="resultsGrid">
+                    <!-- Sẽ được sinh ra bằng JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <script th:src="@{/js/color-converter.js}"></script>
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

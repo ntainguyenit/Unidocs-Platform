@@ -220,6 +220,85 @@
     
 
         let sortAsc = false;
+        let currentFeedbackPage = 1;
+        const feedbacksPerPage = 5;
+
+        function renderFeedbackItems() {
+            const list = document.getElementById('feedbackList');
+            if (!list) return;
+            const items = Array.from(list.children).filter(item => item.id && item.id.startsWith('fb-'));
+            if (items.length === 0) return;
+            
+            const totalPages = Math.ceil(items.length / feedbacksPerPage);
+            if (currentFeedbackPage > totalPages) currentFeedbackPage = totalPages;
+            
+            items.forEach((item, index) => {
+                if (index >= (currentFeedbackPage - 1) * feedbacksPerPage && index < currentFeedbackPage * feedbacksPerPage) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            renderFeedbackPagination(items.length, totalPages);
+        }
+
+        function createFeedbackPageButton(text, page, disabled, isActive) {
+            const btn = document.createElement('button');
+            btn.innerHTML = text;
+            btn.disabled = disabled;
+            
+            btn.className = 'w-10 h-10 flex items-center justify-center rounded-md border text-base font-medium transition-colors cursor-pointer';
+            
+            if (isActive) {
+                btn.classList.add('bg-primary', 'text-white', 'border-primary');
+            } else if (disabled) {
+                btn.classList.add('bg-gray-50', 'text-gray-300', 'border-gray-200', 'cursor-not-allowed');
+            } else {
+                btn.classList.add('bg-white', 'text-gray-600', 'border-gray-300', 'hover:bg-gray-50', 'hover:text-gray-900', 'hover:border-gray-400');
+                btn.onclick = () => {
+                    currentFeedbackPage = page;
+                    renderFeedbackItems();
+                    document.getElementById('feedbackList').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+            }
+            return btn;
+        }
+
+        function renderFeedbackPagination(totalItems, totalPages) {
+            const paginationContainer = document.getElementById('feedbackPagination');
+            if (!paginationContainer) return;
+            
+            if (totalItems <= feedbacksPerPage) {
+                paginationContainer.classList.add('hidden');
+                return;
+            }
+            
+            paginationContainer.classList.remove('hidden');
+            paginationContainer.classList.add('flex');
+            paginationContainer.innerHTML = '';
+            
+            // Nút First (<<) và Previous (<)
+            paginationContainer.appendChild(createFeedbackPageButton('&laquo;', 1, currentFeedbackPage === 1, false));
+            paginationContainer.appendChild(createFeedbackPageButton('&lsaquo;', currentFeedbackPage - 1, currentFeedbackPage === 1, false));
+            
+            // Các số trang
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentFeedbackPage - 1 && i <= currentFeedbackPage + 1)) {
+                    paginationContainer.appendChild(createFeedbackPageButton(i, i, false, i === currentFeedbackPage));
+                } else if (i === currentFeedbackPage - 2 || i === currentFeedbackPage + 2) {
+                    const dots = document.createElement('span');
+                    dots.className = 'w-10 h-10 flex items-center justify-center text-gray-500 text-base';
+                    dots.innerHTML = '&hellip;';
+                    paginationContainer.appendChild(dots);
+                }
+            }
+            
+            // Nút Next (>) và Last (>>)
+            paginationContainer.appendChild(createFeedbackPageButton('&rsaquo;', currentFeedbackPage + 1, currentFeedbackPage === totalPages, false));
+            paginationContainer.appendChild(createFeedbackPageButton('&raquo;', totalPages, currentFeedbackPage === totalPages, false));
+        }
+
         function toggleSort() {
             const list = document.getElementById('feedbackList');
             if (!list) return;
@@ -235,6 +314,8 @@
                 }
             });
             sortAsc = !sortAsc;
+            currentFeedbackPage = 1;
+            renderFeedbackItems();
         }
 
         function updateFeedbackCount() {
@@ -245,8 +326,10 @@
             if (countDisplay) {
                 countDisplay.innerText = count + ' lần góp ý';
             }
+            renderFeedbackItems();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             updateFeedbackCount();
+            renderFeedbackItems();
         });

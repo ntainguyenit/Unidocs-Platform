@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="palette.title">Trích Xuất Bảng Màu - UniDocs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 mb-6 shadow-sm w-fit">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Quay lại
+        </a>
+
+        <div class="flex items-center text-sm text-gray-500 mb-8">
+            <a th:href="@{/}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+            <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <span class="text-gray-900 font-medium">Trích xuất Bảng màu</span>
+        </div>
+
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Trích Xuất Màu Từ Ảnh</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Tải ảnh lên và thuật toán sẽ tự động phân tích để lấy ra 6 màu sắc chủ đạo nhất, hoàn hảo cho việc phối màu thiết kế UI/UX hoặc slide.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-4xl mx-auto">
+            <div class="p-6 md:p-8 bg-blue-50 border-b border-gray-100 flex flex-col items-center justify-center min-h-[300px] relative">
+                
+                <label for="imageUpload" class="flex flex-col items-center justify-center w-full h-full border-2 border-blue-300 border-dashed rounded-xl cursor-pointer hover:bg-blue-100/50 transition-colors relative z-10" id="uploadArea">
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <svg class="w-10 h-10 mb-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <p class="mb-2 text-sm text-gray-600"><span class="font-bold">Click để tải ảnh lên</span> hoặc kéo thả vào đây</p>
+                    </div>
+                    <input id="imageUpload" type="file" class="hidden" accept="image/*" />
+                </label>
+                
+                <!-- Vùng chứa ảnh preview -->
+                <img id="imagePreview" src="" class="absolute inset-0 w-full h-full object-contain hidden p-4 z-0" alt="Preview">
+                
+                <button id="resetBtn" class="absolute top-4 right-4 bg-white/90 shadow-sm border border-gray-200 text-gray-700 text-xs font-bold py-1.5 px-3 rounded hidden z-20 hover:bg-gray-100">
+                    Thử ảnh khác
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <h3 class="font-bold text-gray-900 mb-4 text-lg">Bảng màu được trích xuất (Palette)</h3>
+                
+                <div id="paletteContainer" class="flex flex-wrap gap-4 items-center justify-center min-h-[120px] text-gray-400 text-sm">
+                    Hãy tải một bức ảnh lên để xem điều kỳ diệu!
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <script th:src="@{/js/palette-extractor.js}"></script>
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

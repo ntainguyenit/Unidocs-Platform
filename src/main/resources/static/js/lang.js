@@ -67,7 +67,7 @@ const I18N_DICT = {
         'home.feedback.list': 'Danh sách Góp ý',
 
         'footer.disclaimer': '<strong class="font-semibold text-gray-700">Tuyên bố miễn trừ trách nhiệm:</strong> Tài liệu trên UniDocs do cộng đồng đóng góp vì mục đích học tập phi lợi nhuận. Chúng tôi không đưa ra bất kỳ bảo đảm nào về tính chính xác tuyệt đối của nội dung. Chúng tôi tôn trọng nghiêm ngặt quyền sở hữu trí tuệ theo pháp luật Việt Nam. Mọi yêu cầu gỡ bỏ tài liệu vi phạm bản quyền vui lòng liên hệ trực tiếp, chúng tôi cam kết kiểm tra và xử lý trong vòng 24 đến 48 giờ làm việc.',
-        'footer.copyright': '&copy; 2026 UniDocs. Nền tảng chia sẻ tài liệu học tập.',
+        'footer.copyright': '&copy; ' + new Date().getFullYear() + ' Tai Nguyen. Nền tảng chia sẻ tài liệu học tập.',
         'footer.terms': 'Điều khoản sử dụng',
         'footer.privacy': 'Chính sách bảo mật',
         
@@ -142,7 +142,7 @@ const I18N_DICT = {
         'home.feedback.list': 'Feedback List',
 
         'footer.disclaimer': '<strong class="font-semibold text-gray-700">Disclaimer:</strong> Documents on UniDocs are contributed by the community for non-profit learning purposes. We do not make any guarantees about the absolute accuracy of the content. We strictly respect intellectual property rights according to Vietnamese law. For any request to remove copyrighted material, please contact us directly, we commit to checking and processing within 24 to 48 working hours.',
-        'footer.copyright': '&copy; 2026 UniDocs. Document sharing platform.',
+        'footer.copyright': '&copy; ' + new Date().getFullYear() + ' Tai Nguyen. Document sharing platform.',
         'footer.terms': 'Terms of Use',
         'footer.privacy': 'Privacy Policy',
 
@@ -217,7 +217,7 @@ const I18N_DICT = {
         'home.feedback.list': 'フィードバックリスト',
 
         'footer.disclaimer': '<strong class="font-semibold text-gray-700">免責事項：</strong> UniDocsの資料は、非営利の学習目的でコミュニティによって提供されています。コンテンツの絶対的な正確性についてはいかなる保証も行いません。私たちはベトナムの法律に従って知的財産権を厳密に尊重します。著作権で保護された資料の削除リクエストについては、直接お問い合わせください。24〜48営業時間内に確認して処理することをお約束します。',
-        'footer.copyright': '&copy; 2026 UniDocs. ドキュメント共有プラットフォーム。',
+        'footer.copyright': '&copy; ' + new Date().getFullYear() + ' Tai Nguyen. ドキュメント共有プラットフォーム。',
         'footer.terms': '利用規約',
         'footer.privacy': 'プライバシーポリシー',
 

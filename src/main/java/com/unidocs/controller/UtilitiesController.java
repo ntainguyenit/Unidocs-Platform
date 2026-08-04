@@ -78,4 +78,89 @@ public class UtilitiesController {
     public String passwordGenerator() {
         return "utilities/password-generator";
     }
+
+    @GetMapping("/qr-generator")
+    public String qrGenerator() {
+        return "utilities/qr-generator";
+    }
+
+    @GetMapping("/ip-checker")
+    public String ipChecker() {
+        return "utilities/ip-checker";
+    }
+
+    @GetMapping("/email-signature")
+    public String emailSignature() {
+        return "utilities/email-signature";
+    }
+
+    @GetMapping("/speed-test")
+    public String speedTest() {
+        return "utilities/speed-test";
+    }
+
+    @GetMapping("/color-contrast")
+    public String colorContrast() {
+        return "utilities/color-contrast";
+    }
+
+    @GetMapping("/date-calculator")
+    public String dateCalculator() {
+        return "utilities/date-calculator";
+    }
+
+    @GetMapping("/color-converter")
+    public String colorConverter() {
+        return "utilities/color-converter";
+    }
+
+    @GetMapping("/meta-tag-generator")
+    public String metaTagGenerator() {
+        return "utilities/meta-tag-generator";
+    }
+
+    @GetMapping("/markdown-editor")
+    public String markdownEditor() {
+        return "utilities/markdown-editor";
+    }
+
+    @GetMapping("/typography-previewer")
+    public String typographyPreviewer() {
+        return "utilities/typography-previewer";
+    }
+
+    @GetMapping("/mockup-generator")
+    public String mockupGenerator() {
+        return "utilities/mockup-generator";
+    }
+
+    @GetMapping("/palette-extractor")
+    public String paletteExtractor() {
+        return "utilities/palette-extractor";
+    }
+
+    @GetMapping("/quick-mindmap")
+    public String quickMindmap() {
+        return "utilities/quick-mindmap";
+    }
+
+    @GetMapping("/code-formatter")
+    public String codeFormatter() {
+        return "utilities/code-formatter";
+    }
+
+    @GetMapping("/data-converter")
+    public String dataConverter() {
+        return "utilities/data-converter";
+    }
+
+    @GetMapping("/base-converter")
+    public String baseConverter() {
+        return "utilities/base-converter";
+    }
+
+    @GetMapping("/crypto-hash")
+    public String cryptoHash() {
+        return "utilities/crypto-hash";
+    }
 }

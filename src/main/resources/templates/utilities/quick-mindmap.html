@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="mindmap.title">Tạo Sơ đồ Tư duy - UniDocs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Markmap Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.17.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.17.0"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .calc-height { height: calc(100vh - 200px); min-height: 500px; }
+        /* Style for SVG */
+        .markmap { width: 100%; height: 100%; }
+        .markmap svg { width: 100%; height: 100%; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-7xl flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+            <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Quay lại
+            </a>
+            <div class="flex items-center text-sm text-gray-500">
+                <a th:href="@{/}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+                <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="text-gray-900 font-medium">Sơ đồ Tư duy siêu tốc</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-grow flex flex-col">
+            <div class="bg-gray-100 border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+                <h2 class="font-bold text-gray-800 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                    Quick Mindmap
+                </h2>
+                <div class="flex gap-2">
+                    <button id="fitBtn" class="text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-1.5 px-3 rounded-md transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                        Fit View
+                    </button>
+                    <!-- <button class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded-md transition-colors flex items-center">
+                        Lưu ảnh
+                    </button> -->
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row flex-grow calc-height">
+                <!-- Editor -->
+                <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200">
+                    <textarea id="markdownInput" class="w-full h-full p-6 resize-none focus:outline-none bg-gray-50 text-gray-800 font-mono text-sm leading-relaxed" placeholder="Nhập cấu trúc dạng Markdown list vào đây..."></textarea>
+                </div>
+                <!-- Preview -->
+                <div class="w-full md:w-2/3 bg-white relative">
+                    <div class="absolute top-4 left-4 z-10 text-xs text-gray-400 font-medium bg-white/80 px-2 py-1 rounded">Bạn có thể cuộn, kéo thả để xem sơ đồ</div>
+                    <svg id="markmapPreview"></svg>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <script th:src="@{/js/quick-mindmap.js}"></script>
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

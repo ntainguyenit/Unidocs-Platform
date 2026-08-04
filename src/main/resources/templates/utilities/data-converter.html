@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="dev.converter">Chuyển đổi Dữ liệu - UniDocs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-btn.active { border-bottom-width: 2px; border-color: #1e40af; color: #1e40af; font-weight: 600; }
+        .calc-height { height: calc(100vh - 250px); min-height: 500px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-7xl flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+            <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Quay lại
+            </a>
+            <div class="flex items-center text-sm text-gray-500">
+                <a th:href="@{/}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+                <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="text-gray-900 font-medium">Data Converter</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-grow flex flex-col">
+            <!-- Tabs Header -->
+            <div class="flex border-b border-gray-100 overflow-x-auto bg-gray-50 px-4">
+                <button class="tab-btn active px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap" data-target="tab-j2x">JSON ⇄ XML</button>
+                <button class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap" data-target="tab-c2j">CSV ⇄ JSON</button>
+            </div>
+
+            <!-- JSON to XML Tab -->
+            <div id="tab-j2x" class="tab-content flex-grow flex flex-col md:flex-row block">
+                <div class="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
+                    <div class="p-3 bg-gray-100 border-b border-gray-200 text-xs font-bold text-gray-600 flex justify-between items-center">
+                        <span>INPUT JSON</span>
+                    </div>
+                    <textarea id="j2xInput" class="w-full flex-grow p-4 resize-none focus:outline-none bg-white text-gray-800 font-mono text-sm" placeholder='{"user": {"name": "UniDocs", "role": "Student"}}'></textarea>
+                </div>
+                <div class="w-full md:w-1/2 flex flex-col bg-gray-900 relative">
+                    <div class="p-3 bg-gray-800 border-b border-gray-700 text-xs font-bold text-gray-300 flex justify-between items-center">
+                        <span>OUTPUT XML</span>
+                        <button id="j2xCopyBtn" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded transition-colors">Copy Code</button>
+                    </div>
+                    <pre id="j2xOutput" class="w-full flex-grow p-4 overflow-auto text-green-400 font-mono text-sm m-0">Vui lòng nhập JSON hợp lệ ở bên trái.</pre>
+                </div>
+            </div>
+
+            <!-- CSV to JSON Tab -->
+            <div id="tab-c2j" class="tab-content flex-grow flex flex-col md:flex-row hidden">
+                <div class="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
+                    <div class="p-3 bg-gray-100 border-b border-gray-200 text-xs font-bold text-gray-600 flex justify-between items-center">
+                        <span>INPUT CSV</span>
+                    </div>
+                    <textarea id="c2jInput" class="w-full flex-grow p-4 resize-none focus:outline-none bg-white text-gray-800 font-mono text-sm" placeholder='id,name,age&#10;1,Nguyen Van A,20&#10;2,Tran Thi B,22'></textarea>
+                </div>
+                <div class="w-full md:w-1/2 flex flex-col bg-gray-900 relative">
+                    <div class="p-3 bg-gray-800 border-b border-gray-700 text-xs font-bold text-gray-300 flex justify-between items-center">
+                        <span>OUTPUT JSON (ARRAY OF OBJECTS)</span>
+                        <button id="c2jCopyBtn" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded transition-colors">Copy Code</button>
+                    </div>
+                    <pre id="c2jOutput" class="w-full flex-grow p-4 overflow-auto text-blue-400 font-mono text-sm m-0">Vui lòng nhập CSV hợp lệ ở bên trái.</pre>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <script th:src="@{/js/data-converter.js}"></script>
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

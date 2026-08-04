@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="speed.title">Đo Tốc Độ Mạng - UniDocs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <div th:replace="~{fragments/base :: navbar}"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 mb-6 shadow-sm w-fit">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Quay lại
+        </a>
+
+        <div class="flex items-center text-sm text-gray-500 mb-8">
+            <a th:href="@{/}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+            <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <span class="text-gray-900 font-medium">Đo Tốc Độ Mạng</span>
+        </div>
+
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Kiểm Tra Mạng & Thiết Bị</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Công cụ đo lường tốc độ mạng và hiệu suất thiết bị chạy hoàn toàn trên trình duyệt, không cần cài đặt thêm phần mềm.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-10 max-w-3xl mx-auto">
+            <div class="text-center mb-8">
+                <button id="startBtn" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-4 px-12 rounded-full text-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                    BẮT ĐẦU ĐO
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 text-center">
+                <!-- Ping -->
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <p class="text-sm text-gray-500 font-medium mb-2 flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Ping
+                    </p>
+                    <div class="flex items-end justify-center gap-1">
+                        <span id="resPing" class="text-3xl font-bold text-gray-900">--</span>
+                        <span class="text-sm font-medium text-gray-500 mb-1">ms</span>
+                    </div>
+                </div>
+                
+                <!-- Download -->
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <p class="text-sm text-gray-500 font-medium mb-2 flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Tải xuống
+                    </p>
+                    <div class="flex items-end justify-center gap-1">
+                        <span id="resDown" class="text-3xl font-bold text-gray-900">--</span>
+                        <span class="text-sm font-medium text-gray-500 mb-1">Mbps</span>
+                    </div>
+                </div>
+
+                <!-- Upload -->
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <p class="text-sm text-gray-500 font-medium mb-2 flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Tải lên
+                    </p>
+                    <div class="flex items-end justify-center gap-1">
+                        <span id="resUp" class="text-3xl font-bold text-gray-900">--</span>
+                        <span class="text-sm font-medium text-gray-500 mb-1">Mbps</span>
+                    </div>
+                </div>
+
+                <!-- FPS -->
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 relative group cursor-help">
+                    <p class="text-sm text-gray-500 font-medium mb-2 flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Khung hình
+                    </p>
+                    <div class="flex items-end justify-center gap-1">
+                        <span id="resFps" class="text-3xl font-bold text-gray-900">--</span>
+                        <span class="text-sm font-medium text-gray-500 mb-1">FPS</span>
+                    </div>
+                    <!-- Tooltip -->
+                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        FPS phản ánh tần số quét màn hình (ví dụ: màn hình 60Hz sẽ hiển thị tối đa ~60 FPS).
+                    </div>
+                </div>
+            </div>
+
+            <div id="progressBox" class="hidden h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div id="progressBar" class="h-full bg-blue-600 transition-all duration-300 ease-out" style="width: 0%"></div>
+            </div>
+            <p id="statusText" class="text-sm text-center text-gray-500 mt-4 hidden">Đang chuẩn bị...</p>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <script th:src="@{/js/speed-test.js}"></script>
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
