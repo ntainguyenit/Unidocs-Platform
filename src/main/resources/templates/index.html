@@ -107,7 +107,7 @@
         
         <div class="mb-12" id="utilities">
             <div class="flex flex-wrap items-center gap-4 mb-6 border-b border-divider pb-4">
-                <h2 class="text-2xl text-text font-bold flex flex-wrap items-center gap-2 mr-auto">
+                <h2 class="text-2xl text-text font-bold flex flex-wrap items-center gap-2">
                     <span data-i18n="home.utilities">Tiện ích sinh viên</span>
                     <span class="text-gray-500 text-sm font-normal" data-i18n="home.utilities.desc">(Sử dụng miễn phí)</span>
                     <span id="totalUtilitiesBadge" class="ml-1 text-gray-500 text-sm font-medium whitespace-nowrap">--</span>
@@ -115,7 +115,10 @@
                 
                 <div class="flex items-center gap-3">
                     <div class="relative w-full sm:w-60">
-                        <input type="text" id="utilSearch" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-4 py-2.5" placeholder="Tìm kiếm tiện ích...">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <input type="text" id="utilSearch" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-2.5" placeholder="Tìm kiếm tiện ích...">
                     </div>
                     <select id="utilCategory" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full sm:w-auto p-2.5">
                         <option value="all">Tất cả danh mục</option>
@@ -139,6 +142,13 @@
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.exam_sim">Giả lập Thi</h3>
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.exam_sim.desc">Phòng thi mô phỏng với đồng hồ đếm ngược, rèn luyện áp lực thời gian.</p>
                     </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('exam-simulation')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="exam-simulation">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
 
                 <!-- Tạo lịch biểu -->
@@ -151,6 +161,13 @@
                     <div>
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.timetable">Tạo lịch biểu</h3>
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.timetable.desc">Thiết kế thời khóa biểu cá nhân trực quan và xuất file PDF tiện lợi.</p>
+                    </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('timetable')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="timetable">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
                     </div>
                 </a>
 
@@ -233,6 +250,13 @@
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.screenshot">Làm đẹp ảnh chụp</h3>
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.screenshot.desc">Trang trí ảnh chụp màn hình với viền bóng, gradient cực đẹp.</p>
                     </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('screenshot-beautifier')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="screenshot-beautifier">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
 
                 <!-- Bốt chụp ảnh -->
@@ -247,6 +271,13 @@
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.photo_booth">Bốt chụp ảnh</h3>
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.photo_booth.desc">Chụp ảnh selfie với các bộ lọc màu, sticker và khung viền vui nhộn.</p>
                     </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('photo-booth')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="photo-booth">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
 
                 <!-- Kiểm tra tốc độ gõ -->
@@ -259,6 +290,13 @@
                     <div>
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.typing">Tốc độ gõ</h3>
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.typing.desc">Kiểm tra tốc độ gõ phím WPM và độ chính xác của bạn.</p>
+                    </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('typing-test')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="typing-test">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
                     </div>
                 </a>
 
@@ -274,6 +312,13 @@
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.lucky_wheel">Vòng quay may mắn</h3>
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.lucky_wheel.desc">Nhập danh sách và quay ngẫu nhiên. Lý tưởng để chia nhóm.</p>
                     </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('lucky-wheel')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="lucky-wheel">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
 
                 <!-- Đếm ngược mùa thi -->
@@ -287,6 +332,13 @@
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.exam_countdown">Đếm ngược mùa thi</h3>
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.exam_countdown.desc">Lên lịch thi và tạo bộ đếm ngược thời gian đầy động lực.</p>
                     </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('exam-countdown')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="exam-countdown">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
 
                 <!-- Thẻ nhớ thông minh -->
@@ -299,6 +351,13 @@
                     <div>
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors" data-i18n="home.util.flashcards">Thẻ nhớ thông minh</h3>
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.flashcards.desc">Học thuật bằng Flashcards với thuật toán lặp lại ngắt quãng.</p>
+                    </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('flashcards')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="flashcards">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
                     </div>
                 </a>
 
@@ -314,6 +373,13 @@
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tính tỉ lệ phần trăm</h3>
                         <p class="text-sm text-gray-500 mt-1">Công cụ giúp bạn giải quyết các bài toán phần trăm nhanh chóng.</p>
                     </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('percentage-calculator')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="percentage-calculator">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
 
                 <!-- Tạo số ngẫu nhiên -->
@@ -326,6 +392,13 @@
                     <div>
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tạo số ngẫu nhiên</h3>
                         <p class="text-sm text-gray-500 mt-1">Quay số trúng thưởng, bốc thăm ngẫu nhiên với giao diện cực dễ nhìn.</p>
+                    </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('random-number')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="random-number">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
                     </div>
                 </a>
 
@@ -340,6 +413,13 @@
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tính BMI</h3>
                         <p class="text-sm text-gray-500 mt-1">Đánh giá tình trạng cơ thể qua chỉ số BMI một cách nhanh và chính xác.</p>
                     </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('bmi-calculator')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="bmi-calculator">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
 
                 <!-- Chuyển đổi tiền tệ -->
@@ -352,6 +432,13 @@
                     <div>
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Chuyển đổi tiền tệ</h3>
                         <p class="text-sm text-gray-500 mt-1">Cập nhật và quy đổi tỷ giá các loại tiền tệ phổ biến theo thời gian thực.</p>
+                    </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('currency-converter')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="currency-converter">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
                     </div>
                 </a>
 
@@ -366,6 +453,13 @@
                         <h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tạo mật khẩu mạnh</h3>
                         <p class="text-sm text-gray-500 mt-1">Sinh mật khẩu ngẫu nhiên an toàn cao để bảo vệ tài khoản của bạn.</p>
                     </div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('password-generator')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="password-generator">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <!-- 5 NEW UTILITIES END -->
             
@@ -374,74 +468,200 @@
                 <a th:href="@{/utilities/color-converter}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Chuyển đổi màu sắc</h3><p class="text-sm text-gray-500 mt-1">Chuyển đổi linh hoạt giữa HEX, RGB, HSL, CMYK.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('color-converter')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="color-converter">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/stopwatch}" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Đồng hồ bấm giờ</h3><p class="text-sm text-gray-500 mt-1">Theo dõi thời gian chính xác, hỗ trợ Lap.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('stopwatch')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="stopwatch">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/meta-tag-generator}" data-category="dev" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tạo thẻ Meta SEO</h3><p class="text-sm text-gray-500 mt-1">Sinh code thẻ Meta chuẩn cho Google, FB.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('meta-tag-generator')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="meta-tag-generator">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/markdown-editor}" data-category="dev" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Trình soạn Markdown</h3><p class="text-sm text-gray-500 mt-1">Soạn thảo và xem trước Markdown realtime.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('markdown-editor')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="markdown-editor">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/typography-previewer}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Ghép cặp Font chữ</h3><p class="text-sm text-gray-500 mt-1">Test sự kết hợp của các Google Fonts.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('typography-previewer')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="typography-previewer">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/mockup-generator}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tạo Mockup Thiết bị</h3><p class="text-sm text-gray-500 mt-1">Lồng ảnh màn hình vào viền thiết bị.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('mockup-generator')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="mockup-generator">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/palette-extractor}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Trích xuất Bảng màu</h3><p class="text-sm text-gray-500 mt-1">Lấy mã màu chủ đạo từ ảnh tải lên.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('palette-extractor')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="palette-extractor">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/quick-mindmap}" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Sơ đồ Tư duy</h3><p class="text-sm text-gray-500 mt-1">Gõ gạch đầu dòng để vẽ Sơ đồ tư duy.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('quick-mindmap')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="quick-mindmap">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/code-formatter}" data-category="dev" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Trình định dạng Code</h3><p class="text-sm text-gray-500 mt-1">JSON Formatter, Test Regex và SQL Formatter.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('code-formatter')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="code-formatter">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/data-converter}" data-category="dev" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Chuyển đổi dữ liệu</h3><p class="text-sm text-gray-500 mt-1">JSON, XML và CSV dễ dàng.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('data-converter')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="data-converter">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/base-converter}" data-category="dev" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Chuyển Hệ cơ số</h3><p class="text-sm text-gray-500 mt-1">Chuyển Decimal sang Binary, Hex, Octal.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('base-converter')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="base-converter">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/crypto-hash}" data-category="dev" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Mã hóa chuỗi (Hash)</h3><p class="text-sm text-gray-500 mt-1">SHA-256, SHA-512, HMAC (Web Crypto).</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('crypto-hash')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="crypto-hash">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/qr-generator}" data-category="dev" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tạo Mã QR</h3><p class="text-sm text-gray-500 mt-1">Tạo nhanh QR Code từ văn bản hoặc link.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('qr-generator')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="qr-generator">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/ip-checker}" data-category="dev" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Kiểm tra IP</h3><p class="text-sm text-gray-500 mt-1">Xem địa chỉ IP Public và thông tin mạng.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('ip-checker')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="ip-checker">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/email-signature}" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Chữ Ký Gmail</h3><p class="text-sm text-gray-500 mt-1">Tạo chữ ký email chuyên nghiệp.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('email-signature')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="email-signature">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/speed-test}" data-category="dev" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Đo tốc độ mạng</h3><p class="text-sm text-gray-500 mt-1">Kiểm tra download, upload, ping.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('speed-test')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="speed-test">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/color-contrast}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Độ tương phản màu</h3><p class="text-sm text-gray-500 mt-1">Kiểm tra độ tương phản màu chữ và nền.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('color-contrast')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="color-contrast">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
                 <a th:href="@{/utilities/date-calculator}" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer block group relative overflow-hidden util-card">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tính Ngày</h3><p class="text-sm text-gray-500 mt-1">Khoảng cách giữa 2 ngày hoặc đếm ngược.</p></div>
+                
+                    <div class="absolute bottom-4 right-4 z-10" onclick="event.preventDefault(); event.stopPropagation(); toggleUtilityLike('date-calculator')">
+                        <button class="util-like-btn flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors" data-utility-id="date-calculator">
+                            <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span class="like-count">0</span>
+                        </button>
+                    </div>
                 </a>
 </div>
             

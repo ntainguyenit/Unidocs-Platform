@@ -333,3 +333,53 @@
             updateFeedbackCount();
             renderFeedbackItems();
         });
+
+
+// Utility Likes Feature
+document.addEventListener('DOMContentLoaded', () => {
+    const likeBtns = document.querySelectorAll('.util-like-btn');
+    if (likeBtns.length > 0) {
+        fetch('/api/utilities/likes')
+            .then(res => res.json())
+            .then(data => {
+                const counts = data.counts || {};
+                const likedByMe = data.likedByMe || [];
+                
+                likeBtns.forEach(btn => {
+                    const utilId = btn.getAttribute('data-utility-id');
+                    const countSpan = btn.querySelector('.like-count');
+                    const svgIcon = btn.querySelector('.like-icon');
+                    
+                    if (counts[utilId]) {
+                        countSpan.textContent = counts[utilId];
+                    }
+                    
+                    if (likedByMe.includes(utilId)) {
+                        svgIcon.setAttribute('fill', 'currentColor');
+                    }
+                });
+            })
+            .catch(err => console.error('Error fetching likes:', err));
+    }
+});
+
+window.toggleUtilityLike = function(utilityId) {
+    const btn = document.querySelector(.util-like-btn[data-utility-id=""]);
+    if (!btn) return;
+    
+    fetch(/api/utilities//like, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            const countSpan = btn.querySelector('.like-count');
+            const svgIcon = btn.querySelector('.like-icon');
+            
+            countSpan.textContent = data.count;
+            
+            if (data.liked) {
+                svgIcon.setAttribute('fill', 'currentColor');
+            } else {
+                svgIcon.setAttribute('fill', 'none');
+            }
+        })
+        .catch(err => console.error('Error toggling like:', err));
+};
