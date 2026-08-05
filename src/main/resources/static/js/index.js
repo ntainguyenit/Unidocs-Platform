@@ -364,10 +364,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.toggleUtilityLike = function(utilityId) {
-    const btn = document.querySelector(.util-like-btn[data-utility-id=""]);
+    const btn = document.querySelector('.util-like-btn[data-utility-id="' + utilityId + '"]');
     if (!btn) return;
     
-    fetch(/api/utilities//like, { method: 'POST' })
+    fetch('/api/utilities/' + utilityId + '/like', { method: 'POST' })
         .then(res => res.json())
         .then(data => {
             const countSpan = btn.querySelector('.like-count');
