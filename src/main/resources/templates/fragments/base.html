@@ -112,7 +112,7 @@
             </a>
 
             
-            <div th:unless="${hideTools == true or (#httpServletRequest.requestURI != null and #httpServletRequest.requestURI.startsWith('/utilities/'))}" class="flex items-center gap-4 ml-auto md:mr-4">
+            <div th:unless="${hideTools == true or (#ctx.springRequestContext.requestUri != null and #ctx.springRequestContext.requestUri.startsWith('/utilities/'))}" class="flex items-center gap-4 ml-auto md:mr-4">
                 <button onclick="cycleLanguage()" class="hide-on-mobile text-white hover:text-blue-200 transition-colors relative flex items-center justify-center w-6 h-6" title="Ngôn ngữ / Language" data-i18n-title="header.lang">
                     <span id="currentLangText" class="text-sm font-bold uppercase tracking-wider">VIE</span>
                 </button>
