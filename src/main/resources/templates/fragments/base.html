@@ -8,6 +8,9 @@
     <!-- Security Monitor: Loaded very early to prevent DevTools -->
     <script th:src="@{/js/security-monitor.js}"></script>
 
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3722649225395463" crossorigin="anonymous"></script>
+
     <!-- Google Analytics -->
     <th:block th:with="gaId=${@environment.getProperty('GA_TRACKING_ID', 'G-M6LSLB0VKP')}">
         <script async th:src="@{'https://www.googletagmanager.com/gtag/js?id=' + ${gaId}}"></script>
@@ -283,6 +286,19 @@
 
     <footer th:fragment="footer" class="bg-gray-100 border-t border-divider mt-12 py-8 relative">
         <div class="container mx-auto px-4">
+            
+            <!-- Google AdSense - Horizontal Banner (Footer) -->
+            <div class="w-full flex justify-center mb-6 overflow-hidden max-w-5xl mx-auto min-h-[90px]">
+                <ins class="adsbygoogle"
+                     style="display:block; text-align:center;"
+                     data-ad-layout="in-article"
+                     data-ad-format="fluid"
+                     data-ad-client="ca-pub-3722649225395463"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+
             <div class="text-center text-sm text-gray-500 mb-6 max-w-5xl mx-auto leading-relaxed" data-i18n="footer.disclaimer">
                 <strong class="font-semibold text-gray-700">Tuyên bố miễn trừ trách nhiệm:</strong> Tài liệu trên UniDocs do cộng đồng đóng góp vì mục đích học tập phi lợi nhuận. Chúng tôi không đưa ra bất kỳ bảo đảm nào về tính chính xác tuyệt đối của nội dung. Chúng tôi tôn trọng nghiêm ngặt quyền sở hữu trí tuệ theo pháp luật Việt Nam. Mọi yêu cầu gỡ bỏ tài liệu vi phạm bản quyền vui lòng liên hệ trực tiếp, chúng tôi cam kết kiểm tra và xử lý trong vòng 24 đến 48 giờ làm việc.
             </div>
