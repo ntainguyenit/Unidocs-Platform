@@ -23,9 +23,17 @@ public class PdfThumbnailUtil {
      * @return byte array of the JPEG thumbnail, or null if generation fails.
      */
     public static byte[] generateThumbnail(InputStream pdfInputStream) {
+        java.io.File tempFile = null;
         try {
-            byte[] pdfBytes = pdfInputStream.readAllBytes();
-            try (PDDocument document = Loader.loadPDF(pdfBytes)) {
+            tempFile = java.io.File.createTempFile("pdf-thumb-", ".pdf");
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFile)) {
+                byte[] buffer = new byte[8192];
+                int read;
+                while ((read = pdfInputStream.read(buffer)) != -1) {
+                    fos.write(buffer, 0, read);
+                }
+            }
+            try (PDDocument document = Loader.loadPDF(tempFile)) {
                 if (document.getNumberOfPages() > 0) {
                 PDFRenderer pdfRenderer = new PDFRenderer(document);
                 // Render first page at 72 DPI (low resolution for thumbnail)
@@ -57,6 +65,10 @@ public class PdfThumbnailUtil {
         } catch (Exception e) {
             e.printStackTrace();
             // Fallback: return null if thumbnail generation fails
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
         }
         return null;
     }
