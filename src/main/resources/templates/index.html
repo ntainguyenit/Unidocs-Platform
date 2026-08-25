@@ -48,12 +48,14 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <a th:each="uni : ${universities}" th:href="@{/university/{slug}(slug=${uni.slug})}" class="card group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer flex flex-col items-center justify-center p-6 text-center h-full min-h-[12rem]">
-                    <div class="w-16 h-16 mb-4 flex items-center justify-center">
-                        <img th:src="${uni.logoUrl != null and !uni.logoUrl.isEmpty() ? uni.logoUrl : '/images/logo-uni.png'}" alt="Logo" class="w-full h-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
+                <a th:each="uni : ${universities}" th:href="@{/university/{slug}(slug=${uni.slug})}" class="block h-full no-underline">
+                    <div class="card group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer flex flex-col items-center justify-center p-6 text-center h-full min-h-[12rem]">
+                        <div class="w-16 h-16 mb-4 flex items-center justify-center">
+                            <img th:src="${uni.logoUrl != null and !uni.logoUrl.isEmpty() ? uni.logoUrl : '/images/logo-uni.png'}" alt="Logo" class="w-full h-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
+                        </div>
+                        <h3 class="text-sm font-bold text-text group-hover:text-primary transition-colors" th:text="${uni.name}">Đại học</h3>
+                        <p class="text-xs text-gray-500 mt-1 font-medium" th:text="${uni.shortName}">SHORT</p>
                     </div>
-                    <h3 class="text-sm font-bold text-text group-hover:text-primary transition-colors" th:text="${uni.name}">Đại học</h3>
-                    <p class="text-xs text-gray-500 mt-1 font-medium" th:text="${uni.shortName}">SHORT</p>
                 </a>
             </div>
         </div>
