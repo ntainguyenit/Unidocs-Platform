@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title}">UniDocs</title>
+    
+    <!-- Security Monitor: Loaded very early to prevent DevTools -->
+    <script th:src="@{/js/security-monitor.js}"></script>
 
     <!-- Google Analytics -->
     <th:block th:with="gaId=${@environment.getProperty('GA_TRACKING_ID', 'G-M6LSLB0VKP')}">
