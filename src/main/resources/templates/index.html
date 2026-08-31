@@ -5,16 +5,16 @@
     
     <div th:replace="~{fragments/base :: navbar}"></div>
     
-    <div class="hidden bg-blue-600 bg-red-600 bg-green-600 bg-yellow-500 bg-indigo-600 bg-emerald-600 bg-rose-600 bg-cyan-600 hover:-translate-y-1"></div>
+    <div class="hidden bg-blue-600 bg-red-600 bg-red-500 bg-red-700 bg-green-600 bg-emerald-700 bg-yellow-500 bg-orange-600 bg-indigo-600 bg-rose-500 bg-fuchsia-600 bg-cyan-600 hover:-translate-y-1"></div>
 
     <main class="flex-grow container mx-auto px-4 py-8">
         
-        <div class="bg-primary-dark text-white rounded-xl p-8 mb-8 shadow-lg relative overflow-hidden">
+        <div id="dynamic-banner" class="bg-primary-dark text-white rounded-xl p-8 mb-8 shadow-lg relative overflow-hidden transition-colors duration-1000">
             <div class="relative z-10">
                 <h1 class="text-3xl md:text-4xl font-bold mb-4 text-white" data-i18n="home.title">Đề Thi & Tài Liệu</h1>
                 <p class="text-gray-300 text-lg max-w-2xl" data-i18n="home.subtitle">Không cần đăng nhập, tất cả đều miễn phí.</p>
             </div>
-            <div class="absolute top-0 right-0 opacity-10">
+            <div id="dynamic-banner-pattern" class="absolute top-0 right-0 opacity-10 transition-opacity duration-1000">
                 <svg width="400" height="400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
@@ -790,7 +790,7 @@
 
     
 <script th:src="@{/js/index.js}"></script>
-
+<script th:src="@{/js/holiday-banner.js}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const catSelect = document.getElementById('utilCategory');
