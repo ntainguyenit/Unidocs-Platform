@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const banner = document.getElementById('dynamic-banner');
     const pattern = document.getElementById('dynamic-banner-pattern');
     if (!banner || !pattern) return;
@@ -93,5 +93,22 @@
         banner.classList.remove('bg-primary-dark');
         banner.classList.add(theme.bg);
         pattern.innerHTML = theme.svg;
+    }
+
+    // Set greeting text based on current hour
+    const greetingEl = document.getElementById('greeting-text');
+    if (greetingEl) {
+        const hour = today.getHours();
+        let greeting = '';
+        if (hour >= 0 && hour < 11) {
+            greeting = 'Chào buổi sáng! ☕';
+        } else if (hour >= 11 && hour < 14) {
+            greeting = 'Chào buổi trưa! 🍲';
+        } else if (hour >= 14 && hour < 18) {
+            greeting = 'Chào buổi chiều! 🌤️';
+        } else {
+            greeting = 'Chào buổi tối! 🌙';
+        }
+        greetingEl.textContent = greeting;
     }
 });

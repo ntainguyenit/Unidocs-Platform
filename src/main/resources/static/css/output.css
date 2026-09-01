@@ -737,11 +737,6 @@ h1, h2, h3, h4, h5, h6 {
   right: 0px;
 }
 
-.inset-y-0 {
-  top: 0px;
-  bottom: 0px;
-}
-
 .-top-0\.5 {
   top: -0.125rem;
 }
@@ -752,10 +747,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .bottom-full {
   bottom: 100%;
-}
-
-.left-0 {
-  left: 0px;
 }
 
 .left-1\/2 {
@@ -2108,9 +2099,14 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgb(8 145 178 / var(--tw-bg-opacity, 1));
 }
 
-.bg-emerald-600 {
+.bg-emerald-700 {
   --tw-bg-opacity: 1;
-  background-color: rgb(5 150 105 / var(--tw-bg-opacity, 1));
+  background-color: rgb(4 120 87 / var(--tw-bg-opacity, 1));
+}
+
+.bg-fuchsia-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(192 38 211 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gray-100 {
@@ -2214,6 +2210,11 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgb(255 247 237 / var(--tw-bg-opacity, 1));
 }
 
+.bg-orange-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(234 88 12 / var(--tw-bg-opacity, 1));
+}
+
 .bg-primary {
   --tw-bg-opacity: 1;
   background-color: rgb(30 58 138 / var(--tw-bg-opacity, 1));
@@ -2257,6 +2258,11 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgb(220 38 38 / var(--tw-bg-opacity, 1));
 }
 
+.bg-red-700 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(185 28 28 / var(--tw-bg-opacity, 1));
+}
+
 .bg-rose-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(255 228 230 / var(--tw-bg-opacity, 1));
@@ -2267,9 +2273,9 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgb(255 241 242 / var(--tw-bg-opacity, 1));
 }
 
-.bg-rose-600 {
+.bg-rose-500 {
   --tw-bg-opacity: 1;
-  background-color: rgb(225 29 72 / var(--tw-bg-opacity, 1));
+  background-color: rgb(244 63 94 / var(--tw-bg-opacity, 1));
 }
 
 .bg-transparent {
@@ -2545,10 +2551,6 @@ h1, h2, h3, h4, h5, h6 {
   padding-bottom: 1.5rem;
 }
 
-.pl-10 {
-  padding-left: 2.5rem;
-}
-
 .pl-3 {
   padding-left: 0.75rem;
 }
@@ -2579,6 +2581,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .pr-4 {
   padding-right: 1rem;
+}
+
+.pr-8 {
+  padding-right: 2rem;
 }
 
 .pt-2 {
@@ -3008,6 +3014,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .line-through {
   text-decoration-line: line-through;
+}
+
+.no-underline {
+  text-decoration-line: none;
 }
 
 .antialiased {
@@ -3800,16 +3810,17 @@ h1, h2, h3, h4, h5, h6 {
     height: 100vh;
   }
 
-  .sm\:w-60 {
-    width: 15rem;
-  }
-
   .sm\:w-auto {
     width: auto;
   }
 
   .sm\:w-full {
     width: 100%;
+  }
+
+  .sm\:w-max {
+    width: -moz-max-content;
+    width: max-content;
   }
 
   .sm\:max-w-md {
@@ -4124,6 +4135,11 @@ h1, h2, h3, h4, h5, h6 {
   .md\:text-9xl {
     font-size: 8rem;
     line-height: 1;
+  }
+
+  .md\:text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
   }
 
   .md\:text-sm {
