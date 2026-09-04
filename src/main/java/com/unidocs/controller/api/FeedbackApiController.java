@@ -27,7 +27,8 @@ public class FeedbackApiController {
     public ResponseEntity<?> submitFeedback(@RequestBody Map<String, String> payload) {
         try {
             String content = payload.get("content");
-            Feedback feedback = feedbackService.createFeedback(content);
+            String authorName = payload.get("authorName");
+            Feedback feedback = feedbackService.createFeedback(content, authorName);
             return ResponseEntity.ok(Map.of("message", "Góp ý đã được gửi thành công", "feedback", feedback));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

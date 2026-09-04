@@ -499,3 +499,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+function copyDocLink(slug) {
+    const url = window.location.origin + '/document/' + slug;
+    navigator.clipboard.writeText(url).then(() => {
+        if (typeof Toastify !== 'undefined') {
+            Toastify({
+                text: 'Đã sao chép liên kết tài liệu!',
+                duration: 3000,
+                close: true,
+                gravity: 'bottom',
+                position: 'right',
+                style: {
+                    background: '#10b981',
+                    color: 'white',
+                    borderRadius: '0.375rem'
+                }
+            }).showToast();
+        } else {
+            alert('Đã sao chép liên kết tài liệu!');
+        }
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}

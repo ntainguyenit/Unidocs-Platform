@@ -40,7 +40,7 @@ public class FeedbackService {
     }
 
     @Transactional
-    public Feedback createFeedback(String content) {
+    public Feedback createFeedback(String content, String authorName) {
         if (content == null || content.trim().isEmpty()) {
             throw new IllegalArgumentException("Nội dung không được để trống");
         }
@@ -49,7 +49,7 @@ public class FeedbackService {
         }
 
         Feedback feedback = new Feedback();
-        feedback.setAuthorName("Người dùng");
+        feedback.setAuthorName(authorName != null && !authorName.trim().isEmpty() ? authorName : "Người dùng");
         // Simple XSS prevention by replacing tags
         feedback.setContent(content.replace("<", "&lt;").replace(">", "&gt;"));
 
