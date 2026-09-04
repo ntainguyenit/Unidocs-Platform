@@ -40,4 +40,10 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT d FROM Document d WHERE d.course.id = :courseId AND d.id <> :excludeId AND d.status = :status ORDER BY (d.views + d.downloads) DESC")
     List<Document> findRelatedDocumentsSameCourse(@org.springframework.data.repository.query.Param("courseId") Long courseId, @org.springframework.data.repository.query.Param("excludeId") Long excludeId, @org.springframework.data.repository.query.Param("status") DocumentStatus status, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(d.views), 0) FROM Document d WHERE d.course.faculty.university.id = :universityId")
+    Long sumViewsByUniversity(@org.springframework.data.repository.query.Param("universityId") Long universityId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(d.downloads), 0) FROM Document d WHERE d.course.faculty.university.id = :universityId")
+    Long sumDownloadsByUniversity(@org.springframework.data.repository.query.Param("universityId") Long universityId);
 }

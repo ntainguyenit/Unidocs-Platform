@@ -24,16 +24,19 @@ public class HomeController {
     private final UniversityRepository universityRepository;
     private final FacultyRepository facultyRepository;
     private final com.unidocs.repository.CourseRepository courseRepository;
+    private final com.unidocs.repository.DocumentRepository documentRepository;
     private final com.unidocs.service.DocumentService documentService;
     private final com.unidocs.service.NotificationService notificationService;
     private final com.unidocs.service.FeedbackService feedbackService;
 
     public HomeController(UniversityRepository universityRepository, FacultyRepository facultyRepository, 
-                          com.unidocs.repository.CourseRepository courseRepository, com.unidocs.service.DocumentService documentService,
+                          com.unidocs.repository.CourseRepository courseRepository, com.unidocs.repository.DocumentRepository documentRepository,
+                          com.unidocs.service.DocumentService documentService,
                           com.unidocs.service.NotificationService notificationService, com.unidocs.service.FeedbackService feedbackService) {
         this.universityRepository = universityRepository;
         this.facultyRepository = facultyRepository;
         this.courseRepository = courseRepository;
+        this.documentRepository = documentRepository;
         this.documentService = documentService;
         this.notificationService = notificationService;
         this.feedbackService = feedbackService;
@@ -56,16 +59,8 @@ public class HomeController {
                 .sorted(java.util.Comparator.comparing(com.unidocs.domain.Faculty::getName))
                 .toList();
 
-        long totalViews = 0;
-        long totalDownloads = 0;
-        for (com.unidocs.domain.Faculty f : sortedFaculties) {
-            for (com.unidocs.domain.Course c : f.getCourses()) {
-                for (com.unidocs.domain.Document d : c.getDocuments()) {
-                    totalViews += d.getViews();
-                    totalDownloads += d.getDownloads();
-                }
-            }
-        }
+        long totalViews = documentRepository.sumViewsByUniversity(uni.getId());
+        long totalDownloads = documentRepository.sumDownloadsByUniversity(uni.getId());
 
         model.addAttribute("university", uni);
         model.addAttribute("faculties", sortedFaculties);
