@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/base :: head(${pageTitle})}"></head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
@@ -51,7 +51,7 @@
                         </div>
                         <div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
                             <div class="text-gray-500 text-xs font-medium uppercase mb-1">Lượt xem</div>
-                            <div class="text-xl font-bold text-blue-600" th:text="${group.views}">0</div>
+                            <div class="text-xl font-bold text-blue-600" th:text="${#numbers.formatInteger(group.views, 1, 'POINT')}">0</div>
                         </div>
                         <div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
                             <div class="text-gray-500 text-xs font-medium uppercase mb-1">Quan tâm</div>
@@ -337,3 +337,4 @@
     </script>
 </body>
 </html>
+
