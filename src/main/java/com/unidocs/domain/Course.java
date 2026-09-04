@@ -30,6 +30,11 @@ public class Course {
     @ToString.Exclude
     private Faculty faculty;
     
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    private java.util.List<Document> documents = new java.util.ArrayList<>();
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
