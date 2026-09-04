@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+﻿(function() {
     const banner = document.getElementById('dynamic-banner');
     const pattern = document.getElementById('dynamic-banner-pattern');
     if (!banner || !pattern) return;
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const day = today.getDate();
     const year = today.getFullYear();
 
-    // Lunar New Year Dates (approximate starting from mùng 1) 2026-2035
+    // Lunar New Year Dates (approximate starting from mÃ¹ng 1) 2026-2035
     const lunarNewYearDates = {
         2026: { m: 2, d: 17 },
         2027: { m: 2, d: 6 },
@@ -101,14 +101,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const hour = today.getHours();
         let greeting = '';
         if (hour >= 0 && hour < 11) {
-            greeting = 'Chào buổi sáng! ☕';
+            greeting = 'ChÃ o buá»•i sÃ¡ng! â˜•';
         } else if (hour >= 11 && hour < 14) {
-            greeting = 'Chào buổi trưa! 🍲';
+            greeting = 'ChÃ o buá»•i trÆ°a! ðŸ²';
         } else if (hour >= 14 && hour < 18) {
-            greeting = 'Chào buổi chiều! 🌤️';
+            greeting = 'ChÃ o buá»•i chiá»u! ðŸŒ¤ï¸';
         } else {
-            greeting = 'Chào buổi tối! 🌙';
+            greeting = 'ChÃ o buá»•i tá»‘i! ðŸŒ™';
         }
         greetingEl.textContent = greeting;
     }
-});
+})();
+
