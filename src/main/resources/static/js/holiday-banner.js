@@ -5,13 +5,13 @@
         const hour = today.getHours();
         let greeting = '';
         if (hour >= 0 && hour < 11) {
-            greeting = 'Chào buổi sáng, chúc bạn ngày mới tốt lành!';
+            greeting = 'Chào buổi sáng, chúc mọi thứ tốt lành!';
         } else if (hour >= 11 && hour < 14) {
-            greeting = 'Chào buổi trưa, chúc bạn ngày mới tốt lành!';
+            greeting = 'Chào buổi trưa, chúc mọi thứ tốt lành!';
         } else if (hour >= 14 && hour < 18) {
-            greeting = 'Chào buổi chiều, chúc bạn ngày mới tốt lành!';
+            greeting = 'Chào buổi chiều, chúc mọi thứ tốt lành!';
         } else {
-            greeting = 'Chào buổi tối, chúc bạn ngày mới tốt lành!';
+            greeting = 'Chào buổi tối, chúc mọi thứ tốt lành!';
         }
         
         greetingEl.innerHTML = '';
