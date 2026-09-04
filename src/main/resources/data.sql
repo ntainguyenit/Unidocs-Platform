@@ -1,1 +1,0 @@
-INSERT INTO documents (id, title, slug, file_size, views, downloads, file_type, storage_url, status, course_id, created_at, updated_at) VALUES (999, 'Test Doc', 'test-doc', 1000, 0, 0, 'PDF', 'http://test', 'APPROVED', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
