@@ -101,15 +101,13 @@
         const hour = today.getHours();
         let greeting = '';
         if (hour >= 0 && hour < 11) {
-            greeting = 'ChÃ o buá»•i sÃ¡ng! â˜•';
+            greeting = 'Chào buổi sáng! ☕';
         } else if (hour >= 11 && hour < 14) {
-            greeting = 'ChÃ o buá»•i trÆ°a! ðŸ²';
+            greeting = 'Chào buổi trưa! 🍲';
         } else if (hour >= 14 && hour < 18) {
-            greeting = 'ChÃ o buá»•i chiá»u! ðŸŒ¤ï¸';
+            greeting = 'Chào buổi chiều! 🌤️';
         } else {
-            greeting = 'ChÃ o buá»•i tá»‘i! ðŸŒ™';
-        }
-        greetingEl.textContent = greeting;
-    }
-})();
+            greeting = 'Chào buổi tối! 🌙';
+        })();
+
 
