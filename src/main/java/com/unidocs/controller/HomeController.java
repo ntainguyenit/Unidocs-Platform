@@ -55,8 +55,22 @@ public class HomeController {
         java.util.List<com.unidocs.domain.Faculty> sortedFaculties = uni.getFaculties().stream()
                 .sorted(java.util.Comparator.comparing(com.unidocs.domain.Faculty::getName))
                 .toList();
+
+        long totalViews = 0;
+        long totalDownloads = 0;
+        for (com.unidocs.domain.Faculty f : sortedFaculties) {
+            for (com.unidocs.domain.Course c : f.getCourses()) {
+                for (com.unidocs.domain.Document d : c.getDocuments()) {
+                    totalViews += d.getViews();
+                    totalDownloads += d.getDownloads();
+                }
+            }
+        }
+
         model.addAttribute("university", uni);
         model.addAttribute("faculties", sortedFaculties);
+        model.addAttribute("totalViews", totalViews);
+        model.addAttribute("totalDownloads", totalDownloads);
         return "university";
     }
 
