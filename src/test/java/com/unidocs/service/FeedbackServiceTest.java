@@ -39,7 +39,7 @@ public class FeedbackServiceTest {
     void submitFeedback_Success() {
         when(feedbackRepository.save(any(Feedback.class))).thenReturn(mockFeedback);
         
-        Feedback result = feedbackService.createFeedback("Test Feedback");
+        Feedback result = feedbackService.createFeedback("Test Feedback", "Người dùng thử nghiệm");
         assertNotNull(result);
         assertEquals("Test Feedback", result.getContent());
         verify(feedbackRepository).save(any(Feedback.class));
