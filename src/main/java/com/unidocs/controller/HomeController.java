@@ -104,8 +104,14 @@ public class HomeController {
                     return c1.getName().compareTo(c2.getName());
                 })
                 .toList();
+        java.util.List<com.unidocs.domain.Faculty> otherFaculties = faculty.getUniversity().getFaculties().stream()
+                .filter(f -> !f.getId().equals(faculty.getId()))
+                .sorted(java.util.Comparator.comparing(com.unidocs.domain.Faculty::getName))
+                .toList();
+
         model.addAttribute("faculty", faculty);
         model.addAttribute("courses", sortedCourses);
+        model.addAttribute("otherFaculties", otherFaculties);
         return "faculty";
     }
 
