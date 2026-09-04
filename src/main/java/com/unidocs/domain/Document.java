@@ -70,4 +70,28 @@ public class Document {
     protected void onCreate() {
         uploadedAt = LocalDateTime.now();
     }
+
+    // Tự động làm sạch tên tài liệu (loại bỏ ID dài, gạch dưới, đuôi file)
+    public String getTitle() {
+        if (this.title == null) return "Tài liệu";
+        
+        String clean = this.title.replaceAll("(?i)\\.(pdf|docx?|pptx?|xlsx?|png|jpe?g|gif|txt)$", "");
+        clean = clean.replace("_", " ").replace("-", " ");
+        // Loại bỏ các chuỗi phổ biến như FB_IMG, Screenshot
+        clean = clean.replaceAll("(?i)\\b(FB IMG|IMG|Screenshot|WhatsApp Image|Doc|Document)\\b", "");
+        // Loại bỏ các chuỗi số dài hơn 6 ký tự (thường là timestamp hoặc ID)
+        clean = clean.replaceAll("\\b\\d{6,}\\b", "");
+        // Xóa khoảng trắng thừa
+        clean = clean.replaceAll("\\s+", " ").trim();
+        
+        if (clean.isEmpty()) {
+            if (this.course != null && this.course.getName() != null) {
+                return "Tài liệu " + this.course.getName();
+            }
+            return "Tài liệu";
+        }
+        
+        // Viết hoa chữ cái đầu tiên
+        return clean.substring(0, 1).toUpperCase() + clean.substring(1);
+    }
 }
