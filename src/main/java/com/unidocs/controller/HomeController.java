@@ -44,7 +44,16 @@ public class HomeController {
 
     @GetMapping("/")
     public String index(Model model) {
-        model.addAttribute("universities", universityRepository.findAll());
+        java.util.List<University> unis = universityRepository.findAll();
+        java.util.Map<Long, Long> uniViews = new java.util.HashMap<>();
+        java.util.Map<Long, Long> uniDownloads = new java.util.HashMap<>();
+        for (University u : unis) {
+            uniViews.put(u.getId(), documentRepository.sumViewsByUniversity(u.getId()));
+            uniDownloads.put(u.getId(), documentRepository.sumDownloadsByUniversity(u.getId()));
+        }
+        model.addAttribute("universities", unis);
+        model.addAttribute("uniViews", uniViews);
+        model.addAttribute("uniDownloads", uniDownloads);
         model.addAttribute("notifications", notificationService.getRecentNotifications());
         model.addAttribute("feedbacks", feedbackService.getAllFeedbacks());
         return "index";
