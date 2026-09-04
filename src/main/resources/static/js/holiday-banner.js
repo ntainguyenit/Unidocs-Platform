@@ -15,16 +15,22 @@
         }
         
         greetingEl.innerHTML = '';
-        let i = 0;
-        function typeWriter() {
-            if (i < greeting.length) {
-                greetingEl.innerHTML += greeting.charAt(i);
-                i++;
-                setTimeout(typeWriter, 50);
-            } else {
-                greetingEl.innerHTML += '<span class="animate-pulse">|</span>';
+        function startTypeWriter() {
+            let i = 0;
+            greetingEl.innerHTML = '';
+            
+            function typeWriter() {
+                if (i < greeting.length) {
+                    greetingEl.innerHTML += greeting.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 50);
+                } else {
+                    greetingEl.innerHTML += '<span class="animate-pulse">|</span>';
+                    setTimeout(startTypeWriter, 3000); // 3 seconds delay before restarting
+                }
             }
+            typeWriter();
         }
-        typeWriter();
+        startTypeWriter();
     }
 })();
