@@ -1,6 +1,6 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/base :: head(${faculty.name} + ' - ' + ${faculty.university.shortName} + ' | UniDocs')}"></head>
+<head th:replace="~{fragments/base :: head(${faculty.name} + ' - ' + (${faculty.university.shortName != null ? faculty.university.shortName : faculty.university.name}) + ' | UniDocs')}"></head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
     
     <div th:replace="~{fragments/base :: navbar}"></div>
