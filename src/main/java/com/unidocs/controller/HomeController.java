@@ -132,6 +132,12 @@ public class HomeController {
         
         java.util.List<com.unidocs.domain.Document> trendingDocs = documentService.getTrendingDocumentsForCourse(course.getId(), 4);
         model.addAttribute("trendingDocs", trendingDocs);
+
+        java.util.List<com.unidocs.domain.Course> otherCourses = course.getFaculty().getCourses().stream()
+                .filter(c -> !c.getId().equals(course.getId()))
+                .sorted(java.util.Comparator.comparing(com.unidocs.domain.Course::getName))
+                .toList();
+        model.addAttribute("otherCourses", otherCourses);
         
         if (folder == null) {
             // Get unique folder names, optionally sort them
