@@ -1,4 +1,4 @@
-﻿(function() {
+(function() {
     const banner = document.getElementById('dynamic-banner');
     const pattern = document.getElementById('dynamic-banner-pattern');
     if (!banner || !pattern) return;
@@ -108,6 +108,7 @@
             greeting = 'Chào buổi chiều! 🌤️';
         } else {
             greeting = 'Chào buổi tối! 🌙';
-        })();
-
-
+        }
+        greetingEl.innerText = greeting;
+    }
+})();

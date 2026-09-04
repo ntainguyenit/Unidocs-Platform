@@ -228,7 +228,7 @@
         <div th:if="${not #lists.isEmpty(otherCourses)}" class="mt-12">
             <div class="mb-4 border-b border-divider pb-2">
                 <h2 class="text-xl font-bold text-text">Danh sách các Học phần khác</h2>
-                <p class="text-sm text-gray-500 mt-1" th:text="'Thuộc Khoa ' + ${course.faculty.name}">Thuộc khoa</p>
+                <p class="text-sm text-gray-500 mt-1" th:text="'Thuộc ' + ${course.faculty.name}">Thuộc khoa</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
