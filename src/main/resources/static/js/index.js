@@ -127,10 +127,26 @@
             }, 5000);
         }
 
+        const authorNames = [
+            "Cú đêm chăm chỉ", "Sinh viên ngáp ngủ", "Chuyên gia chạy deadline", 
+            "Bậc thầy qua môn", "Thánh cúp học", "Người hùng thư viện", 
+            "Học bá ẩn danh", "Chiến thần bài tập", "Mọt sách vui vẻ",
+            "Thiên tài lạc lối", "Chúa tể ngủ gật", "Sinh viên ưu tú",
+            "Cao thủ điểm A", "Học tra cần cù"
+        ];
+
+        window.randomizeName = function() {
+            const authorInput = document.getElementById('authorName');
+            const randomName = authorNames[Math.floor(Math.random() * authorNames.length)];
+            authorInput.value = randomName;
+        };
+
         // Handle Form Submission via AJAX
-        function submitFeedback(e) {
+        window.submitFeedback = function(e) {
             e.preventDefault();
             const content = contentInput.value.trim();
+            const authorName = document.getElementById('authorName') ? document.getElementById('authorName').value.trim() : "Người dùng";
+            
             if (!content) return showMessage('Vui lòng nhập nội dung', 'error');
 
             submitBtn.disabled = true;
@@ -141,7 +157,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ content: content })
+                body: JSON.stringify({ content: content, authorName: authorName })
             })
             .then(response => response.json())
             .then(data => {
