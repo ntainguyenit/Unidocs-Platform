@@ -1,9 +1,147 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/base :: head('Trang chủ | UniDocs')}"></head>
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ | UniDocs</title>
+    
+    <!-- Security Monitor: Loaded very early to prevent DevTools -->
+    <script src="/js/security-monitor.js"></script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3722649225395463" crossorigin="anonymous"></script>
+
+    <!-- Google Analytics -->
+    
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M6LSLB0VKP"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', "G-M6LSLB0VKP");
+        </script>
+    
+    <!-- SEO & GEO AI Mode Meta Tags -->
+    <meta name="description" content="Nền tảng chia sẻ tài liệu học tập, đề thi đại học hàng đầu dành cho sinh viên. Khám phá các khóa học, tài liệu ôn thi HUSC, UniDocs.">
+    <meta name="keywords" content="uni doc, unidoc, uni docs, unidocs, husc, đại học khoa học huế, tài liệu đại học, đề thi đại học, chia sẻ tài liệu">
+    <meta name="author" content="UniDocs Team">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph for Social Media -->
+    <meta property="og:title" content="Trang chủ | UniDocs">
+    <meta property="og:description" content="Nền tảng chia sẻ tài liệu học tập, đề thi đại học dành cho sinh viên HUSC">
+    <meta property="og:image" content="/favicon.svg">
+    <meta property="og:url" content="https://unidocs.pages.dev">
+    <meta property="og:type" content="website">
+
+    <!-- JSON-LD Structured Data for GEO AI -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "UniDocs",
+      "alternateName": ["uni doc", "unidoc", "uni docs", "husc"],
+      "url": "https://unidocs.pages.dev",
+      "description": "Nền tảng chia sẻ tài liệu học tập, đề thi đại học dành cho sinh viên HUSC"
+    }
+    </script>
+
+    <link href="/css/output.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        body.dark-mode { background-color: #111827; color: #f9fafb; }
+        body.dark-mode .bg-white { background-color: #1f2937; border-color: #374151; color: #f9fafb; }
+        body.dark-mode .text-gray-900, body.dark-mode .text-gray-800 { color: #f9fafb; }
+        body.dark-mode .text-gray-700, body.dark-mode .text-gray-600 { color: #d1d5db; }
+        body.dark-mode .text-gray-500 { color: #9ca3af; }
+        body.dark-mode .bg-gray-50, body.dark-mode .bg-gray-100 { background-color: #374151; }
+        body.dark-mode .border-gray-200, body.dark-mode .border-divider, body.dark-mode .border-gray-100 { border-color: #374151; }
+        body.dark-mode header.bg-primary { background-color: #1e3a8a; }
+        body.dark-mode .shadow-sm, body.dark-mode .shadow-md, body.dark-mode .shadow-xl { box-shadow: none; border: 1px solid #374151; }
+        @media (max-width: 767px) {
+            .hide-on-mobile { display: none !important; }
+        }
+    </style>
+    <!-- WebMCP Agent Integration -->
+    <script>
+        if (navigator.modelContext && navigator.modelContext.provideContext) {
+            navigator.modelContext.provideContext({
+                tools: [
+                    {
+                        name: "search_documents",
+                        description: "Search for documents on UniDocs",
+                        inputSchema: {
+                            type: "object",
+                            properties: {
+                                query: { type: "string" }
+                            },
+                            required: ["query"]
+                        },
+                        execute: async (args) => {
+                            window.location.href = "/search?q=" + encodeURIComponent(args.query);
+                            return { status: "redirecting" };
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
+</head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
     
-    <div th:replace="~{fragments/base :: navbar}"></div>
+    <header class="bg-primary text-white shadow-md sticky top-0 z-40">
+        <script>
+            if (typeof tailwind !== 'undefined') {
+                tailwind.config = {
+                    theme: {
+                        extend: {
+                            colors: {
+                                primary: { DEFAULT: '#1e3a8a', dark: '#0f172a' },
+                                text: { DEFAULT: '#111827' },
+                                divider: '#e5e7eb'
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+        <div class="container mx-auto px-4 py-3 flex flex-wrap items-center gap-y-3">
+            <a href="/" class="text-2xl font-bold tracking-wider flex items-center gap-2 shrink-0 -my-3 py-3 -ml-4 pl-4 pr-4 sm:pr-6 sm:border-r sm:border-white/30 hover:bg-white/10 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                UniDocs
+            </a>
+
+            
+            <div class="flex items-center gap-4 ml-auto md:mr-4">
+
+                <button onclick="openStatsModal()" class="hide-on-mobile text-white hover:text-blue-200 transition-colors relative" title="Thống kê truy cập">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </button>
+                <button onclick="openBookmarksModal()" class="hide-on-mobile text-white hover:text-blue-200 transition-colors relative" title="Tài liệu đã lưu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                    <span id="bookmarkBadge" style="top: -6px; right: -8px;" class="absolute bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-sm hidden">0</span>
+                </button>
+                <div id="realtimeDate" class="text-[11px] sm:text-sm text-blue-50 font-medium whitespace-nowrap opacity-90 text-right flex-shrink min-w-0"></div>
+            </div>
+            
+            <div class="w-full md:w-auto md:flex-1 md:max-w-lg relative group" id="searchContainer">
+                <input type="text" id="searchInput" name="query" aria-label="Tìm kiếm tên học phần" placeholder="Nhập tên học phần (VD: Lập Trình Nâng Cao, Báo In,...)" class="w-full px-4 py-2 pr-10 rounded text-text focus:outline-none focus:ring-2 focus:ring-blue-300" autocomplete="off" data-i18n-placeholder="header.search">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 top-2.5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                
+                <div id="searchResults" class="hidden absolute top-full mt-1 w-full bg-white rounded shadow-lg border border-gray-200 overflow-hidden z-50 max-h-96 overflow-y-auto">
+                </div>
+            </div>
+        </div>
+    </header>
     
     <div class="hidden bg-blue-600 bg-red-600 bg-red-500 bg-red-700 bg-green-600 bg-emerald-700 bg-yellow-500 bg-orange-600 bg-indigo-600 bg-rose-500 bg-fuchsia-600 bg-cyan-600 hover:-translate-y-1"></div>
 
@@ -49,21 +187,21 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <a th:each="uni : ${universities}" th:href="@{/university/{slug}(slug=${uni.slug})}" class="block h-full no-underline">
+                <a href="/university/truong-dai-hoc-khoa-hoc" class="block h-full no-underline">
                     <div class="card group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer flex flex-col items-center justify-center p-6 text-center h-full min-h-[12rem]">
                         <div class="w-16 h-16 mb-4 flex items-center justify-center">
-                            <img th:src="${uni.logoUrl != null and !uni.logoUrl.isEmpty() ? uni.logoUrl : '/images/logo-uni.png'}" alt="Logo" class="w-full h-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
+                            <img src="/images/logo-uni.png" alt="Logo" class="w-full h-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
                         </div>
-                        <h3 class="text-sm font-bold text-text group-hover:text-primary transition-colors" th:text="${uni.name}">Đại học</h3>
+                        <h3 class="text-sm font-bold text-text group-hover:text-primary transition-colors">Trường đại học Khoa học</h3>
                         
                         <div class="flex items-center justify-center gap-3 text-xs font-medium text-gray-500 mt-2">
                             <span class="flex items-center gap-1" title="Tổng lượt xem">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                <span th:text="${#numbers.formatInteger(uniViews[uni.id], 1, 'POINT')}">0</span>
+                                <span>6.573</span>
                             </span>
                             <span class="flex items-center gap-1" title="Tổng lượt tải">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                <span th:text="${#numbers.formatInteger(uniDownloads[uni.id], 1, 'POINT')}">0</span>
+                                <span>2.391</span>
                             </span>
                         </div>
                         
@@ -85,17 +223,11 @@
             </div>
             
             <div class="bg-white rounded-lg shadow-sm border border-divider overflow-hidden">
-                <div th:if="${#lists.isEmpty(notifications)}" class="text-center text-gray-500 py-8">
-                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                    </svg>
-                    <p class="text-lg font-medium text-gray-900">Tính năng đang được phát triển</p>
-                    <p class="mt-1">Nơi tổng hợp các thông báo mới nhất về học vụ, thi cử từ các trường.</p>
-                </div>
                 
-                <ul th:unless="${#lists.isEmpty(notifications)}" class="divide-y divide-gray-100">
-                    <li th:each="note : ${notifications}" class="hover:bg-gray-50 transition-colors">
-                        <a th:href="${note.link}" target="_blank" class="block p-4 sm:p-5">
+                
+                <ul class="divide-y divide-gray-100">
+                    <li class="hover:bg-gray-50 transition-colors">
+                        <a href="https://ums.husc.edu.vn/thong-bao-ke-hoach-cong-tac-tot-nghiep-nam-hoc-2026-2027-dot-1-va-2/" target="_blank" class="block p-4 sm:p-5">
                             <div class="flex items-start gap-4">
                                 <div class="shrink-0 mt-1">
                                     <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-primary">
@@ -106,11 +238,95 @@
                                 </div>
                                 <div>
                                     <h3 class="text-base font-bold text-gray-900 line-clamp-2">
-                                        <span th:text="${note.title}">Tiêu đề</span>
-                                        <span th:if="${noteStat.index == 0}" class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white leading-none relative -top-0.5 shadow-sm animate-pulse">NEW</span>
+                                        <span>Thông báo Kế hoạch công tác tốt nghiệp năm học 2026 - 2027, đợt 1 và 2.</span>
+                                        <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white leading-none relative -top-0.5 shadow-sm animate-pulse">NEW</span>
                                     </h3>
-                                    <p class="mt-1 text-xs text-gray-400 font-medium" th:if="${not #strings.isEmpty(note.timestamp)}" th:text="${note.timestamp}"></p>
-                                    <p class="mt-1 text-sm text-gray-500 line-clamp-2" th:text="${note.content}">Nội dung</p>
+                                    <p class="mt-1 text-xs text-gray-400 font-medium">[04/09/2026 14:34]</p>
+                                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">Nhà trường thông báo đến các đơn vị và sinh viên Kế hoạch công tác tốt nghiệp, năm học 2026-2027.</p>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="hover:bg-gray-50 transition-colors">
+                        <a href="https://ums.husc.edu.vn/thong-bao-ve-viec-nop-ban-sao-bang-tot-nghiep-trung-hoc-pho-thong-cua-sinh-vien-khoa-49/" target="_blank" class="block p-4 sm:p-5">
+                            <div class="flex items-start gap-4">
+                                <div class="shrink-0 mt-1">
+                                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900 line-clamp-2">
+                                        <span>Thông báo về việc nộp bản sao bằng tốt nghiệp Trung học phổ thông của sinh viên Khóa 49</span>
+                                        
+                                    </h3>
+                                    <p class="mt-1 text-xs text-gray-400 font-medium">[04/09/2026 09:45]</p>
+                                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">Nhằm hoàn thiện hồ sơ sinh viên Khóa 49 theo quy định, Nhà trường thông báo đến sinh viên các lớp Khóa 49 thực hiện việc bổ sung bản sao có chứng thực Bằng tốt nghiệp Trung học phổ thông. Cụ thể theo link đính kèm.</p>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="hover:bg-gray-50 transition-colors">
+                        <a href="https://ums.husc.edu.vn/thong-bao-bang-diem-mon-hoc-giao-duc-the-chat-hoc-ky-2-nam-hoc-2025-2026/" target="_blank" class="block p-4 sm:p-5">
+                            <div class="flex items-start gap-4">
+                                <div class="shrink-0 mt-1">
+                                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900 line-clamp-2">
+                                        <span>Thông báo bảng điểm môn học Giáo dục thể chất học kỳ 2, năm học 2025-2026</span>
+                                        
+                                    </h3>
+                                    <p class="mt-1 text-xs text-gray-400 font-medium">[04/09/2026 08:03]</p>
+                                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">Khoa Giáo dục thể chất, Đại học Huế thông báo đến sinh viên được biết bảng điểm học kỳ 2, năm học 2025-2026 cụ thể theo các link đính kèm.</p>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="hover:bg-gray-50 transition-colors">
+                        <a href="https://ums.husc.edu.vn/thong-bao-ve-viec-mien-giam-hoc-phi-hoc-ky-1-nam-hoc-2026-2027/" target="_blank" class="block p-4 sm:p-5">
+                            <div class="flex items-start gap-4">
+                                <div class="shrink-0 mt-1">
+                                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900 line-clamp-2">
+                                        <span>Thông báo về việc miễn, giảm học phí học kỳ 1 năm học 2026-2027</span>
+                                        
+                                    </h3>
+                                    <p class="mt-1 text-xs text-gray-400 font-medium">[03/09/2026 15:50]</p>
+                                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">Nhà trường thông báo đến toàn thể sinh viên về việc miễn, giảm học phí học kỳ 1 năm học 2026-2027. Nội dung chi tiết ở file đính kèm</p>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="hover:bg-gray-50 transition-colors">
+                        <a href="https://ums.husc.edu.vn/thong-bao-ve-viec-mo-bo-sung-lop-hoc-phan-lan-3-hoc-ky-1-nam-hoc-2026-2027/" target="_blank" class="block p-4 sm:p-5">
+                            <div class="flex items-start gap-4">
+                                <div class="shrink-0 mt-1">
+                                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900 line-clamp-2">
+                                        <span>Thông báo về việc mở bổ sung lớp học phần (lần 3) học kỳ 1, năm học 2026-2027</span>
+                                        
+                                    </h3>
+                                    <p class="mt-1 text-xs text-gray-400 font-medium">[28/08/2026 10:30]</p>
+                                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">Nhằm tạo điều kiện cho sinh viên các Khóa được học lại các học phần theo đúng kế hoạch đào tạo, căn cứ đề nghị của Khoa quản lý chuyên môn, Nhà trường thông báo cho các đơn vị và sinh viên biết việc mở lớp học phần bổ sung trong học kỳ 1, năm học 2026-2027 như sau:</p>
                                 </div>
                             </div>
                         </a>
@@ -151,7 +367,7 @@
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.forms.desc">Các biểu mẫu dành cho sinh viên lấy từ website trường Đại học Khoa học Huế.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/photo-booth}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
+<a href="/utilities/photo-booth" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -163,15 +379,15 @@
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.photo_booth.desc">Chụp ảnh selfie với các bộ lọc màu, sticker và khung viền vui nhộn.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/data-converter}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/data-converter" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Chuyển đổi dữ liệu</h3><p class="text-sm text-gray-500 mt-1">JSON, XML và CSV dễ dàng.</p></div>
                 </a>
-<a th:href="@{/utilities/color-converter}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/color-converter" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Chuyển đổi màu sắc</h3><p class="text-sm text-gray-500 mt-1">Chuyển đổi linh hoạt giữa HEX, RGB, HSL, CMYK.</p></div>
                 </a>
-<a th:href="@{/utilities/currency-converter}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
+<a href="/utilities/currency-converter" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -182,11 +398,11 @@
                         <p class="text-sm text-gray-500 mt-1">Cập nhật và quy đổi tỷ giá các loại tiền tệ phổ biến theo thời gian thực.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/base-converter}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/base-converter" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Chuyển hệ cơ số</h3><p class="text-sm text-gray-500 mt-1">Decimal sang Binary, Hex, Octal.</p></div>
                 </a>
-<a th:href="@{/utilities/email-signature}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/email-signature" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Chữ ký Gmail</h3><p class="text-sm text-gray-500 mt-1">Tạo chữ ký thư nhanh.</p></div>
                 </a>
@@ -202,7 +418,7 @@
                         <p class="text-sm text-gray-500 mt-1"><a href="javascript:void(0)" onclick="openInfoModal('TinChi')" class="text-blue-800 font-bold hover:underline transition-colors" data-i18n="home.util.course_reg.tips">Mẹo đăng ký tín chỉ</a></p>
                     </div>
                 </div>
-<a th:href="@{/utilities/exam-countdown}" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
+<a href="/utilities/exam-countdown" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5.33c0 1.06.422 2.078 1.172 2.828L9.586 16.586A4 4 0 0110 19.414V20H4M20 4v5.33c0 1.06-.422 2.078-1.172 2.828l-4.414 4.428A4 4 0 0014 19.414V20h6M4 4h16" />
@@ -226,23 +442,23 @@
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.grad_req.desc">Thông tin chi tiết các điều kiện để được xét công nhận tốt nghiệp.</p>
                     </div>
                 </div>
-<a th:href="@{/utilities/speed-test}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/speed-test" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Đo tốc độ mạng</h3><p class="text-sm text-gray-500 mt-1">Kiểm tra download, upload, ping.</p></div>
                 </a>
-<a th:href="@{/utilities/color-contrast}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/color-contrast" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Độ tương phản màu</h3><p class="text-sm text-gray-500 mt-1">Kiểm tra độ tương phản màu chữ và nền.</p></div>
                 </a>
-<a th:href="@{/utilities/stopwatch}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/stopwatch" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Đồng hồ bấm giờ</h3><p class="text-sm text-gray-500 mt-1">Theo dõi thời gian chính xác, hỗ trợ Lap.</p></div>
                 </a>
-<a th:href="@{/utilities/typography-previewer}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/typography-previewer" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Ghép cặp Font chữ</h3><p class="text-sm text-gray-500 mt-1">Test sự kết hợp của các Google Fonts.</p></div>
                 </a>
-<a th:href="@{/utilities/exam-simulation}" data-category="study" class="flex bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 items-start gap-4 hover:shadow-md transition-shadow cursor-pointer util-card relative pb-6">
+<a href="/utilities/exam-simulation" data-category="study" class="flex bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 items-start gap-4 hover:shadow-md transition-shadow cursor-pointer util-card relative pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -253,11 +469,11 @@
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.exam_sim.desc">Phòng thi mô phỏng với đồng hồ đếm ngược, rèn luyện áp lực thời gian.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/ip-checker}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/ip-checker" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Kiểm tra địa chỉ IP</h3><p class="text-sm text-gray-500 mt-1">Xem địa chỉ IP và thông tin mạng.</p></div>
                 </a>
-<a th:href="@{/utilities/screenshot-beautifier}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
+<a href="/utilities/screenshot-beautifier" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -279,11 +495,11 @@
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.shortcuts.desc">Tổng hợp các đường link quan trọng và hữu ích dành cho sinh viên.</p>
                     </div>
                 </div>
-<a th:href="@{/utilities/crypto-hash}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/crypto-hash" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Mã hóa chuỗi</h3><p class="text-sm text-gray-500 mt-1">SHA-256, SHA-512, HMAC.</p></div>
                 </a>
-<a th:href="@{/utilities/quick-mindmap}" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/quick-mindmap" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Sơ đồ Tư duy</h3><p class="text-sm text-gray-500 mt-1">Vẽ sơ đồ tư duy trực quan.</p></div>
                 </a>
@@ -298,7 +514,7 @@
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.map.desc">Bản đồ trực quan và chú thích các phòng học tại trường.</p>
                     </div>
                 </div>
-<a th:href="@{/utilities/timetable}" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
+<a href="/utilities/timetable" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -309,11 +525,11 @@
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.timetable.desc">Thiết kế thời khóa biểu cá nhân trực quan và xuất file PDF tiện lợi.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/qr-generator}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/qr-generator" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tạo mã QR</h3><p class="text-sm text-gray-500 mt-1">Tạo nhanh từ văn bản hoặc link.</p></div>
                 </a>
-<a th:href="@{/utilities/password-generator}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
+<a href="/utilities/password-generator" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
@@ -324,11 +540,11 @@
                         <p class="text-sm text-gray-500 mt-1">Sinh mật khẩu ngẫu nhiên an toàn cao để bảo vệ tài khoản của bạn.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/mockup-generator}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/mockup-generator" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tạo Mockup Thiết bị</h3><p class="text-sm text-gray-500 mt-1">Lồng ảnh màn hình vào viền thiết bị.</p></div>
                 </a>
-<a th:href="@{/utilities/random-number}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
+<a href="/utilities/random-number" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -339,11 +555,11 @@
                         <p class="text-sm text-gray-500 mt-1">Quay số trúng thưởng, bốc thăm ngẫu nhiên với giao diện cực dễ nhìn.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/meta-tag-generator}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/meta-tag-generator" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tạo thẻ Meta SEO</h3><p class="text-sm text-gray-500 mt-1">Sinh code thẻ Meta chuẩn cho Google, FB.</p></div>
                 </a>
-<a th:href="@{/utilities/bmi-calculator}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
+<a href="/utilities/bmi-calculator" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -354,11 +570,11 @@
                         <p class="text-sm text-gray-500 mt-1">Đánh giá tình trạng cơ thể qua chỉ số BMI một cách nhanh và chính xác.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/date-calculator}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/date-calculator" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Tính ngày</h3><p class="text-sm text-gray-500 mt-1">Khoảng cách ngày, đếm ngược.</p></div>
                 </a>
-<a th:href="@{/utilities/percentage-calculator}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
+<a href="/utilities/percentage-calculator" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -369,7 +585,7 @@
                         <p class="text-sm text-gray-500 mt-1">Công cụ giúp bạn giải quyết các bài toán phần trăm nhanh chóng.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/typing-test}" data-category="others" class="flex bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
+<a href="/utilities/typing-test" data-category="others" class="flex bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
@@ -380,7 +596,7 @@
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.typing.desc">Kiểm tra tốc độ gõ phím WPM và độ chính xác của bạn.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/flashcards}" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
+<a href="/utilities/flashcards" data-category="study" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-flex util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -391,19 +607,19 @@
                         <p class="text-sm text-gray-500 mt-1" data-i18n="home.util.flashcards.desc">Học thuật bằng Flashcards với thuật toán lặp lại ngắt quãng.</p>
                     </div>
                 </a>
-<a th:href="@{/utilities/palette-extractor}" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/palette-extractor" data-category="design" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Trích xuất bảng màu</h3><p class="text-sm text-gray-500 mt-1">Lấy mã màu từ ảnh tải lên.</p></div>
                 </a>
-<a th:href="@{/utilities/code-formatter}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/code-formatter" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Trình định dạng Code</h3><p class="text-sm text-gray-500 mt-1">JSON Formatter, Test Regex và SQL Formatter.</p></div>
                 </a>
-<a th:href="@{/utilities/markdown-editor}" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
+<a href="/utilities/markdown-editor" data-category="others" class="bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden util-card pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></div>
                     <div><h3 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Trình soạn Markdown</h3><p class="text-sm text-gray-500 mt-1">Soạn thảo và xem trước Markdown realtime.</p></div>
                 </a>
-<a th:href="@{/utilities/lucky-wheel}" data-category="others" class="flex bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
+<a href="/utilities/lucky-wheel" data-category="others" class="flex bg-white rounded-lg shadow-sm border border-divider px-6 pt-6 items-start gap-4 hover:shadow-md transition-shadow cursor-pointer group util-card relative pb-6">
                     <div class="p-3 bg-gray-100 text-gray-900 rounded-lg shrink-0 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
@@ -436,16 +652,11 @@
                         <h3 class="text-lg font-bold mb-4" data-i18n="home.feedback.send">Gửi Góp Ý</h3>
                         <form id="feedbackForm" onsubmit="submitFeedback(event)">
                             <div class="mb-4">
-                                <label for="authorName" class="block text-sm font-medium text-gray-700 mb-1" data-i18n="home.feedback.name">Tên hiển thị</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="authorName" value="Người dùng" readonly class="flex-grow px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none">
-                                    <button type="button" onclick="randomizeName()" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-md border border-blue-200 hover:bg-blue-100 transition-colors" title="Đổi tên ngẫu nhiên">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                    </button>
-                                </div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="home.feedback.name">Tên hiển thị</label>
+                                <input type="text" value="Người dùng" data-i18n-value="home.feedback.user" readonly disabled class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed">
                             </div>
                             <div class="mb-4">
-                                <label for="content" class="block text-sm font-medium text-gray-700 mb-1" data-i18n="home.feedback.content">Nội dung <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="home.feedback.content">Nội dung <span class="text-red-500">*</span></label>
                                 <textarea id="content" name="content" rows="4" maxlength="500" required placeholder="Vui lòng nhập góp ý tại đây nhé..." data-i18n-placeholder="home.feedback.placeholder" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"></textarea>
                                 <div class="flex justify-between mt-1 mb-2">
                                     <span id="charCount" class="text-xs text-gray-500">0/500</span>
@@ -461,9 +672,6 @@
                             <button type="submit" id="submitBtn" class="w-full bg-primary text-white font-medium py-2 px-4 rounded-md hover:bg-primary-dark transition-colors">
                                 Gửi Góp Ý
                             </button>
-                            <p class="text-xs text-gray-500 italic mt-3 text-center">
-                                "Mỗi góp ý đều mang một giá trị riêng — giúp chúng tôi nhìn nhận những điều cần cải thiện, những giá trị cần gìn giữ và cùng nhau tạo nên một cộng đồng ngày càng tích cực, tốt đẹp."
-                            </p>
                         </form>
                     </div>
                 </div>
@@ -487,26 +695,206 @@
                             </div>
                         </div>
                         <div id="feedbackList" class="space-y-4 flex-1">
-                            <div th:each="fb : ${feedbacks}" th:id="'fb-' + ${fb.id}" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                            <div id="fb-21" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="font-bold text-gray-900" th:text="${fb.authorName}">Người dùng</div>
-                                    <div class="text-xs text-gray-500" th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</div>
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">04/09/2026 16:32</div>
                                 </div>
-                                <p class="text-gray-700 text-sm whitespace-pre-wrap" th:text="${fb.content}">Nội dung</p>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">trích xuất màu ảnh bị lỗi ạ</p>
                                 
-                                <div th:id="'reply-' + ${fb.id}" th:if="${fb.replyContent != null}" class="mt-4 bg-white border border-blue-200 border-l-4 border-l-blue-500 p-3 rounded-md shadow-sm">
+                                
+                                <div id="reply-21"></div>
+                            </div>
+                            <div id="fb-20" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">22/08/2026 15:37</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Niceee</p>
+                                
+                                
+                                <div id="reply-20"></div>
+                            </div>
+                            <div id="fb-19" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">12/08/2026 21:59</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Tìm kiếm nhanh gọn</p>
+                                
+                                
+                                <div id="reply-19"></div>
+                            </div>
+                            <div id="fb-18" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">03/08/2026 11:43</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">thêm các tiện ích chuyển đổi các định dạng đi ad</p>
+                                
+                                
+                                <div id="reply-18"></div>
+                            </div>
+                            <div id="fb-17" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">02/08/2026 21:56</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Load nhanh mượt</p>
+                                
+                                
+                                <div id="reply-17"></div>
+                            </div>
+                            <div id="fb-16" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">02/08/2026 20:49</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Chức năng khá nhiều,hay và hữu ích, cảm ơn ad của trang web này nhé!!Chúc bạn sớm cải tiến, thêm nhiều chức năng và phát triển hơn.</p>
+                                
+                                <div id="reply-16" class="mt-4 bg-white border border-blue-200 border-l-4 border-l-blue-500 p-3 rounded-md shadow-sm">
                                     <div class="flex justify-between items-center mb-1">
                                         <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
-                                        <span class="text-xs text-blue-600" th:text="${#temporals.format(fb.repliedAt, 'dd/MM/yyyy HH:mm')}">Thời gian</span>
+                                        <span class="text-xs text-blue-600">04/09/2026 16:51</span>
                                     </div>
-                                    <p class="text-sm text-blue-900 whitespace-pre-wrap" th:text="${fb.replyContent}">Phản hồi</p>
+                                    <p class="text-sm text-blue-900 whitespace-pre-wrap">Cảm ơn bạn nhé</p>
                                 </div>
-                                <div th:id="'reply-' + ${fb.id}" th:unless="${fb.replyContent != null}"></div>
+                                
+                            </div>
+                            <div id="fb-15" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">31/07/2026 02:28</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">website đỉnh</p>
+                                
+                                <div id="reply-15" class="mt-4 bg-white border border-blue-200 border-l-4 border-l-blue-500 p-3 rounded-md shadow-sm">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
+                                        <span class="text-xs text-blue-600">31/07/2026 10:14</span>
+                                    </div>
+                                    <p class="text-sm text-blue-900 whitespace-pre-wrap">Cảm ơn bạn nhiều!!</p>
+                                </div>
+                                
+                            </div>
+                            <div id="fb-14" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">30/07/2026 13:27</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Cổ điển, tôn trọng</p>
+                                
+                                <div id="reply-14" class="mt-4 bg-white border border-blue-200 border-l-4 border-l-blue-500 p-3 rounded-md shadow-sm">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
+                                        <span class="text-xs text-blue-600">30/07/2026 16:46</span>
+                                    </div>
+                                    <p class="text-sm text-blue-900 whitespace-pre-wrap">Chân thành, cảm tạ</p>
+                                </div>
+                                
+                            </div>
+                            <div id="fb-13" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">29/07/2026 18:37</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Thanks ad vì site, rất đẳng cấp, rating 9.9 / 10 điểm. Cho e đổi tên hiển thị nữa là thành 10/10 :))</p>
+                                
+                                <div id="reply-13" class="mt-4 bg-white border border-blue-200 border-l-4 border-l-blue-500 p-3 rounded-md shadow-sm">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
+                                        <span class="text-xs text-blue-600">30/07/2026 12:25</span>
+                                    </div>
+                                    <p class="text-sm text-blue-900 whitespace-pre-wrap">Website không đăng nhập nên để đảm bảo tính riêng tư và tránh tình trạng mạo danh hoặc sử dụng tên không phù hợp, tất cả bình luận đều được hiển thị với tên &quot;Người dùng&quot;. Mình ghi nhận góp ý này và sẽ cân nhắc giải pháp phù hợp. Cảm ơn bạn đã giúp website hoàn thiện hơn!</p>
+                                </div>
+                                
+                            </div>
+                            <div id="fb-12" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">06/07/2026 15:01</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Tiện ko giật lag</p>
+                                
+                                <div id="reply-12" class="mt-4 bg-white border border-blue-200 border-l-4 border-l-blue-500 p-3 rounded-md shadow-sm">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
+                                        <span class="text-xs text-blue-600">06/07/2026 15:17</span>
+                                    </div>
+                                    <p class="text-sm text-blue-900 whitespace-pre-wrap">Cảm ơn bạn nhé, chúc bạn học tốt</p>
+                                </div>
+                                
+                            </div>
+                            <div id="fb-8" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">05/07/2026 15:44</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Dễ dùng</p>
+                                
+                                
+                                <div id="reply-8"></div>
+                            </div>
+                            <div id="fb-5" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">01/07/2026 20:31</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Helo ae</p>
+                                
+                                <div id="reply-5" class="mt-4 bg-white border border-blue-200 border-l-4 border-l-blue-500 p-3 rounded-md shadow-sm">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
+                                        <span class="text-xs text-blue-600">04/09/2026 16:50</span>
+                                    </div>
+                                    <p class="text-sm text-blue-900 whitespace-pre-wrap">Hii</p>
+                                </div>
+                                
+                            </div>
+                            <div id="fb-1" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">23/06/2026 19:45</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Hi bạn nha =))</p>
+                                
+                                <div id="reply-1" class="mt-4 bg-white border border-blue-200 border-l-4 border-l-blue-500 p-3 rounded-md shadow-sm">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
+                                        <span class="text-xs text-blue-600">23/06/2026 20:04</span>
+                                    </div>
+                                    <p class="text-sm text-blue-900 whitespace-pre-wrap">Hellooo</p>
+                                </div>
+                                
+                            </div>
+                            <div id="fb-3" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">23/06/2026 13:31</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Đẳng cấp</p>
+                                
+                                
+                                <div id="reply-3"></div>
+                            </div>
+                            <div id="fb-2" class="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-900">Người dùng</div>
+                                    <div class="text-xs text-gray-500">23/06/2026 13:21</div>
+                                </div>
+                                <p class="text-gray-700 text-sm whitespace-pre-wrap">Alo ng ae vipp quá đi</p>
+                                
+                                <div id="reply-2" class="mt-4 bg-white border border-blue-200 border-l-4 border-l-blue-500 p-3 rounded-md shadow-sm">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
+                                        <span class="text-xs text-blue-600">04/09/2026 16:50</span>
+                                    </div>
+                                    <p class="text-sm text-blue-900 whitespace-pre-wrap">Haha</p>
+                                </div>
+                                
                             </div>
 
-                            <div th:if="${#lists.isEmpty(feedbacks)}" id="emptyState" class="text-center py-10 text-gray-500">
-                                Chưa có góp ý nào. Hãy là người đầu tiên!
-                            </div>
+                            
                         </div>
                         <!-- Phân trang Góp ý -->
                         <div id="feedbackPagination" class="flex justify-center items-center gap-2 mt-6 hidden"></div>
@@ -546,9 +934,206 @@
 
     </main>
 
-    <div th:replace="~{fragments/base :: footer}"></div>
+    <footer class="bg-gray-100 border-t border-divider mt-12 py-8 relative">
+        <div class="container mx-auto px-4">
+            
+            <!-- Google AdSense - Horizontal Banner (Footer) -->
+            <div class="w-full text-center mt-6 mb-2 overflow-hidden mx-auto hidden" style="min-height: 90px;">
+                <ins class="adsbygoogle"
+                     style="display:block; width:100%;"
+                     data-ad-layout="in-article"
+                     data-ad-format="fluid"
+                     data-ad-client="ca-pub-3722649225395463"></ins>
+                <script>
+                     window.addEventListener('load', function() {
+                         if (document.querySelector('.adsbygoogle').offsetWidth > 0) {
+                             (adsbygoogle = window.adsbygoogle || []).push({});
+                         }
+                     });
+                </script>
+            </div>
+
+            <div class="text-center text-sm text-gray-500 mb-6 max-w-5xl mx-auto leading-relaxed" data-i18n="footer.disclaimer">
+                <strong class="font-semibold text-gray-700">Tuyên bố miễn trừ trách nhiệm:</strong> Tài liệu trên UniDocs do cộng đồng đóng góp vì mục đích học tập phi lợi nhuận. Chúng tôi không đưa ra bất kỳ bảo đảm nào về tính chính xác tuyệt đối của nội dung. Chúng tôi tôn trọng nghiêm ngặt quyền sở hữu trí tuệ theo pháp luật Việt Nam. Mọi yêu cầu gỡ bỏ tài liệu vi phạm bản quyền vui lòng liên hệ trực tiếp, chúng tôi cam kết kiểm tra và xử lý trong vòng 24 đến 48 giờ làm việc.
+            </div>
+
+            <div class="flex flex-col items-center border-t border-gray-200 pt-6 gap-4 text-sm text-gray-600">
+                <!-- Social Icons -->
+                <div class="flex items-center justify-center gap-3">
+                    <a href="https://www.facebook.com/ntainguyenit" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 hover:text-gray-700 flex items-center justify-center transition-colors shadow-sm" title="Facebook">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z"/></svg>
+                    </a>
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=ntainguyen.it@gmail.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 hover:text-gray-700 flex items-center justify-center transition-colors shadow-sm" title="Email">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </a>
+                </div>
+
+                <div class="text-center w-full">
+                    <p><span data-i18n="footer.copyright">&copy; <script>document.write(new Date().getFullYear())</script> Tai Nguyen. Nền tảng chia sẻ tài liệu học tập.</span></p>
+                    <div class="flex items-center justify-center gap-4 mt-2">
+                        <a href="/terms" class="hover:text-primary transition-colors font-medium text-xs" data-i18n="footer.terms">Điều khoản sử dụng</a>
+                        <span class="text-gray-400">|</span>
+                        <a href="/privacy" class="hover:text-primary transition-colors font-medium text-xs" data-i18n="footer.privacy">Chính sách bảo mật</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ẩn text cho SEO -->
+            <div class="hidden text-transparent" aria-hidden="true">
+                uni doc unidoc uni docs unidocs husc đại học khoa học huế tài liệu học tập đề thi
+            </div>
+        </div>
+
+        <button id="scrollToTopBtn" 
+                class="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-[99] bg-primary text-white p-3 rounded-full shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-blue-800 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary flex items-center justify-center"
+                aria-label="Cuộn lên đầu trang">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+        </button>
+    </footer>
     
-    <div th:replace="~{fragments/base :: scripts}"></div>
+    <div>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+        
+        <!-- Report Modal -->
+        <div id="reportModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4">
+            <div class="absolute inset-0 backdrop-blur-sm bg-black/50" onclick="closeReportModal()"></div>
+            <div class="bg-white rounded-xl shadow-2xl z-10 w-full max-w-md overflow-hidden">
+                <form id="reportForm" onsubmit="submitReport(event)">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-gray-900">Báo cáo tài liệu</h3>
+                        <button type="button" onclick="closeReportModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <input type="hidden" id="reportDocumentId" name="documentId" value="">
+                        <div>
+                            <label for="reportType" class="block text-sm font-medium text-gray-700 mb-2">Lý do báo cáo:</label>
+                            <select id="reportType" name="reportType" required class="w-full form-input rounded-md border-gray-300 focus:border-red-500 focus:ring focus:ring-red-200">
+                                <option value="BROKEN_LINK">Lỗi tập tin / Không tải được</option>
+                                <option value="VIOLATION">Vi phạm bản quyền / Nội dung xấu</option>
+                                <option value="OTHER">Lý do khác</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="reportMessage" class="block text-sm font-medium text-gray-700 mb-2">Chi tiết (Tùy chọn):</label>
+                            <textarea id="reportMessage" name="message" rows="3" class="w-full form-input rounded-md border-gray-300 focus:border-red-500 focus:ring focus:ring-red-200" placeholder="Mô tả thêm về lỗi..."></textarea>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                        <button type="button" onclick="closeReportModal()" class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50 font-medium transition-colors">Hủy</button>
+                        <button type="submit" id="btnSubmitReport" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-medium transition-colors flex items-center gap-2">
+                            Gửi báo cáo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script src="/js/lang.js"></script>
+        <script src="/js/base.js"></script>
+
+        <!-- Bookmarks Modal -->
+        <div id="bookmarksModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4">
+            <div class="absolute inset-0 backdrop-blur-sm bg-black/50" onclick="closeBookmarksModal()"></div>
+            <div class="bg-white rounded-xl shadow-2xl z-10 w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                            <span data-i18n="header.bookmarks">Tài liệu đã lưu</span>
+                        </h3>
+                        <p class="text-sm text-gray-500 mt-1 italic" data-i18n="header.bookmarks.note">Dữ liệu được lưu trên trình duyệt hiện tại. Sẽ bị mất nếu xóa lịch sử/cache.</p>
+                    </div>
+                    <button type="button" onclick="closeBookmarksModal()" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto flex-grow bg-gray-50/30" id="bookmarksContainer">
+                    <!-- Javascript will render bookmarks here -->
+                    <div class="text-center py-10 text-gray-500 hidden" id="emptyBookmarksState">
+                        <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                        <p class="text-lg font-medium text-gray-600" data-i18n="header.bookmarks.empty">Bạn chưa lưu tài liệu nào</p>
+                        <p class="text-sm mt-1" data-i18n="header.bookmarks.empty.desc">Hãy bấm vào biểu tượng cờ trên các tài liệu để lưu lại nhé.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Modal (Looker Studio) -->
+        <div id="statsModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4">
+            <div class="absolute inset-0 backdrop-blur-sm bg-black/50" onclick="closeStatsModal()"></div>
+            <div class="bg-white rounded-xl shadow-2xl z-10 w-full overflow-hidden flex flex-col" style="max-width: 1400px; height: 90vh;">
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            Thống kê truy cập (Real-time)
+                        </h3>
+                    </div>
+                    <button type="button" onclick="closeStatsModal()" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="flex-grow w-full h-full bg-gray-50/30 relative">
+                    <!-- Loading skeleton/text (optional) -->
+                    <div id="statsLoader" class="absolute inset-0 flex items-center justify-center z-0">
+                        <div class="animate-pulse flex flex-col items-center">
+                            <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <p class="mt-4 text-gray-500 font-medium">Đang tải dữ liệu báo cáo...</p>
+                        </div>
+                    </div>
+                    <iframe id="lookerStudioIframe" onload="document.getElementById('statsLoader').classList.add('hidden')" data-src="https://datastudio.google.com/embed/reporting/0178f282-3bf6-45d2-ac83-2dc884cde3b8/page/lZG5F" src="" class="w-full h-full border-0 relative z-10 bg-transparent" frameborder="0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Modal -->
+        <div id="manualModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
+            <div class="absolute inset-0 backdrop-blur-sm" style="background-color: rgba(0,0,0,0.5);" onclick="closeManualModal()"></div>
+            <div class="bg-white rounded-xl shadow-2xl z-10 w-full max-w-2xl p-6 transition-all duration-300" id="manualModalContent">
+                <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900" data-i18n="manual.title">Hướng dẫn sử dụng UniDocs</h3>
+                        <p class="text-sm text-primary font-medium mt-1" data-i18n="manual.greeting">Chúc bạn một ngày tốt lành!</p>
+                    </div>
+                    <button onclick="closeManualModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="space-y-4 max-h-[60vh] overflow-y-auto text-gray-600 text-sm leading-relaxed pr-2">
+                    <div class="p-4 rounded-lg border border-divider">
+                        <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <span data-i18n="manual.step1.title">1. Xem tài liệu</span>
+                        </h4>
+                        <p data-i18n="manual.step1.desc">Bấm vào thẻ bên dưới -> Khoa -> Học phần -> Xem chi tiết/Tải xuống. Hoặc, sử dụng THANH TÌM KIẾM ở góc trên cùng bên phải để tìm nhanh học phần hoặc đề thi nhé!</p>
+                    </div>
+                    <div class="p-4 rounded-lg border border-divider">
+                        <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            <span data-i18n="manual.step2.title">2. Đóng góp tài liệu</span>
+                        </h4>
+                        <p data-i18n="manual.step2.desc">Tại mỗi học phần, bạn có thể tải lên tài liệu mới để chia sẻ với cộng đồng miễn phí mà KHÔNG CẦN ĐĂNG NHẬP</p>
+                    </div>
+                    <div class="p-4 rounded-lg border border-divider">
+                        <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span data-i18n="manual.step3.title">3. Khác</span>
+                        </h4>
+                        <p data-i18n="manual.step3.desc">UniDocs cập nhật thông báo liên tục từ nhà trường và cung cấp cho bạn nhiều tiện ích miễn phí (Bạn có thể kéo xuống dưới để trải nghiệm nhé)</p>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button onclick="closeManualModal()" class="w-full btn btn-primary py-2.5 font-medium" data-i18n="manual.close">Đã hiểu & Đóng</button>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
 
     <!-- Modal Info -->
     <div id="infoModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden p-4">
@@ -810,8 +1395,8 @@
     </script>
 
     
-<script th:src="@{/js/index.js}"></script>
-<script th:src="@{/js/holiday-banner.js}"></script>
+<script src="/js/index.js"></script>
+<script src="/js/holiday-banner.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const catSelect = document.getElementById('utilCategory');
