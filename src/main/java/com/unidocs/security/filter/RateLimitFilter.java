@@ -1,4 +1,4 @@
-﻿package com.unidocs.security.filter;
+package com.unidocs.security.filter;
 
 import com.unidocs.security.service.IpBlacklistService;
 import io.github.bucket4j.Bandwidth;
@@ -21,6 +21,7 @@ public class RateLimitFilter implements Filter {
 
     private final IpBlacklistService ipBlacklistService;
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> documentBuckets = new ConcurrentHashMap<>();
 
     public RateLimitFilter(IpBlacklistService ipBlacklistService) {
         this.ipBlacklistService = ipBlacklistService;
@@ -48,7 +49,7 @@ public class RateLimitFilter implements Filter {
                 ipBlacklistService.blacklistIp(ip, 1);
                 res.setStatus(429);
                 res.setContentType("text/html;charset=UTF-8");
-                res.getWriter().write("<h2>Há»‡ thá»‘ng phÃ¡t hiá»‡n hÃ nh vi cÃ o dá»¯ liá»‡u báº¥t thÆ°á»ng. IP cá»§a báº¡n Ä‘Ã£ bá»‹ khÃ³a táº¡m thá»i.</h2>");
+                res.getWriter().write("<h2>Hệ thống phát hiện hành vi cào dữ liệu bất thường. IP của bạn đã bị khóa tạm thời.</h2>");
                 return;
             }
         }
