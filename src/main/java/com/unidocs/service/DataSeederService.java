@@ -66,7 +66,7 @@ public class DataSeederService {
                 faculties = List.of(single);
             }
 
-            // Lấy trường đại học đầu tiên trong DB (Mặc định là Trường ĐH Khoa học)
+            // Get first university in DB (Default is HUSC)
             List<University> allUnis = universityRepository.findAll();
             University uni = allUnis.isEmpty() ? null : allUnis.get(0);
             

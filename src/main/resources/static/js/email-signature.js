@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const signaturePreview = document.getElementById('signaturePreview');
     const copySigBtn = document.getElementById('copySigBtn');
 
-    // Mẫu chữ ký dạng HTML có inline CSS để Gmail hiển thị đẹp
+    // HTML signature template with inline CSS for Gmail
     const generateSignatureHTML = (name, title, company, phone, email) => {
         return `
 <table cellpadding="0" cellspacing="0" border="0" style="font-family: Arial, sans-serif; font-size: 14px; color: #333333; line-height: 1.5;">
@@ -61,9 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     updatePreview();
 
-    // Lệnh copy Rich Text (Copy HTML thay vì plaintext)
+    // Rich Text copy command (Copy HTML instead of plaintext)
     copySigBtn.addEventListener('click', () => {
-        // Tạo một range để quét chọn khối HTML preview
+        // Create a range to select HTML preview block
         const range = document.createRange();
         range.selectNode(signaturePreview);
         const windowSelection = window.getSelection();
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Copy (Lệnh này sẽ copy đúng định dạng HTML vào clipboard)
             document.execCommand('copy');
-            windowSelection.removeAllRanges(); // Xóa khối quét chọn
+            windowSelection.removeAllRanges(); // Clear selection block
 
             // Hiệu ứng copy
             const originalHTML = copySigBtn.innerHTML;

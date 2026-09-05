@@ -29,7 +29,7 @@ public class SearchController {
     public List<SearchResult> search() {
         List<SearchResult> results = new ArrayList<>();
 
-        // Lấy tất cả Course
+        // Get all courses
         List<Course> courses = courseRepository.findAllWithFaculty();
         for (Course c : courses) {
             results.add(new SearchResult(
@@ -39,7 +39,7 @@ public class SearchController {
             ));
         }
 
-        // Lấy tất cả Khoa
+        // Get all faculties
         List<com.unidocs.domain.Faculty> faculties = facultyRepository.findAll();
         for (com.unidocs.domain.Faculty f : faculties) {
             results.add(new SearchResult(

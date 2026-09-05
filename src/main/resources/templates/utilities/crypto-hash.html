@@ -83,7 +83,7 @@
     </main>
 
     <div th:replace="~{fragments/base :: footer}"></div>
-    <!-- Script cần chạy dạng type="module" do dùng async/await native nhiều -->
+    <!-- Script requires type="module" due to heavy async/await usage -->
     <script type="module" th:src="@{/js/crypto-hash.js}"></script>
 <div th:replace="~{fragments/base :: scripts}"></div>
 </body>

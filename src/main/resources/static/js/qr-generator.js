@@ -18,10 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
         qrResult.classList.remove('hidden');
         qrResult.classList.add('flex');
         
-        // Xóa QR cũ nếu có
+        // Remove old QR if exists
         qrcodeContainer.innerHTML = '';
         
-        // Tạo QR mới
+        // Generate new QR
         qr = new QRCode(qrcodeContainer, {
             text: text,
             width: 200,

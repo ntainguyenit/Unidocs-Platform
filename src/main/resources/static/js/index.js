@@ -389,7 +389,7 @@
             paginationContainer.classList.add('flex');
             paginationContainer.innerHTML = '';
             
-            // Nút First (<<) và Previous (<)
+            // First (<<) and Previous (<) buttons
             paginationContainer.appendChild(createFeedbackPageButton('&laquo;', 1, currentFeedbackPage === 1, false));
             paginationContainer.appendChild(createFeedbackPageButton('&lsaquo;', currentFeedbackPage - 1, currentFeedbackPage === 1, false));
             
@@ -405,7 +405,7 @@
                 }
             }
             
-            // Nút Next (>) và Last (>>)
+            // Next (>) and Last (>>) buttons
             paginationContainer.appendChild(createFeedbackPageButton('&rsaquo;', currentFeedbackPage + 1, currentFeedbackPage === totalPages, false));
             paginationContainer.appendChild(createFeedbackPageButton('&raquo;', totalPages, currentFeedbackPage === totalPages, false));
         }

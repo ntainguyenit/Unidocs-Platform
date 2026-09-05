@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const diff = now - birth;
 
-        // Tổng quan (Ước tính)
+        // Overview (Estimated)
         const dDate = new Date(now);
         const bDate = new Date(birth);
         
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ageMo.innerText = months;
         ageD.innerText = days;
 
-        // Chi tiết
+        // Details
         const tDays = Math.floor(diff / (1000 * 60 * 60 * 24));
         const tHours = Math.floor(diff / (1000 * 60 * 60));
         const tMins = Math.floor(diff / (1000 * 60));

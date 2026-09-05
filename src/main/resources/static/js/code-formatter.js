@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const re = new RegExp(p, f);
             
-            // Tìm tất cả các matches
+            // Find all matches
             const matches = [...t.matchAll(re)];
             
             if (matches.length === 0) {

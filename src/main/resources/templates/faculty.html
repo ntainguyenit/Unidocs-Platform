@@ -66,7 +66,7 @@
         </div>
         
         <div id="dataContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-300">
-            <!-- Thẻ tạo mới -->
+            <!-- Create New Card -->
             <div onclick="openCreateCourseModal()" class="card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-50 flex items-center justify-center min-h-[80px]">
                 <div class="text-primary font-bold flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -79,7 +79,7 @@
                     <div class="flex-1">
                         <div class="flex flex-wrap items-center gap-2 mb-1">
                             <h3 th:id="'course-name-' + ${course.id}" class="text-base font-bold text-text group-hover:text-primary transition-colors" th:text="${course.name}">Tên học phần</h3>
-                            <!-- Tag Mới -->
+                            <!-- New Tag -->
                             <span th:if="${course.createdAt != null and course.createdAt.isAfter(T(java.time.LocalDateTime).now().minusDays(7))}" 
                                   class="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 shrink-0">
                                 Mới

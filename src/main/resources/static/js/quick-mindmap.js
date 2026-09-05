@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, root);
             } else {
                 mm.setData(root);
-                mm.fit(); // Tự động vừa khung
+                mm.fit(); // Auto fit container
             }
         } catch(e) {
             console.error("Lỗi vẽ map", e);
@@ -58,6 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if(mm) mm.fit();
     });
 
-    // Vẽ lần đầu
+    // Initial draw
     setTimeout(renderMap, 100);
 });

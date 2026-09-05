@@ -70,7 +70,7 @@
             </div>
         </div>
 
-        <!-- Bảng danh sách báo cáo -->
+        <!-- Report List Table -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <div class="px-6 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                 <h2 class="text-sm font-medium text-gray-700">Danh sách Báo cáo</h2>
@@ -135,7 +135,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                 <div class="flex items-center justify-center space-x-2">
-                                    <!-- Đã xử lý (chỉ hiện khi pending) -->
+                                    <!-- Processed (only visible when pending) -->
                                     <form th:if="${report.status.name() == 'PENDING'}" th:action="@{/admin/reports/{id}/resolve(id=${report.id})}" method="post" class="inline" onsubmit="return confirm('Bạn xác nhận đã xử lý báo cáo này và tài liệu không có vấn đề?');">
                                         <button type="submit" class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 p-2 rounded-md transition-colors" title="Đánh dấu Đã xử lý">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -144,7 +144,7 @@
                                         </button>
                                     </form>
                                     
-                                    <!-- Xem trực tiếp -->
+                                    <!-- View directly -->
                                     <a th:href="${report.document.fileType.name() == 'DOCX' or report.document.fileType.name() == 'PPTX' ? 'https://docs.google.com/viewer?url=' + report.document.storageUrl : report.document.storageUrl}" target="_blank" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-md transition-colors" title="Xem trực tiếp">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -152,14 +152,14 @@
                                         </svg>
                                     </a>
                                     
-                                    <!-- Đổi tên -->
+                                    <!-- Rename -->
                                     <button type="button" th:data-id="${report.document.id}" th:data-title="${report.document.title}" onclick="openRenameModal(this.getAttribute('data-id'), this.getAttribute('data-title'))" class="text-yellow-600 hover:text-yellow-900 bg-yellow-50 hover:bg-yellow-100 p-2 rounded-md transition-colors" title="Đổi tên">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
                                     </button>
                                     
-                                    <!-- Xóa tài liệu -->
+                                    <!-- Delete document -->
                                     <form th:action="@{/admin/reports/{id}/delete-document(id=${report.id})}" method="post" class="inline" onsubmit="return confirm('Hành động này sẽ XÓA VĨNH VIỄN tài liệu vi phạm. Bạn có chắc chắn?');">
                                         <button type="submit" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-md transition-colors" title="Xóa tài liệu vi phạm">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

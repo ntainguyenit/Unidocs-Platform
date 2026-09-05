@@ -33,7 +33,7 @@
             document.getElementById('frontText').innerText = card.question;
             document.getElementById('backText').innerText = card.answer;
             
-            // Reset lật bài khi đổi thẻ mới
+            // Reset flip when changing cards
             document.getElementById('flashcard').classList.remove('flipped');
         }
 
@@ -78,7 +78,7 @@
                 document.getElementById('cardQuestion').value = '';
                 document.getElementById('cardAnswer').value = '';
                 
-                // Mới thêm thì chuyển đến thẻ đó
+                // If newly added, scroll to that card
                 currentIndex = cards.length - 1;
                 saveCards();
                 updateUI();

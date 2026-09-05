@@ -89,7 +89,7 @@
                                 <tbody>
                                     <tr th:each="doc, docStat : ${group}" class="border-b hover:bg-gray-50">
                                         <td class="px-6 py-3 text-center">
-                                            <!-- Mặc định chọn tất cả trừ file gốc (file đầu tiên trong nhóm, hoặc file cũ nhất) -->
+                                            <!-- Default select all except original file (first or oldest in group) -->
                                             <input type="checkbox" name="duplicateIds" th:value="${doc.id}" 
                                                    th:checked="${docStat.index > 0}"
                                                    class="rounded border-gray-300 text-red-600 focus:ring-red-500 w-4 h-4">

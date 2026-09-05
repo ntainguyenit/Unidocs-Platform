@@ -39,7 +39,7 @@ function submitReport(e) {
     });
 }
 
-// UX Protection (bảo vệ phiên làm việc)
+// UX Protection (protect session)
 window.isFormDirty = false;
 const beforeUnloadHandler = function (e) {
     e.preventDefault();

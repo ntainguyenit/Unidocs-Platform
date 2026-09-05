@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let fpsStartTime = 0;
     let fpsRAF = null;
 
-    // Tính FPS
+    // Calculate FPS
     const measureFPS = () => {
         if (!fpsStartTime) fpsStartTime = performance.now();
         fpsFrames++;
@@ -55,26 +55,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const measureDownload = async () => {
         updateStatus('Đang kiểm tra tải xuống...', 50);
         try {
-            // Thử lấy thông tin từ Network API nếu có
+            // Try to get info from Network API if available
             if (navigator.connection && navigator.connection.downlink) {
-                // Đợi xíu để đồng bộ UI
+                // Wait slightly to sync UI
                 await new Promise(r => setTimeout(r, 800));
                 resDown.innerText = navigator.connection.downlink;
             } else {
-                // Tải một file rỗng từ máy chủ để tính thời gian
+                // Download an empty file from server to calculate time
                 const start = performance.now();
                 const response = await fetch('https://cloudflare.com/cdn-cgi/trace?dl=' + Math.random(), { cache: 'no-store' });
                 const blob = await response.blob();
                 const end = performance.now();
                 const durationInSeconds = (end - start) / 1000;
                 
-                // Mặc định do CORS và file bé, kết quả có thể không chính xác, 
-                // nhưng đủ để minh họa công cụ đơn giản
+                // Default due to CORS and small file size, result might be inaccurate, 
+                // but sufficient to illustrate simple tool
                 const bitsLoaded = blob.size * 8;
                 const speedBps = bitsLoaded / durationInSeconds;
                 const speedMbps = speedBps / (1024 * 1024);
                 
-                // Tránh số 0 do file quá bé
+                // Avoid 0 due to extremely small file
                 resDown.innerText = Math.max(speedMbps, Math.random() * 20 + 10).toFixed(1); 
             }
         } catch (e) {
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await new Promise(r => setTimeout(r, 800)); // Simulate delay
             
             if (navigator.connection && navigator.connection.downlink) {
-                // Upload thường bằng ~30-50% download đối với mạng thông thường
+                // Upload is usually ~30-50% of download for typical networks
                 let up = navigator.connection.downlink * (0.3 + Math.random() * 0.2);
                 resUp.innerText = up.toFixed(1);
             } else {
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusText.classList.remove('hidden');
         progressBar.style.width = '0%';
         
-        // Bắt đầu đếm FPS
+        // Start FPS counter
         fpsStartTime = 0;
         fpsFrames = 0;
         fpsRAF = requestAnimationFrame(measureFPS);
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Hoàn tất
         updateStatus('Hoàn tất!', 100);
-        isTesting = false; // Tắt FPS loop
+        isTesting = false; // Stop FPS loop
         
         setTimeout(() => {
             startBtn.disabled = false;

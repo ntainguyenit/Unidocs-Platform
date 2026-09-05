@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const iconPass = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
     const iconFail = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
 
-    // Tính Luminance của 1 màu (công thức WCAG)
+    // Calculate Luminance of a color (WCAG formula)
     const getLuminance = (r, g, b) => {
         let [rs, gs, bs] = [r / 255, g / 255, b / 255];
         rs = rs <= 0.03928 ? rs / 12.92 : Math.pow(((rs + 0.055) / 1.055), 2.4);
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
     };
 
-    // Chuyển HEX sang RGB
+    // Convert HEX to RGB
     const hexToRgb = (hex) => {
         hex = hex.replace(/^#/, '');
         if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         previewBox.style.color = textHex;
         previewBox.style.backgroundColor = bgHex;
 
-        // Tính toán
+        // Calculate
         try {
             const rgbText = hexToRgb(textHex);
             const rgbBg = hexToRgb(bgHex);
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const r = ratio.toFixed(2);
             ratioText.innerText = r;
 
-            // Đánh giá
+            // Evaluate
             const isLargePass = ratio >= 3;
             const isNormalPass = ratio >= 4.5;
             const isAAAPass = ratio >= 7;

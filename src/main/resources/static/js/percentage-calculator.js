@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return Number.isInteger(num) ? num.toString() : parseFloat(num.toFixed(2)).toString();
     };
 
-    // Type 1: X% của Y
+    // Type 1: X% of Y
     const t1_p = document.getElementById('t1_p');
     const t1_v = document.getElementById('t1_v');
     const t1_res = document.getElementById('t1_res');
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     t1_p.addEventListener('input', calcType1);
     t1_v.addEventListener('input', calcType1);
 
-    // Type 2: A là bao nhiêu % của B
+    // Type 2: What % of B is A
     const t2_a = document.getElementById('t2_a');
     const t2_b = document.getElementById('t2_b');
     const t2_res = document.getElementById('t2_res');
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     t2_a.addEventListener('input', calcType2);
     t2_b.addEventListener('input', calcType2);
 
-    // Type 3: Tăng/giảm từ X sang Y
+    // Type 3: Increase/decrease from X to Y
     const t3_old = document.getElementById('t3_old');
     const t3_new = document.getElementById('t3_new');
     const t3_res = document.getElementById('t3_res');

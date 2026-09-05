@@ -1,11 +1,11 @@
 
 (function() {
-    // 1. Chặn chuột phải (Context Menu)
+    // 1. Block right-click (Context Menu)
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
     });
 
-    // 2. Chặn phím tắt mở DevTools và Sao chép
+    // 2. Block DevTools shortcuts and Copy
     document.addEventListener('keydown', function(e) {
         // F12
         if (e.key === 'F12' || e.keyCode === 123) {
@@ -39,7 +39,7 @@
         }, 1000);
     }
 
-    // 4. Invisible Watermark (Steganography) khi copy text
+    // 4. Invisible Watermark (Steganography) on copy text
     document.addEventListener('copy', function(e) {
         const selectedText = window.getSelection().toString();
         if (selectedText) {

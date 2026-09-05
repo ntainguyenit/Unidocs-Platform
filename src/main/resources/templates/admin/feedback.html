@@ -345,7 +345,7 @@
             const fb = JSON.parse(e.data);
             const section = document.getElementById('reply-section-' + fb.id);
             if (section && fb.replyContent) {
-                // Update Badge to "Đã phản hồi"
+                // Update Badge to "Responded"
                 const badgeContainer = document.querySelector(`#fb-${fb.id} .bg-gray-50 > div:nth-child(2) span:first-child`);
                 if (badgeContainer) {
                     badgeContainer.outerHTML = `<span class="text-xs font-medium bg-green-100 text-green-800 px-2 py-1 rounded">Đã phản hồi</span>`;
@@ -396,7 +396,7 @@
             const fb = JSON.parse(e.data);
             const section = document.getElementById('reply-section-' + fb.id);
             if (section) {
-                // Update Badge to "Chờ xử lý"
+                // Update Badge to "Pending"
                 const badgeContainer = document.querySelector(`#fb-${fb.id} .bg-gray-50 > div:nth-child(2) span:first-child`);
                 if (badgeContainer) {
                     badgeContainer.outerHTML = `<span class="text-xs font-medium bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Chờ xử lý</span>`;

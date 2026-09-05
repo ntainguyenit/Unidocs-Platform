@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
 
     const displayColors = (palette) => {
-        paletteContainer.innerHTML = ''; // Xóa text cũ
+        paletteContainer.innerHTML = ''; // Clear old text
 
         palette.forEach(rgb => {
             const hex = rgbToHex(rgb[0], rgb[1], rgb[2]).toUpperCase();
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const processImage = () => {
-        // Đảm bảo ảnh đã load xong mới lấy màu
+        // Ensure image is loaded before extracting color
         if (imagePreview.complete) {
             try {
                 // Lấy 6 màu

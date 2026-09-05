@@ -71,15 +71,15 @@ public class Document {
         uploadedAt = LocalDateTime.now();
     }
 
-    // Tự động làm sạch tên tài liệu (loại bỏ ID dài, gạch dưới, đuôi file)
+    // Auto-clean document names (remove long ID, underscores, extensions)
     public String getTitle() {
         if (this.title == null) return "Tài liệu";
         
         String clean = this.title.replaceAll("(?i)\\.(pdf|docx?|pptx?|xlsx?|png|jpe?g|gif|txt)$", "");
         
-        // Xóa UUID (VD: 7b3b6231-a2b1-4a97-8799-61857c73f08f)
+        // Remove UUID (e.g. 7b3b6231-a2b1-4a97-8799-61857c73f08f)
         clean = clean.replaceAll("(?i)[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", "");
-        // Xóa các chuỗi hex dài >= 8 (thường là hash ID)
+        // Remove hex strings >= 8 chars (usually hash IDs)
         clean = clean.replaceAll("(?i)\\b[a-f0-9]{8,}\\b", "");
         
         clean = clean.replace("_", " ").replace("-", " ");
@@ -87,7 +87,7 @@ public class Document {
         clean = clean.replaceAll("(?i)\\b(FB IMG|IMG|Screenshot|WhatsApp Image|Doc|Document)\\b", "");
         // Loại bỏ các chuỗi số dài hơn 6 ký tự (thường là timestamp hoặc ID)
         clean = clean.replaceAll("\\b\\d{6,}\\b", "");
-        // Xóa khoảng trắng thừa
+        // Remove extra whitespace
         clean = clean.replaceAll("\\s+", " ").trim();
         
         if (clean.isEmpty()) {
@@ -97,7 +97,7 @@ public class Document {
             return "Tài liệu";
         }
         
-        // Viết hoa chữ cái đầu tiên
+        // Capitalize first letter
         return clean.substring(0, 1).toUpperCase() + clean.substring(1);
     }
 }

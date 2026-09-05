@@ -99,7 +99,7 @@
                 ctx.shadowColor = "#ff69b4";
                 ctx.shadowBlur = 20;
                 ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-                ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40); // Thêm viền để sáng hơn
+                ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40); // Add border to brighten
                 ctx.shadowBlur = 0; // Reset
             } else if (frame === "love") {
                 ctx.strokeStyle = "#ffb6c1";

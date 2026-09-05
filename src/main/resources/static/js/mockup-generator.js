@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bgBtns = document.querySelectorAll('.bg-btn');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // Xử lý upload ảnh
+    // Handle image upload
     imageUpload.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -20,17 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Đổi màu nền
+    // Change background color
     bgBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Xóa hết class bg-grad
+            // Remove all bg-grad classes
             captureArea.classList.remove('bg-grad-1', 'bg-grad-2', 'bg-grad-3', 'bg-grad-4');
-            // Thêm class mới
+            // Add new class
             captureArea.classList.add(btn.dataset.bg);
         });
     });
 
-    // Xuất ảnh PNG
+    // Export PNG image
     downloadBtn.addEventListener('click', () => {
         // Chờ hình ảnh render (nếu vừa đổi nền)
         setTimeout(() => {
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadBtn.disabled = true;
 
             html2canvas(captureArea, {
-                scale: 2, // Tăng chất lượng ảnh xuất ra (Retina)
+                scale: 2, // Increase output image quality (Retina)
                 backgroundColor: null,
                 useCORS: true // Hỗ trợ nếu dùng ảnh ngoài
             }).then(canvas => {
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 
-                // Trả lại trạng thái nút
+                // Restore button state
                 downloadBtn.innerHTML = originalHTML;
                 downloadBtn.disabled = false;
             }).catch(err => {

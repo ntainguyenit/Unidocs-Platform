@@ -18,11 +18,11 @@
             
             listEl.innerHTML = '';
             
-            // Xóa các lịch thi đã qua quá 1 ngày
+            // Remove past exams older than 1 day
             const now = new Date().getTime();
             exams = exams.filter(e => new Date(e.date).getTime() > now - 86400000);
             
-            // Sắp xếp theo thời gian gần nhất
+            // Sort by most recent
             exams.sort((a, b) => new Date(a.date) - new Date(b.date));
             saveExams();
 

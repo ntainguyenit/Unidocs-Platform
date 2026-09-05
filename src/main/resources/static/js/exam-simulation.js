@@ -20,12 +20,12 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
             const offset = circumference - (remainingSeconds / totalSeconds) * circumference;
             circle.style.strokeDashoffset = offset;
 
-            // Đổi màu khi sắp hết giờ
-            if (remainingSeconds <= 300) { // 5 phút cuối
+            // Change color when time is running out
+            if (remainingSeconds <= 300) { // Last 5 minutes
                 circle.classList.remove('text-primary', 'text-orange-500');
                 circle.classList.add('text-red-500');
                 document.getElementById('countdownDisplay').classList.add('text-red-600', 'animate-pulse');
-            } else if (remainingSeconds <= 900 && totalSeconds > 900) { // 15 phút
+            } else if (remainingSeconds <= 900 && totalSeconds > 900) { // 15 minutes
                 circle.classList.remove('text-primary');
                 circle.classList.add('text-orange-500');
             }

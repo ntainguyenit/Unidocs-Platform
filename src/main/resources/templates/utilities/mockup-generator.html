@@ -6,7 +6,7 @@
     <title data-i18n="mockup.title">Tạo Mockup Thiết Bị - UniDocs</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- html2canvas để xuất ảnh -->
+    <!-- html2canvas for image export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -109,12 +109,12 @@
             <!-- Preview Area -->
             <div class="lg:col-span-3">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8 overflow-hidden">
-                    <!-- Khu vực này sẽ được chụp lại bằng html2canvas -->
+                    <!-- This area will be captured by html2canvas -->
                     <div id="captureArea" class="bg-grad-1 p-8 md:p-16 rounded-xl flex items-center justify-center transition-all duration-300">
                         
                         <div class="macbook">
                             <div class="macbook-screen">
-                                <!-- Chỗ chứa ảnh -->
+                                <!-- Image Container -->
                                 <div id="imagePlaceholder" class="absolute inset-0 flex items-center justify-center text-gray-500 bg-gray-800">
                                     Chưa có ảnh (16:10)
                                 </div>
