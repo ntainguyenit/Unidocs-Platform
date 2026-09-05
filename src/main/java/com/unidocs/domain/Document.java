@@ -76,6 +76,12 @@ public class Document {
         if (this.title == null) return "Tài liệu";
         
         String clean = this.title.replaceAll("(?i)\\.(pdf|docx?|pptx?|xlsx?|png|jpe?g|gif|txt)$", "");
+        
+        // Xóa UUID (VD: 7b3b6231-a2b1-4a97-8799-61857c73f08f)
+        clean = clean.replaceAll("(?i)[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", "");
+        // Xóa các chuỗi hex dài >= 8 (thường là hash ID)
+        clean = clean.replaceAll("(?i)\\b[a-f0-9]{8,}\\b", "");
+        
         clean = clean.replace("_", " ").replace("-", " ");
         // Loại bỏ các chuỗi phổ biến như FB_IMG, Screenshot
         clean = clean.replaceAll("(?i)\\b(FB IMG|IMG|Screenshot|WhatsApp Image|Doc|Document)\\b", "");

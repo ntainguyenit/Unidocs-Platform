@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function copyDocLink(slug) {
-    const url = window.location.origin + '/document/' + slug;
+    const url = window.location.origin + '/document/' + slug + '/view';
     navigator.clipboard.writeText(url).then(() => {
         if (typeof Toastify !== 'undefined') {
             Toastify({
