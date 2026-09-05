@@ -33,9 +33,9 @@
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (!isMobile) {
         setInterval(function() {
-            (function() {
-                return false;
-            }['constructor']('debugger')());
+            try {
+                debugger;
+            } catch (e) {}
         }, 1000);
     }
 
