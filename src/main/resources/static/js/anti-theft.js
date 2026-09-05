@@ -43,7 +43,7 @@
     document.addEventListener('copy', function(e) {
         const selectedText = window.getSelection().toString();
         if (selectedText) {
-            const watermark = '\n\n--- \nNguồn: UniDocs Platform (https://unidocs.vn) \nVui lòng không sao chép trái phép.';
+            const watermark = '\n\n--- \nNguồn: UniDocs - Tai Nguyen\nVui lòng không sao chép khi chưa có sự đồng ý của tác giả.';
             e.clipboardData.setData('text/plain', selectedText + watermark);
             e.preventDefault();
         }
