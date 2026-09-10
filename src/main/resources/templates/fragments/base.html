@@ -111,7 +111,59 @@
     </script>
 </head>
 <body>
-    <header th:fragment="navbar" class="bg-primary text-white shadow-md sticky top-0 z-40">
+    <th:block th:fragment="navbar">
+        <!-- Enhanced Splash Screen -->
+        <div id="splash-screen" class="fixed inset-0 flex flex-col items-center justify-center transition-opacity duration-500" style="z-index: 2147483647 !important; background: radial-gradient(circle, #eff6ff 0%, #dbeafe 100%);">
+            
+            <!-- Main Content -->
+            <div class="flex flex-col items-center transform transition-transform duration-700 hover:scale-105">
+                <!-- Spinner & Icon -->
+                <div class="relative flex items-center justify-center mb-8 shadow-2xl rounded-full bg-white" style="width: 140px; height: 140px; flex-shrink: 0;">
+                    <!-- Subtle Glow -->
+                    <div class="absolute inset-0 rounded-full bg-primary opacity-10 blur-lg"></div>
+                    <!-- Spinner Ring -->
+                    <div class="absolute inset-0 rounded-full" style="border: 5px solid #f3f4f6;"></div>
+                    <div class="absolute inset-0 rounded-full animate-spin" style="border: 5px solid #1e3a8a; border-top-color: transparent;"></div>
+                    <!-- Logo inside spinner (Academic Book) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-primary relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                
+                <!-- Brand Name -->
+                <h1 class="text-4xl md:text-5xl font-extrabold text-primary tracking-[0.25em] uppercase mb-4 text-center ml-2">UniDocs</h1>
+                
+                <!-- Educational Slogan -->
+                <p class="text-base md:text-lg font-semibold text-gray-500 tracking-widest uppercase text-center px-4">Nền tảng đề thi & Tài liệu</p>
+            </div>
+        </div>
+        
+        <header class="bg-primary text-white shadow-md sticky top-0 z-40">
+        <script>
+            // Hiển thị Splash Screen khi Refresh (F5) hoặc gõ URL trực tiếp.
+            // Ẩn đi nếu người dùng click link nội bộ từ một trang khác trong web.
+            (function() {
+                const splash = document.getElementById('splash-screen');
+                const isInternalNav = document.referrer && document.referrer.includes(window.location.hostname);
+                
+                // Nếu trình duyệt hỗ trợ PerformanceNavigationTiming, kiểm tra type
+                let isReload = false;
+                if (window.performance && window.performance.getEntriesByType) {
+                    const navEntries = window.performance.getEntriesByType('navigation');
+                    if (navEntries.length > 0 && navEntries[0].type === 'reload') {
+                        isReload = true;
+                    }
+                }
+
+                if (isInternalNav && !isReload) {
+                    // Click từ danh mục/link trong web -> Ẩn ngay lập tức
+                    splash.style.display = 'none';
+                    window.splashScreenActive = false;
+                } else {
+                    window.splashScreenActive = true;
+                }
+            })();
+        </script>
         <script>
             if (typeof tailwind !== 'undefined') {
                 tailwind.config = {
@@ -159,6 +211,7 @@
             </div>
         </div>
     </header>
+    </th:block>
 
     <div th:fragment="scripts">
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
@@ -200,7 +253,7 @@
         </div>
 
         <script th:src="@{/js/lang.js}"></script>
-        <script th:src="@{/js/base.js}"></script>
+        <script th:src="@{/js/base.js(v='1.4')}"></script>
 
         <!-- Bookmarks Modal -->
         <div id="bookmarksModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4">

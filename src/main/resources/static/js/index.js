@@ -244,8 +244,7 @@
             
             if (!content) return showMessage('Vui lòng nhập nội dung', 'error');
 
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = 'Đang gửi...';
+            showButtonLoading('submitBtn', 'Đang gửi...');
 
             fetch('/api/feedback', {
                 method: 'POST',
@@ -262,16 +261,16 @@
                     showMessage('Gửi góp ý thành công!', 'success');
                     contentInput.value = '';
                     charCount.innerText = '0/500';
+                    setTimeout(loadFeedbacks, 1000); // Reload after success
                 }
             })
             .catch(error => {
                 showMessage('Lỗi kết nối đến máy chủ.', 'error');
             })
             .finally(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = 'Gửi Góp Ý';
+                hideButtonLoading('submitBtn');
             });
-        }
+        };
 
         // Helper to format date
         function formatDate(dateStr) {

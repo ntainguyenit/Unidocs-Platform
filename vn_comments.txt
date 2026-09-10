@@ -1,0 +1,193 @@
+/* Tùy chỉnh input color */
+//             .body(Map.of("error", "Xác thực reCAPTCHA/Turnstile thất bại"));
+// 1. Chặn chuột phải (Context Menu)
+// 15 phút
+// 2. Chặn phím tắt mở DevTools và Sao chép
+// 5 phút cuối
+// Bắn pháo hoa
+// Bắt đầu đếm FPS
+// Chi tiết
+// Chuyển HEX sang RGB
+// Chạy lần đầu
+// Chống spam: Tìm xem IP này đã tạo bao nhiêu nhóm trong ngày
+// Chống trùng lặp: Tìm xem có nhóm nào đang ACTIVE cùng mã môn không
+// Chờ hình ảnh render (nếu vừa đổi nền)
+// Copy (Lệnh này sẽ copy đúng định dạng HTML vào clipboard)
+// Custom setter để tự động add/remove listener
+// Các số trang
+// Công thức = (360 - actualDeg + 270) % 360
+// Cảnh báo
+// Cập nhật giao diện và tỷ lệ
+// Cập nhật màu Preview
+// Cập nhật vòng tròn
+// Cục màu
+// Ghi nhận lượt REVEAL nếu chưa
+// Hiện kết quả
+// Hiệu ứng copy
+// Hiệu ứng nút bấm
+// Hoàn tất
+// Hàm đo Download
+// Hàm đo Ping
+// Hàm đo Upload
+// Học cải thiện
+// Học vượt
+// Hỗ trợ nếu dùng ảnh ngoài
+// Hỗ trợ phím mũi tên
+// Hỗ trợ tạo bằng phím Enter (nếu không nhập nhiều dòng)
+// Khi dừng, đặt số cuối cùng
+// Khi ảnh render trên màn hình xong thì xử lý
+// Khởi tạo
+// Khởi tạo Markmap
+// Khởi tạo kéo thả
+// Kim chỉ nằm ở góc 270 độ (đỉnh trên cùng).
+// Like "Tài liệu này đã tồn tại"
+// Logic Đếm ngược
+// Loại bỏ các chuỗi phổ biến như FB_IMG, Screenshot
+// Loại bỏ các chuỗi số dài hơn 6 ký tự (thường là timestamp hoặc ID)
+// Lưu trạng thái gốc
+// Lấy 6 màu
+// Lấy danh sách nhóm theo trạng thái
+// Lấy link
+// Lấy thông tin từ API hoặc dùng thuật toán giả định tương đối do giới hạn trình duyệt
+// Lấy trường đại học đầu tiên trong DB (Mặc định là Trường ĐH Khoa học)
+// Lấy tất cả Course
+// Lấy tất cả Khoa
+// Lệnh copy Rich Text (Copy HTML thay vì plaintext)
+// Mẫu chữ ký dạng HTML có inline CSS để Gmail hiển thị đẹp
+// Mặc định CSS quay kim đồng hồ.
+// Mặc định do CORS và file bé, kết quả có thể không chính xác,
+// Mới thêm thì chuyển đến thẻ đó
+// Mở sang Zalo/Mess
+// Nút First (<<) và Previous (<)
+// Nút Next (>) và Last (>>)
+// Phải tính góc thực tế đã quay modulo 360
+// Quan tâm
+// Reset lật bài khi đổi thẻ mới
+// Slice 0 bắt đầu từ 0 độ (hướng 3h), quay đến sliceAngle.
+// Sắp xếp theo thời gian gần nhất
+// Thêm class mới
+// Thêm viền để sáng hơn
+// Thử lấy thông tin từ Network API nếu có
+// Tránh số 0 do file quá bé
+// Trả lại trạng thái nút
+// Type 1: X% của Y
+// Type 2: A là bao nhiêu % của B
+// Type 3: Tăng/giảm từ X sang Y
+// Tìm tất cả các matches
+// Tính FPS
+// Tính Luminance của 1 màu (công thức WCAG)
+// Tính toán
+// Tính toán góc quay ngẫu nhiên (tối thiểu 5 vòng + random)
+// Tính toán kết quả
+// Tăng chất lượng ảnh xuất ra (Retina)
+// Tạo QR mới
+// Tạo một range để quét chọn khối HTML preview
+// Tải một file rỗng từ máy chủ để tính thời gian
+// Tắt FPS loop
+// Tổng quan (Ước tính)
+// Tự động làm sạch tên tài liệu (loại bỏ ID dài, gạch dưới, đuôi file)
+// Tự động vừa khung
+// UX Protection (bảo vệ phiên làm việc)
+// Update Badge to "Chờ xử lý"
+// Update Badge to "Đã phản hồi"
+// Upload thường bằng ~30-50% download đối với mạng thông thường
+// Viết hoa chữ cái đầu tiên
+// Vòng quay quay theo chiều kim đồng hồ, nhưng góc tính bằng CSS là độ.
+// Vẽ lần đầu
+// Xuất ảnh PNG
+// Xóa QR cũ nếu có
+// Xóa UUID (VD: 7b3b6231-a2b1-4a97-8799-61857c73f08f)
+// Xóa các chuỗi hex dài >= 8 (thường là hash ID)
+// Xóa các lịch thi đã qua quá 1 ngày
+// Xóa hết class bg-grad
+// Xóa khoảng trắng thừa
+// Xóa khối quét chọn
+// Xóa text cũ
+// Xử lý upload ảnh
+// nhưng đủ để minh họa công cụ đơn giản
+// Đánh giá
+// Đảm bảo ảnh đã load xong mới lấy màu
+// Để kim (hướng 12h, góc 270) chỉ vào đâu:
+// Đổi màu khi sắp hết giờ
+// Đổi màu nền
+// Đợi xíu để đồng bộ UI
+//cfshusc.com" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//chat.cfshusc.com" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//docs.google.com/viewer?url=' + doc.storageUrl : doc.storageUrl}" target="_blank" class="text-blue-600 hover:text-blue-900 bg-blue-50 p-1.5 rounded" title="Xem trực tiếp">
+//docs.google.com/viewer?url=' + report.document.storageUrl : report.document.storageUrl}" target="_blank" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-md transition-colors" title="Xem trực tiếp">
+//drive.google.com/file/d/1DCdsiGrpOrqW1k8ruilcowmN-6Ep-4U8/view" target="_blank" class="text-blue-800 font-bold hover:underline transition-colors">Tại đây</a>.',
+//drive.google.com/file/d/1DCdsiGrpOrqW1k8ruilcowmN-6Ep-4U8/view" target="_blank" class="text-blue-800 font-bold hover:underline transition-colors">Tại đây</a>.</p>
+//exam.husc.edu.vn" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//flts.huflis.edu.vn/" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//husc.edu.vn/" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//husc.edu.vn/daotao/" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//it.husc.edu.vn" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//khoamoitruonghue.edu.vn" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//lib.husc.edu.vn" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//student.husc.edu.vn/Account/Login" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//student.husc.edu.vn/Course/Details/[NămHọc].[HọcKỳ].[MãHọcPhần].[NhómLớp]/</div>
+//tieuluan.husc.edu.vn/" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//unidocs.vn hoặc một đoạn văn bản bất kỳ..."></textarea>
+//unidocs.vn) ngay hôm nay!`;
+//www.facebook.com/KhoaHocHueConfessions/" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//www.facebook.com/clbhtlt.ithusc/" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//www.facebook.com/groups/sinhvienkhoahochue/" target="_blank" class="text-blue-600 hover:underline">Tại đây</a>
+//www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang xử lý...';
+//zalo.me/...) hoặc Messenger (https://m.me/...).");
+<!-- Buổi Chiều -->
+<!-- Buổi Sáng -->
+<!-- Buổi Tối -->
+<!-- Bát phân (Octal - Base 8) -->
+<!-- Bảng chấm điểm -->
+<!-- Bảng danh sách báo cáo -->
+<!-- Bảng điều khiển thời gian (Bên trái) -->
+<!-- Bộ đếm gần nhất -->
+<!-- Chỗ chứa ảnh -->
+<!-- Code sẽ sinh ra ở đây -->
+<!-- Cột phải: Form tạo -->
+<!-- Cột trái: Danh sách nhóm -->
+<!-- Danh sách Góp ý -->
+<!-- Danh sách lịch thi -->
+<!-- Danh sách render bằng JS -->
+<!-- Form Góp Ý -->
+<!-- Form Thêm lịch thi -->
+<!-- Form thêm Flashcard -->
+<!-- Góp ý & Phản hồi -->
+<!-- Khu vực Cài đặt -->
+<!-- Khu vực Form -->
+<!-- Khu vực Hiển thị kết quả -->
+<!-- Khu vực Học Flashcards -->
+<!-- Khu vực Kết quả -->
+<!-- Khu vực này sẽ được chụp lại bằng html2canvas -->
+<!-- Lời nhắc siêu gọn -->
+<!-- Modal Cảnh báo -->
+<!-- Mặc định chọn tất cả trừ file gốc (file đầu tiên trong nhóm, hoặc file cũ nhất) -->
+<!-- Nhị phân (Binary - Base 2) -->
+<!-- Nội dung render HTML -->
+<!-- Nội dung được js chèn vào -->
+<!-- Phân trang Góp ý -->
+<!-- Phân trang Tiện ích sinh viên -->
+<!-- Script cần chạy dạng type="module" do dùng async/await native nhiều -->
+<!-- Sẽ được sinh ra bằng JS -->
+<!-- Sẽ được điền bởi JavaScript -->
+<!-- Tag Mới -->
+<!-- Thêm typography plugin của Tailwind để parse style dễ hơn, nhưng vì dùng CDN Tailwind nên chỉ cần base styles cơ bản -->
+<!-- Thư viện tạo QR code ở phía client -->
+<!-- Thập lục phân (Hex - Base 16) -->
+<!-- Thập phân (Decimal - Base 10) -->
+<!-- Thẻ Flashcard -->
+<!-- Thẻ tạo mới -->
+<!-- Vòng tròn sinh tử -->
+<!-- Vùng chứa ảnh preview -->
+<!-- Vùng hiển thị chữ ký (Sẽ copy trực tiếp nội dung HTML này) -->
+<!-- Vùng hiển thị nội dung -->
+<!-- Vùng xem trước -->
+<!-- Vùng đề thi (Drag & Drop) (Bên phải) -->
+<!-- Xem trực tiếp -->
+<!-- Xóa tài liệu -->
+<!-- html2canvas để xuất ảnh -->
+<!-- Âm thanh -->
+<!-- Điều hướng -->
+<!-- Đã xử lý (chỉ hiện khi pending) -->
+<!-- Đổi tên -->
+<!-- Ẩn text cho SEO -->

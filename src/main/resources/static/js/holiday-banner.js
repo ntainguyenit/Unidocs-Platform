@@ -26,11 +26,18 @@
                     setTimeout(typeWriter, 50);
                 } else {
                     greetingEl.innerHTML += '<span class="animate-pulse">|</span>';
-                    setTimeout(startTypeWriter, 3000); // 3 seconds delay before restarting
+                    setTimeout(() => {
+                        startTypeWriter();
+                    }, 3000); // 3 seconds delay before restarting
                 }
             }
             typeWriter();
         }
-        startTypeWriter();
+        
+        if (window.splashScreenActive) {
+            window.addEventListener('splashScreenFinished', startTypeWriter);
+        } else {
+            startTypeWriter();
+        }
     }
 })();
