@@ -603,12 +603,6 @@ if (document.readyState === 'complete') {
 }
 
 const MOTIVATIONAL_QUOTES = [
-    { text: "Cuộc sống giống như việc lái một chiếc xe đạp. Để giữ thăng bằng, bạn phải luôn tiến về phía trước.", author: "Albert Einstein" },
-    { text: "Giáo dục là vũ khí mạnh nhất mà bạn có thể dùng để thay đổi thế giới.", author: "Nelson Mandela" },
-    { text: "Cách duy nhất để làm tốt một việc là yêu việc bạn đang làm.", author: "Steve Jobs" },
-    { text: "Đừng bao giờ coi việc học là một nghĩa vụ, mà hãy coi đó là một cơ hội tuyệt vời.", author: "Albert Einstein" },
-    { text: "Học tập là hạt giống của tri thức, tri thức là hạt giống của hạnh phúc.", author: "Ngạn ngữ Georgia" },
-    { text: "Đầu tư vào tri thức luôn mang lại lợi nhuận cao nhất.", author: "Benjamin Franklin" },
     { text: "Người duy nhất bạn nên cố gắng để giỏi hơn chính là bạn của ngày hôm qua.", author: "Khuyết danh" },
     { text: "Thành công không phải là chìa khóa của hạnh phúc. Hạnh phúc mới là chìa khóa của thành công.", author: "Albert Schweitzer" },
     { text: "Hãy hướng về phía mặt trời, bóng tối sẽ ngả về sau bạn.", author: "Helen Keller" },
@@ -616,7 +610,13 @@ const MOTIVATIONAL_QUOTES = [
     { text: "Kẻ ngốc tìm kiếm hạnh phúc ở nơi xa xôi, người khôn ngoan trồng nó dưới chân mình.", author: "James Oppenheim" },
     { text: "Nếu bạn muốn biến những giấc mơ của mình thành hiện thực, điều đầu tiên mà bạn cần làm là thức dậy.", author: "J.M. Power" },
     { text: "Không có giới hạn nào về những gì bạn có thể hoàn thành, ngoại trừ các giới hạn bạn đặt ra trong chính tâm trí mình.", author: "Brian Tracy" },
-    { text: "Thời gian của bạn là hữu hạn, đừng lãng phí nó bằng cách sống cuộc đời của người khác.", author: "Steve Jobs" }
+    { text: "Thời gian của bạn là hữu hạn, đừng lãng phí nó bằng cách sống cuộc đời của người khác.", author: "Steve Jobs" },
+    { text: "Cuộc sống giống như việc lái một chiếc xe đạp. Để giữ thăng bằng, bạn phải luôn tiến về phía trước.", author: "Albert Einstein" },
+    { text: "Giáo dục là vũ khí mạnh nhất mà bạn có thể dùng để thay đổi thế giới.", author: "Nelson Mandela" },
+    { text: "Cách duy nhất để làm tốt một việc là yêu việc bạn đang làm.", author: "Steve Jobs" },
+    { text: "Đừng bao giờ coi việc học là một nghĩa vụ, mà hãy coi đó là một cơ hội tuyệt vời.", author: "Albert Einstein" },
+    { text: "Học tập là hạt giống của tri thức, tri thức là hạt giống của hạnh phúc.", author: "Ngạn ngữ Georgia" },
+    { text: "Đầu tư vào tri thức luôn mang lại lợi nhuận cao nhất.", author: "Benjamin Franklin" }
 ];
 
 function initMotivationalQuotes() {
