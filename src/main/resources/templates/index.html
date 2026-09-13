@@ -9,25 +9,34 @@
 
     <main class="flex-grow container mx-auto px-4 py-8">
         
-        <div id="dynamic-banner" class="bg-primary-dark text-white rounded-xl p-8 mb-8 shadow-lg relative overflow-hidden">
-            <div class="relative z-10">
+        <div id="dynamic-banner" class="bg-primary-dark text-white rounded-xl p-6 md:p-8 mb-8 shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 md:gap-12">
+            <!-- Left Side: Text and Button -->
+            <div class="relative z-10 flex flex-col w-full md:w-1/2 shrink-0">
                 <p id="greeting-text" class="text-sm md:text-base font-semibold text-gray-200 mb-1 tracking-wide opacity-90"></p>
                 <h1 class="text-3xl md:text-4xl font-bold mb-4 text-white" data-i18n="home.title">Đề Thi & Tài Liệu</h1>
-                <p class="text-gray-300 text-lg max-w-2xl" data-i18n="home.subtitle">Không cần đăng nhập, tất cả đều miễn phí.</p>
-            </div>
-            <div id="dynamic-banner-pattern" class="absolute top-1/2 right-4 md:right-12 opacity-10 pointer-events-none transform -translate-y-1/2">
-                <svg width="220" height="220" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
-                </svg>
-            </div>
-            
-            <div class="relative z-10 mt-6">
-                <button onclick="copyWebsiteLink()" class="btn bg-white/20 hover:bg-white/30 text-white border border-white/30 py-2 px-4 rounded-md flex items-center gap-2 backdrop-blur-sm transition-all text-sm font-medium">
+                <p class="text-gray-300 text-lg max-w-2xl mb-6" data-i18n="home.subtitle">Không cần đăng nhập, tất cả đều miễn phí.</p>
+                
+                <button onclick="copyWebsiteLink()" class="btn bg-white/20 hover:bg-white/30 text-white border border-white/30 py-2 px-4 rounded-md flex items-center gap-2 backdrop-blur-sm transition-all text-sm font-medium w-fit">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
                     <span data-i18n="home.copy_link">Sao chép liên kết trang web</span>
                 </button>
+            </div>
+
+            <!-- Right Side: Motivational Quote -->
+            <div class="relative z-10 flex flex-col justify-center w-full md:w-1/2 pr-0 md:pr-12 lg:pr-24" style="min-height: 100px;">
+                <div class="motivational-quote-container text-left transition-opacity duration-500 opacity-0 border-l-0 md:border-l-2 border-white/20 pl-0 md:pl-5 py-2 italic w-full flex flex-col justify-center">
+                    <p class="quote-text text-sm md:text-base text-gray-200 font-light mb-2 leading-relaxed tracking-wide"></p>
+                    <p class="quote-author text-xs md:text-sm text-blue-300 font-bold tracking-wider uppercase"></p>
+                </div>
+            </div>
+
+            <!-- Background Watermark -->
+            <div id="dynamic-banner-pattern" class="absolute top-1/2 right-4 md:right-12 pointer-events-none transform -translate-y-1/2" style="opacity: 0.05;">
+                <svg width="220" height="220" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+                </svg>
             </div>
         </div>
 

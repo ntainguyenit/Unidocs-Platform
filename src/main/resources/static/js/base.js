@@ -601,3 +601,53 @@ if (document.readyState === 'complete') {
 } else {
     window.addEventListener("load", hideSplashScreen);
 }
+
+const MOTIVATIONAL_QUOTES = [
+    { text: "Cuộc sống giống như việc lái một chiếc xe đạp. Để giữ thăng bằng, bạn phải luôn tiến về phía trước.", author: "Albert Einstein" },
+    { text: "Giáo dục là vũ khí mạnh nhất mà bạn có thể dùng để thay đổi thế giới.", author: "Nelson Mandela" },
+    { text: "Cách duy nhất để làm tốt một việc là yêu việc bạn đang làm.", author: "Steve Jobs" },
+    { text: "Đừng bao giờ coi việc học là một nghĩa vụ, mà hãy coi đó là một cơ hội tuyệt vời.", author: "Albert Einstein" },
+    { text: "Học tập là hạt giống của tri thức, tri thức là hạt giống của hạnh phúc.", author: "Ngạn ngữ Georgia" },
+    { text: "Đầu tư vào tri thức luôn mang lại lợi nhuận cao nhất.", author: "Benjamin Franklin" },
+    { text: "Người duy nhất bạn nên cố gắng để giỏi hơn chính là bạn của ngày hôm qua.", author: "Khuyết danh" },
+    { text: "Thành công không phải là chìa khóa của hạnh phúc. Hạnh phúc mới là chìa khóa của thành công.", author: "Albert Schweitzer" },
+    { text: "Hãy hướng về phía mặt trời, bóng tối sẽ ngả về sau bạn.", author: "Helen Keller" },
+    { text: "Đừng đếm những gì bạn đã mất, hãy quý trọng những gì bạn đang có và lên kế hoạch cho những gì sẽ đạt được bởi vì quá khứ không bao giờ trở lại, nhưng tương lai có thể bù đắp cho sự mất mát.", author: "Khuyết danh" },
+    { text: "Kẻ ngốc tìm kiếm hạnh phúc ở nơi xa xôi, người khôn ngoan trồng nó dưới chân mình.", author: "James Oppenheim" },
+    { text: "Nếu bạn muốn biến những giấc mơ của mình thành hiện thực, điều đầu tiên mà bạn cần làm là thức dậy.", author: "J.M. Power" },
+    { text: "Không có giới hạn nào về những gì bạn có thể hoàn thành, ngoại trừ các giới hạn bạn đặt ra trong chính tâm trí mình.", author: "Brian Tracy" },
+    { text: "Thời gian của bạn là hữu hạn, đừng lãng phí nó bằng cách sống cuộc đời của người khác.", author: "Steve Jobs" }
+];
+
+function initMotivationalQuotes() {
+    const containers = document.querySelectorAll('.motivational-quote-container');
+    if (containers.length === 0) return;
+
+    let currentIndex = 0;
+
+    function updateQuotes() {
+        const quote = MOTIVATIONAL_QUOTES[currentIndex];
+        
+        containers.forEach(container => {
+            const textEl = container.querySelector('.quote-text');
+            const authorEl = container.querySelector('.quote-author');
+            
+            if (textEl && authorEl) {
+                container.style.opacity = '0';
+                
+                setTimeout(() => {
+                    textEl.textContent = `"${quote.text}"`;
+                    authorEl.textContent = `- ${quote.author}`;
+                    container.style.opacity = '1';
+                }, 500);
+            }
+        });
+        
+        currentIndex = (currentIndex + 1) % MOTIVATIONAL_QUOTES.length;
+    }
+
+    updateQuotes();
+    setInterval(updateQuotes, 3500);
+}
+
+document.addEventListener('DOMContentLoaded', initMotivationalQuotes);
