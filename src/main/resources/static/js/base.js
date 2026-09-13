@@ -575,8 +575,9 @@ if (document.getElementById("splash-screen") && document.getElementById("splash-
 function hideSplashScreen() {
     const splashScreen = document.getElementById("splash-screen");
     if (splashScreen && splashScreen.style.display !== 'none') {
-        // Đảm bảo hiển thị ít nhất 1.2 giây để người dùng kịp đọc dòng chữ
+        // Đảm bảo hiển thị ít nhất 1 giây
         setTimeout(() => {
+            if(splashScreen.style.display === "none") return; // Tránh chạy 2 lần
             splashScreen.classList.add("opacity-0");
             setTimeout(() => {
                 splashScreen.style.display = "none";
@@ -584,11 +585,16 @@ function hideSplashScreen() {
                 document.body.style.overflow = ''; // Mở khóa cuộn trang
                 window.dispatchEvent(new Event('splashScreenFinished'));
             }, 500);
-        }, 1200);
+        }, 1000); // 1000ms = 1 giây
     } else {
         document.body.style.overflow = '';
     }
 }
+
+// Fail-safe: Đảm bảo splash screen luôn được tắt sau tối đa 4 giây (đề phòng lỗi kẹt màn hình)
+let fallbackSplashTimeout = setTimeout(() => {
+    hideSplashScreen();
+}, 4000);
 
 if (document.readyState === 'complete') {
     hideSplashScreen();
