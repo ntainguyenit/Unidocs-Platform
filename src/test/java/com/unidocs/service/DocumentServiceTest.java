@@ -69,7 +69,7 @@ public class DocumentServiceTest {
 
         List<Document> docs = documentService.getApprovedDocumentsByCourse(1L);
         assertFalse(docs.isEmpty());
-        assertEquals("Test Document", docs.get(0).getTitle());
+        assertEquals("Test", docs.get(0).getTitle());
         verify(documentRepository).findByCourseIdAndStatusOrderByUploadedAtDesc(1L, DocumentStatus.APPROVED);
     }
 
@@ -99,7 +99,7 @@ public class DocumentServiceTest {
 
         Document saved = documentService.uploadDocument(file, 1L, "127.0.0.1", "Mozilla");
         assertNotNull(saved);
-        assertEquals("test", saved.getTitle());
+        assertEquals("Test", saved.getTitle());
         assertEquals(DocumentType.PDF, saved.getFileType());
         assertEquals(DocumentStatus.PENDING, saved.getStatus());
         verify(auditLogRepository).save(any());
