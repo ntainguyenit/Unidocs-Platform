@@ -73,7 +73,7 @@
             isSpinning = true;
             spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-            // Calculate góc quay ngẫu nhiên (tối thiểu 5 vòng + random)
+            // Calculate random spin angle with minimum 5 full rotations
             const spinRevolutions = 5 + Math.random() * 5;
             const extraDeg = Math.random() * 360;
             const totalDeg = spinRevolutions * 360 + extraDeg;
@@ -85,16 +85,16 @@
                 isSpinning = false;
                 spinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 
-                // Calculate kết quả
+                // Calculate winning segment
                 // Wheel rotates clockwise, CSS angle is in degrees.
-                // Kim chỉ nằm ở góc 270 độ (đỉnh trên cùng).
+                // Indicator pointer is at 270 degrees top position
                 // Calculate actual rotated angle modulo 360
                 const actualDeg = currentDeg % 360;
                 
                 // Default CSS clockwise rotation. 
                 // Slice 0 starts at 0 degrees (3 o'clock), rotates to sliceAngle.
                 // To make needle (12 o'clock, angle 270) point to:
-                // Công thức = (360 - actualDeg + 270) % 360
+                // Formula: (360 - actualDeg + 270) % 360
                 const pointerDeg = (630 - actualDeg) % 360;
                 
                 const sliceAngleDeg = 360 / items.length;

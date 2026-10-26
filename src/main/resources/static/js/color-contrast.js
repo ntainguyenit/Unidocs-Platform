@@ -33,12 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return [num >> 16, num >> 8 & 255, num & 255];
     };
 
-    // Cập nhật giao diện và tỷ lệ
+    // Update UI indicators and contrast ratio
     const calculateContrast = () => {
         let textHex = textColorHex.value;
         let bgHex = bgColorHex.value;
         
-        // Cập nhật màu Preview
+        // Update preview colors
         previewBox.style.color = textHex;
         previewBox.style.backgroundColor = bgHex;
 
@@ -124,6 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
         onColorChange('bg', t);
     });
 
-    // Chạy lần đầu
+    // Run initial calculation
     calculateContrast();
 });

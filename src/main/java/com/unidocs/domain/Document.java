@@ -83,9 +83,9 @@ public class Document {
         clean = clean.replaceAll("(?i)\\b[a-f0-9]{8,}\\b", "");
         
         clean = clean.replace("_", " ").replace("-", " ");
-        // Loại bỏ các chuỗi phổ biến như FB_IMG, Screenshot
+        // Remove common prefixes such as FB_IMG or Screenshot
         clean = clean.replaceAll("(?i)\\b(FB IMG|IMG|Screenshot|WhatsApp Image|Doc|Document)\\b", "");
-        // Loại bỏ các chuỗi số dài hơn 6 ký tự (thường là timestamp hoặc ID)
+        // Remove numeric sequences longer than 6 digits (timestamps or IDs)
         clean = clean.replaceAll("\\b\\d{6,}\\b", "");
         // Remove extra whitespace
         clean = clean.replaceAll("\\s+", " ").trim();

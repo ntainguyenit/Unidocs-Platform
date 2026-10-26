@@ -32,9 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Export PNG image
     downloadBtn.addEventListener('click', () => {
-        // Chờ hình ảnh render (nếu vừa đổi nền)
+        // Wait for background render if recently changed
         setTimeout(() => {
-            // Lưu trạng thái gốc
+            // Save original button state
             const originalHTML = downloadBtn.innerHTML;
             downloadBtn.innerHTML = 'Đang xử lý...';
             downloadBtn.disabled = true;
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             html2canvas(captureArea, {
                 scale: 2, // Increase output image quality (Retina)
                 backgroundColor: null,
-                useCORS: true // Hỗ trợ nếu dùng ảnh ngoài
+                useCORS: true // Enable CORS for external images
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'unidocs-mockup.png';

@@ -9,18 +9,11 @@ import com.unidocs.repository.FacultyRepository;
 import com.unidocs.repository.UniversityRepository;
 import java.util.List;
 
-/**
- * Controller xử lý các yêu cầu trang chủ và giao diện chính.
- */
+// Controller handling home page requests and main view presentation
 @Controller
 public class HomeController {
 
-    /**
-     * Hiển thị trang chủ với danh sách tài liệu nổi bật/mới nhất.
-     * 
-     * @param model Đối tượng Model để truyền dữ liệu sang View
-     * @return Tên template Thymeleaf (index)
-     */
+    // Display home page with universities, stats, and notifications
     private final UniversityRepository universityRepository;
     private final FacultyRepository facultyRepository;
     private final com.unidocs.repository.CourseRepository courseRepository;

@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
         windowSelection.addRange(range);
 
         try {
-            // Copy (Lệnh này sẽ copy đúng định dạng HTML vào clipboard)
+            // Copy formatted HTML directly to clipboard
             document.execCommand('copy');
             windowSelection.removeAllRanges(); // Clear selection block
 
-            // Hiệu ứng copy
+            // Animate copy feedback effect
             const originalHTML = copySigBtn.innerHTML;
             copySigBtn.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Đã chép chữ ký`;
             copySigBtn.classList.replace('bg-blue-800', 'bg-green-600');

@@ -85,7 +85,7 @@
             }
         });
 
-        // Hỗ trợ phím mũi tên
+        // Support arrow keys for card navigation
         document.addEventListener('keydown', function(e) {
             if(document.activeElement.tagName === 'TEXTAREA') return;
             

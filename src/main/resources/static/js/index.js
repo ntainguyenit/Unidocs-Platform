@@ -392,7 +392,7 @@
             paginationContainer.appendChild(createFeedbackPageButton('&laquo;', 1, currentFeedbackPage === 1, false));
             paginationContainer.appendChild(createFeedbackPageButton('&lsaquo;', currentFeedbackPage - 1, currentFeedbackPage === 1, false));
             
-            // Các số trang
+            // Numeric pagination page buttons
             for (let i = 1; i <= totalPages; i++) {
                 if (i === 1 || i === totalPages || (i >= currentFeedbackPage - 1 && i <= currentFeedbackPage + 1)) {
                     paginationContainer.appendChild(createFeedbackPageButton(i, i, false, i === currentFeedbackPage));

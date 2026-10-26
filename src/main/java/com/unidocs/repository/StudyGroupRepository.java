@@ -14,12 +14,12 @@ import java.util.Optional;
 public interface StudyGroupRepository extends JpaRepository<StudyGroup, Long> {
     Optional<StudyGroup> findByToken(String token);
 
-    // Chống spam: Tìm xem IP này đã tạo bao nhiêu nhóm trong ngày
+    // Prevent spam: Count groups created by IP within time window
     int countByCreatorIpAndCreatedAtAfter(String creatorIp, LocalDateTime after);
 
-    // Chống trùng lặp: Tìm xem có nhóm nào đang ACTIVE cùng mã môn không
+    // Prevent duplicates: Check if active group exists for subject code
     boolean existsBySubjectCodeAndStatus(String subjectCode, StudyGroupStatus status);
 
-    // Lấy danh sách nhóm theo trạng thái
+    // Fetch study groups ordered by creation time descending
     List<StudyGroup> findByStatusOrderByCreatedAtDesc(StudyGroupStatus status);
 }

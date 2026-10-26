@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Hiện kết quả
+        // Display result container
         qrResult.classList.remove('hidden');
         qrResult.classList.add('flex');
         
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             correctLevel : QRCode.CorrectLevel.H
         });
         
-        // Hiệu ứng nút bấm
+        // Button animation effect
         const originalHTML = generateBtn.innerHTML;
         generateBtn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Đã tạo thành công`;
         generateBtn.classList.replace('bg-blue-800', 'bg-green-600');
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     });
     
-    // Hỗ trợ tạo bằng phím Enter (nếu không nhập nhiều dòng)
+    // Support Enter key submission for single line inputs
     qrInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();

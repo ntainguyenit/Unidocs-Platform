@@ -1,6 +1,6 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        // Logic Đếm ngược
+        // Countdown timer logic
         let timerInterval;
         let totalSeconds = 0;
         let remainingSeconds = 0;
@@ -16,7 +16,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
             document.getElementById('countdownDisplay').textContent = 
                 `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             
-            // Cập nhật vòng tròn
+            // Update progress circle offset
             const offset = circumference - (remainingSeconds / totalSeconds) * circumference;
             circle.style.strokeDashoffset = offset;
 
@@ -30,7 +30,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
                 circle.classList.add('text-orange-500');
             }
 
-            // Cảnh báo
+            // Visual warning alert
             if (!halfTimeAlerted && remainingSeconds <= totalSeconds / 2 && totalSeconds > 0) {
                 showAlert("Đã trôi qua một nửa thời gian", "Hãy kiểm tra lại tốc độ làm bài của bạn nhé!");
                 halfTimeAlerted = true;
@@ -181,7 +181,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
                 page.render(renderContext);
             }
         }
-        // Khởi tạo kéo thả
+        // Initialize drag and drop upload listeners
         setupDragAndDrop();
     
 

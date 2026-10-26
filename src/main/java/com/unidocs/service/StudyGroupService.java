@@ -167,7 +167,7 @@ public class StudyGroupService {
         StudyGroup group = studyGroupRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhóm này."));
         
-        // Ghi nhận lượt REVEAL nếu chưa
+        // Record reveal interaction if not already recorded
         interact(token, ipAddress, InteractionType.REVEAL);
         
         return group.getGroupLink();

@@ -25,7 +25,7 @@ const sayHello = () => {
 
 [Truy cập UniDocs](https://unidocs.vn) ngay hôm nay!`;
 
-    // Khởi tạo
+    // Initialize editor
     input.value = defaultMD;
 
     // Render logic

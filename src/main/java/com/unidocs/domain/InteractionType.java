@@ -2,6 +2,6 @@ package com.unidocs.domain;
 
 public enum InteractionType {
     INTERESTED,   // Interest
-    REVEAL,       // Lấy link
+    REVEAL,       // Reveal link
     EXTERNAL_OPEN // Open in Zalo/Mess
 }

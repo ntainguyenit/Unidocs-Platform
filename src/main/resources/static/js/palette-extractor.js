@@ -21,12 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = document.createElement('div');
             item.className = "flex flex-col items-center group cursor-pointer w-24";
             
-            // Cục màu
+            // Color preview bar
             const colorBox = document.createElement('div');
             colorBox.className = "w-16 h-16 rounded-full shadow-md border-2 border-white mb-2 transform transition-transform group-hover:scale-110";
             colorBox.style.backgroundColor = hex;
             
-            // Text HEX
+            // Hex text label
             const text = document.createElement('span');
             text.className = "text-xs font-mono font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded transition-colors group-hover:bg-blue-100 group-hover:text-blue-700";
             text.innerText = hex;
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ensure image is loaded before extracting color
         if (imagePreview.complete) {
             try {
-                // Lấy 6 màu
+                // Extract top 6 dominant colors
                 const palette = colorThief.getPalette(imagePreview, 6);
                 displayColors(palette);
             } catch (e) {
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 imagePreview.classList.remove('hidden');
                 resetBtn.classList.remove('hidden');
 
-                // Khi ảnh render trên màn hình xong thì xử lý
+                // Process image once rendered on screen
                 imagePreview.onload = processImage;
             };
             reader.readAsDataURL(file);

@@ -168,7 +168,7 @@ public class DataSeederService {
                 log.info("Upload thành công: {}", originalFilename);
             }
         } catch (IllegalArgumentException e) {
-            log.warn("Bỏ qua file {} do: {}", docItem.name, e.getMessage()); // Like "Tài liệu này đã tồn tại"
+            log.warn("Bỏ qua file {} do: {}", docItem.name, e.getMessage()); // Skip if document already exists
         } catch (Exception e) {
             log.error("Lỗi khi xử lý file {}: {}", docItem.name, e.getMessage());
         }

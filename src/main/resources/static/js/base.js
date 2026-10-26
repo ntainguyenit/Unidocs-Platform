@@ -47,7 +47,7 @@ const beforeUnloadHandler = function (e) {
     return '';
 };
 
-// Custom setter để tự động add/remove listener
+// Custom setter to automatically manage beforeunload event listener
 Object.defineProperty(window, 'isFormDirty', {
     get: function() { return this._isFormDirty || false; },
     set: function(value) {
@@ -527,16 +527,12 @@ function copyDocLink(slug) {
 
 // --- UI HELPERS ---
 
-/**
- * Hiển thị trạng thái loading cho một nút bấm
- * @param {string} buttonId ID của nút
- * @param {string} loadingText Text hiển thị khi đang load
- */
+// Display loading spinner state on button
 function showButtonLoading(buttonId, loadingText = "Đang xử lý...") {
     const btn = document.getElementById(buttonId);
     if (!btn) return;
     
-    // Lưu lại trạng thái HTML ban đầu
+    // Cache original HTML content
     if (!btn.dataset.originalHtml) {
         btn.dataset.originalHtml = btn.innerHTML;
     }
@@ -553,10 +549,7 @@ function showButtonLoading(buttonId, loadingText = "Đang xử lý...") {
     `;
 }
 
-/**
- * Tắt trạng thái loading, trả lại nút như cũ
- * @param {string} buttonId ID của nút
- */
+// Restore original button content and state
 function hideButtonLoading(buttonId) {
     const btn = document.getElementById(buttonId);
     if (!btn || !btn.dataset.originalHtml) return;
@@ -567,7 +560,7 @@ function hideButtonLoading(buttonId) {
 }
 
 // --- SPLASH SCREEN ---
-// Khóa cuộn trang khi splash screen đang hiển thị
+// Lock scroll while splash screen is active
 if (document.getElementById("splash-screen") && document.getElementById("splash-screen").style.display !== 'none') {
     document.body.style.overflow = 'hidden';
 }
@@ -575,23 +568,23 @@ if (document.getElementById("splash-screen") && document.getElementById("splash-
 function hideSplashScreen() {
     const splashScreen = document.getElementById("splash-screen");
     if (splashScreen && splashScreen.style.display !== 'none') {
-        // Đảm bảo hiển thị ít nhất 1 giây
+        // Ensure splash displays for a minimum of 1 second
         setTimeout(() => {
-            if(splashScreen.style.display === "none") return; // Tránh chạy 2 lần
+            if(splashScreen.style.display === "none") return; // Prevent duplicate executions
             splashScreen.classList.add("opacity-0");
             setTimeout(() => {
                 splashScreen.style.display = "none";
                 splashScreen.remove();
-                document.body.style.overflow = ''; // Mở khóa cuộn trang
+                document.body.style.overflow = ''; // Unlock scrollbar after splash removal
                 window.dispatchEvent(new Event('splashScreenFinished'));
             }, 500);
-        }, 1000); // 1000ms = 1 giây
+        }, 1000); // 1000ms delay
     } else {
         document.body.style.overflow = '';
     }
 }
 
-// Fail-safe: Đảm bảo splash screen luôn được tắt sau tối đa 4 giây (đề phòng lỗi kẹt màn hình)
+// Failsafe: Force hide splash screen after 4 seconds
 let fallbackSplashTimeout = setTimeout(() => {
     hideSplashScreen();
 }, 4000);

@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const svgEl = document.getElementById('markmapPreview');
     const fitBtn = document.getElementById('fitBtn');
 
-    // Khởi tạo Markmap
+    // Initialize Markmap instance
     const { Transformer, Markmap } = window.markmap;
     const transformer = new Transformer();
     let mm;

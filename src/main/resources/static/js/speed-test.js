@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isTesting) {
             fpsRAF = requestAnimationFrame(measureFPS);
         } else {
-            // Khi dừng, đặt số cuối cùng
+            // Set final static value on test completion
             resFps.innerText = resFps.innerText === '--' ? 60 : resFps.innerText; 
         }
     };
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.width = `${percent}%`;
     };
 
-    // Hàm đo Ping
+    // Ping latency test routine
     const measurePing = async () => {
         updateStatus('Đang đo độ trễ (Ping)...', 20);
         try {
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Hàm đo Download
+    // Download speed test routine
     const measureDownload = async () => {
         updateStatus('Đang kiểm tra tải xuống...', 50);
         try {
@@ -82,11 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Hàm đo Upload
+    // Upload speed test routine
     const measureUpload = async () => {
         updateStatus('Đang kiểm tra tải lên...', 80);
         try {
-            // Lấy thông tin từ API hoặc dùng thuật toán giả định tương đối do giới hạn trình duyệt
+            // Estimate upload rate based on connection constraints
             await new Promise(r => setTimeout(r, 800)); // Simulate delay
             
             if (navigator.connection && navigator.connection.downlink) {
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         await measureUpload();
         
-        // Hoàn tất
+        // Test completed
         updateStatus('Hoàn tất!', 100);
         isTesting = false; // Stop FPS loop
         

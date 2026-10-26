@@ -17,11 +17,7 @@ import java.util.Iterator;
 
 public class PdfThumbnailUtil {
 
-    /**
-     * Generates a JPEG thumbnail of the first page of a PDF.
-     * @param pdfInputStream InputStream of the PDF file.
-     * @return byte array of the JPEG thumbnail, or null if generation fails.
-     */
+    // Generate a JPEG thumbnail from the first page of a PDF stream
     public static byte[] generateThumbnail(InputStream pdfInputStream) {
         java.io.File tempFile = null;
         try {
