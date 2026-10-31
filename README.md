@@ -27,34 +27,40 @@
 
 ## Kiến trúc hệ thống
 
-```mermaid
-flowchart TD
-    Client["Thiết bị người dùng (Mobile / Desktop)"]
-    
-    subgraph EdgeLayer["Tầng biên & CDN (Cloudflare)"]
-        CF["Cloudflare Edge Network"]
-        Cache["Edge Cache (Tài nguyên tĩnh & Tiện ích)"]
-    end
-
-    subgraph AppLayer["Tầng ứng dụng (Spring Boot / Docker)"]
-        Security["Bộ lọc bảo mật & Giới hạn tần suất (Bucket4j)"]
-        Controller["MVC & REST Controllers"]
-        Service["Dịch vụ xử lý nghiệp vụ & PDF (PDFBox)"]
-    end
-
-    subgraph DataLayer["Tầng dữ liệu & Lưu trữ (Supabase)"]
-        Postgres[("Cơ sở dữ liệu PostgreSQL (Bảo vệ bởi RLS)")]
-        S3Storage[("Lưu trữ tệp Supabase S3")]
-    end
-
-    Client --> CF
-    CF --> Cache
-    CF --> Security
-    Security --> Controller
-    Controller --> Service
-    Service --> Postgres
-    Service --> S3Storage
+```text
++--------------------------------------------------------------------------+
+|                     Thiết bị người dùng (Web / Mobile)                   |
++--------------------------------------------------------------------------+
+                                     |
+                                     v
++--------------------------------------------------------------------------+
+|                   Tầng biên & Phân phối CDN (Cloudflare)                 |
+|  - Edge Caching: Lưu đệm tài nguyên tĩnh (CSS, JS) và bộ tiện ích học tập|
+|  - Bảo mật: Cloudflare Turnstile chống Bot và chứng chỉ SSL/TLS          |
++--------------------------------------------------------------------------+
+                                     |
+                                     v
++--------------------------------------------------------------------------+
+|                 Tầng máy chủ ứng dụng (Spring Boot 3 / Docker)           |
+|  - Rate Limiting: Thuật toán Token Bucket (Bucket4j) kiểm soát tần suất  |
+|  - Controllers: Điều hướng MVC và các RESTful API endpoints              |
+|  - Processing: Trích xuất ảnh bìa tài liệu PDF tự động (Apache PDFBox)   |
++--------------------------------------------------------------------------+
+                      |                                  |
+                      v                                  v
++-----------------------------------+  +-----------------------------------+
+|      Cơ sở dữ liệu PostgreSQL     |  |       Supabase Object Storage     |
+|  - Dữ liệu trường, khoa, học phần |  |  - Lưu trữ đám mây tương thích S3 |
+|  - Bảo mật cấp dòng (Postgres RLS)|  |  - Tệp PDF giáo trình, đề thi, ảnh|
++-----------------------------------+  +-----------------------------------+
 ```
+
+| Phân tầng | Thành phần | Trách nhiệm chính |
+| :--- | :--- | :--- |
+| **Edge & CDN** | Cloudflare Network | Phân phối tài nguyên tĩnh toàn cầu, lọc lưu lượng bất thường và chặn bot tự động |
+| **Tầng ứng dụng** | Spring Boot 3 & Docker | Xử lý logic nghiệp vụ, quản lý phiên làm việc, giới hạn tải và trích xuất tài liệu |
+| **Cơ sở dữ liệu** | PostgreSQL (Supabase) | Lưu trữ quan hệ thực thể, ràng buộc dữ liệu học thuật và thực thi chính sách RLS |
+| **Lưu trữ đối tượng** | Supabase Storage (S3 API) | Lưu trữ an toàn các tệp tin tải lên (PDF, tài liệu, hình ảnh) với khả năng mở rộng cao |
 
 ---
 
@@ -226,34 +232,40 @@ Dự án được phát hành theo giấy phép **MIT License** - xem tệp [LIC
 
 ## System Architecture
 
-```mermaid
-flowchart TD
-    Client["Client Devices (Mobile / Desktop)"]
-    
-    subgraph EdgeLayer["Edge & CDN (Cloudflare)"]
-        CF["Cloudflare Edge Network"]
-        Cache["Edge Cache (Static Assets & Utilities)"]
-    end
-
-    subgraph AppLayer["Application Layer (Spring Boot / Docker)"]
-        Security["Security Filter & Rate Limiter (Bucket4j)"]
-        Controller["MVC & REST Controllers"]
-        Service["Core Services & PDF Processing (PDFBox)"]
-    end
-
-    subgraph DataLayer["Persistence & Storage Layer (Supabase)"]
-        Postgres[("PostgreSQL Database (RLS Protected)")]
-        S3Storage[("Supabase S3 Compatible Storage")]
-    end
-
-    Client --> CF
-    CF --> Cache
-    CF --> Security
-    Security --> Controller
-    Controller --> Service
-    Service --> Postgres
-    Service --> S3Storage
+```text
++--------------------------------------------------------------------------+
+|                         Clients (Web & Mobile)                           |
++--------------------------------------------------------------------------+
+                                     |
+                                     v
++--------------------------------------------------------------------------+
+|                       Edge & CDN Layer (Cloudflare)                      |
+|  - Edge Caching: Global caching for static assets (CSS, JS, utilities)   |
+|  - Edge Security: Cloudflare Turnstile bot defense & SSL/TLS termination |
++--------------------------------------------------------------------------+
+                                     |
+                                     v
++--------------------------------------------------------------------------+
+|                 Application Backend (Spring Boot 3 / Docker)             |
+|  - Rate Limiting: Token Bucket algorithm (Bucket4j) for traffic control  |
+|  - Controllers: MVC view dispatching & RESTful API endpoints             |
+|  - Processing: Automated PDF thumbnail synthesis via Apache PDFBox       |
++--------------------------------------------------------------------------+
+                      |                                  |
+                      v                                  v
++-----------------------------------+  +-----------------------------------+
+|      PostgreSQL 17 (Supabase)     |  |       Supabase Object Storage     |
+|  - Academic taxonomy & metadata   |  |  - S3-compatible cloud storage    |
+|  - Row-Level Security (RLS)       |  |  - Document PDFs, exams & images  |
++-----------------------------------+  +-----------------------------------+
 ```
+
+| Layer | Component | Core Responsibility |
+| :--- | :--- | :--- |
+| **Edge & CDN** | Cloudflare Network | Global static asset delivery, traffic caching, and bot mitigation |
+| **Application Layer** | Spring Boot 3 & Docker | Business logic execution, session management, rate limiting, and PDF processing |
+| **Database Layer** | PostgreSQL (Supabase) | Relational data persistence, academic taxonomy, and Row-Level Security (RLS) |
+| **Object Storage** | Supabase Storage (S3 API) | Highly scalable S3-compatible cloud storage for PDFs and media files |
 
 ---
 
