@@ -1,7 +1,6 @@
 [English Below]
 
 # UniDocs - Nền tảng chia sẻ tài liệu học thuật
-
 ### Giới thiệu
 UniDocs là một nền tảng mã nguồn mở được phát triển nhằm mục đích chia sẻ và lưu trữ các tài liệu học tập, đề thi và giáo trình dành cho sinh viên đại học. Dự án cung cấp một hệ thống quản lý tài liệu tập trung, cho phép người dùng dễ dàng tìm kiếm, xem trực tuyến và tải xuống các tài liệu học thuật một cách nhanh chóng.
 
@@ -24,7 +23,6 @@ UniDocs là một nền tảng mã nguồn mở được phát triển nhằm m�
 ---
 
 # UniDocs - Academic Document Sharing Platform
-
 ### Introduction
 UniDocs is an open-source platform developed for sharing and archiving academic documents, past examinations, and course materials for university students. The project provides a centralized document management system, allowing users to easily search, view online, and download academic resources efficiently.
 
