@@ -80,6 +80,8 @@ flowchart TD
 | **Security & Protection** | Cloudflare Turnstile, Bucket4j, Steganographic Watermarking |
 | **Container & CI/CD** | Docker Multi-Stage, GitHub Actions Workflow |
 
+> 📖 *For an in-depth breakdown of dependencies, frameworks, and architecture decisions, see the [Technology Stack Specification](docs/TECHSTACK.md).*
+
 ---
 
 ## 🚀 Getting Started
@@ -156,6 +158,8 @@ unidocs/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml               # Automated CI build & test pipeline
+├── docs/                        # Architecture & technical specifications
+│   └── TECHSTACK.md             # Detailed technology stack document
 ├── src/
 │   ├── main/
 │   │   ├── java/com/unidocs/

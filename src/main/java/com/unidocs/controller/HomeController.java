@@ -52,6 +52,12 @@ public class HomeController {
         return "index";
     }
 
+    // Render system maintenance page
+    @GetMapping("/maintenance")
+    public String maintenance() {
+        return "maintenance";
+    }
+
     @GetMapping("/university/{slug}")
     public String universityDetail(@org.springframework.web.bind.annotation.PathVariable String slug, Model model) {
         University uni = universityRepository.findBySlug(slug)
