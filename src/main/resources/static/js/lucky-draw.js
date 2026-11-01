@@ -51,7 +51,71 @@
         }
     }
 
-    // Play synthesized card flip whoosh sound
+    // Play suspenseful 360-degree card spin sound with decelerating ticks and rising drone
+    function playSuspenseSpinSound() {
+        if (isMuted) return;
+        try {
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+
+            // Subtle rising suspense drone
+            const droneOsc = audioCtx.createOscillator();
+            const droneGain = audioCtx.createGain();
+            droneOsc.type = 'triangle';
+            droneOsc.frequency.setValueAtTime(140, now);
+            droneOsc.frequency.exponentialRampToValueAtTime(320, now + 3.2);
+
+            droneGain.gain.setValueAtTime(0.001, now);
+            droneGain.gain.exponentialRampToValueAtTime(0.07, now + 0.4);
+            droneGain.gain.setValueAtTime(0.07, now + 2.8);
+            droneGain.gain.exponentialRampToValueAtTime(0.001, now + 3.4);
+
+            droneOsc.connect(droneGain);
+            droneGain.connect(audioCtx.destination);
+            droneOsc.start(now);
+            droneOsc.stop(now + 3.45);
+
+            // Decelerating ticks (mimicking spinning card flutter)
+            const tickTimes = [];
+            let t = 0;
+            let gap = 0.08;
+            while (t < 3.25) {
+                tickTimes.push(t);
+                if (t < 1.2) {
+                    gap += 0.004;
+                } else if (t < 2.4) {
+                    gap += 0.016;
+                } else {
+                    gap += 0.055;
+                }
+                t += gap;
+            }
+
+            tickTimes.forEach((tickTime, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                const baseFreq = 420 + (index % 3) * 50 - (tickTime * 40);
+                osc.frequency.setValueAtTime(Math.max(200, baseFreq), now + tickTime);
+
+                gain.gain.setValueAtTime(0.09, now + tickTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + tickTime + 0.035);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now + tickTime);
+                osc.stop(now + tickTime + 0.04);
+            });
+        } catch (e) {
+            // Audio synthesis fallback
+        }
+    }
+
+    // Play quick whoosh sound fallback
     function playFlipSound() {
         if (isMuted) return;
         try {
@@ -154,6 +218,28 @@
         if ('vibrate' in navigator) {
             try {
                 navigator.vibrate([35, 45, 35]);
+            } catch (e) {
+                // Ignore vibration failure
+            }
+        }
+    }
+
+    // Trigger haptic vibration pulses during card spin
+    function triggerHapticSpin() {
+        if ('vibrate' in navigator) {
+            try {
+                navigator.vibrate([20, 80, 20, 100, 25, 140, 30, 200, 35]);
+            } catch (e) {
+                // Ignore vibration failure
+            }
+        }
+    }
+
+    // Trigger haptic celebration vibration on reveal
+    function triggerHapticReveal() {
+        if ('vibrate' in navigator) {
+            try {
+                navigator.vibrate([50, 40, 100]);
             } catch (e) {
                 // Ignore vibration failure
             }
@@ -287,17 +373,19 @@
 
         isFlipped = false;
         if (card) {
-            card.classList.remove('card-is-flipped');
+            card.classList.remove('card-is-spinning', 'card-is-flipped');
         }
         if (actionArea) {
             actionArea.classList.add('hidden');
         }
         if (drawBtn) {
-            drawBtn.classList.remove('hidden');
+            drawBtn.classList.remove('hidden', 'opacity-75', 'cursor-not-allowed');
+            drawBtn.disabled = false;
+            drawBtn.textContent = 'Rút Đề May Mắn Ngay';
         }
     }
 
-    // Execute drawing a card with animation
+    // Execute drawing a card with suspense 360-degree horizontal spin
     function drawCard() {
         if (isShuffling || isFlipped) return;
 
@@ -308,14 +396,14 @@
 
         isShuffling = true;
         initAudio();
-        playFlipSound();
-        triggerHaptic();
+        playSuspenseSpinSound();
+        triggerHapticSpin();
 
         // Pop card from remaining deck to guarantee no duplicates
         currentCard = remainingDeck.pop();
         drawnHistory.push(currentCard);
 
-        // Populate front card content
+        // Populate front card content immediately so it is prepped during spin
         const titleEl = document.getElementById('luckyCardTitle');
         const courseEl = document.getElementById('luckyCardCourse');
         const facultyEl = document.getElementById('luckyCardFaculty');
@@ -327,7 +415,7 @@
         if (courseEl) courseEl.textContent = currentCard.courseName || 'Học phần chung';
         if (facultyEl) facultyEl.textContent = currentCard.facultyName || 'UniDocs HUSC';
         if (folderEl) folderEl.textContent = currentCard.folderName || 'Đề thi & Đề cương';
-        
+
         const randomQuote = luckyQuotes[Math.floor(Math.random() * luckyQuotes.length)];
         if (quoteEl) quoteEl.textContent = `"${randomQuote}"`;
 
@@ -335,25 +423,57 @@
             viewLinkEl.href = currentCard.slug ? `/document/${currentCard.slug}` : '/#section-university';
         }
 
-        // Apply 3D flip animation
-        const card = document.getElementById('lucky3DCard');
-        if (card) {
-            card.classList.add('card-is-flipped');
-            isFlipped = true;
+        const drawBtn = document.getElementById('btnDrawCard');
+        if (drawBtn) {
+            drawBtn.disabled = true;
+            drawBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            drawBtn.innerHTML = '<span class="inline-block animate-pulse">Đang bốc đề...</span>';
         }
 
+        const facultySelect = document.getElementById('luckyFacultySelect');
+        if (facultySelect) facultySelect.disabled = true;
+        const reshuffleBtn = document.getElementById('btnReshuffleDeck');
+        if (reshuffleBtn) reshuffleBtn.disabled = true;
+
+        // Apply 3.5s horizontal 360-degree suspense spin
+        const card = document.getElementById('lucky3DCard');
+        if (card) {
+            card.classList.remove('card-is-flipped');
+            void card.offsetWidth;
+            card.classList.add('card-is-spinning');
+        }
+
+        // Complete spin after 3500ms
         setTimeout(() => {
+            if (card) {
+                card.style.transition = 'none';
+                card.classList.remove('card-is-spinning');
+                card.classList.add('card-is-flipped');
+                void card.offsetWidth;
+                card.style.transition = '';
+            }
+
+            isFlipped = true;
+            isShuffling = false;
+
+            if (facultySelect) facultySelect.disabled = false;
+            if (reshuffleBtn) reshuffleBtn.disabled = false;
+
             playVictorySound();
+            triggerHapticReveal();
             triggerConfetti();
 
             const actionArea = document.getElementById('luckyCardActionArea');
-            const drawBtn = document.getElementById('btnDrawCard');
             if (actionArea) actionArea.classList.remove('hidden');
-            if (drawBtn) drawBtn.classList.add('hidden');
+            if (drawBtn) {
+                drawBtn.classList.add('hidden');
+                drawBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                drawBtn.disabled = false;
+                drawBtn.textContent = 'Rút Đề May Mắn Ngay';
+            }
 
             updateCounter();
-            isShuffling = false;
-        }, 400);
+        }, 3500);
     }
 
     // Reshuffle deck from scratch
@@ -457,7 +577,7 @@
         const cardScene = document.getElementById('luckyCardScene');
         if (cardScene) {
             cardScene.addEventListener('click', () => {
-                if (!isFlipped) {
+                if (!isFlipped && !isShuffling) {
                     drawCard();
                 }
             });
@@ -467,10 +587,11 @@
         const drawNextBtn = document.getElementById('btnDrawNextCard');
         if (drawNextBtn) {
             drawNextBtn.addEventListener('click', () => {
+                if (isShuffling) return;
                 resetCardVisualState();
                 setTimeout(() => {
                     drawCard();
-                }, 300);
+                }, 350);
             });
         }
 

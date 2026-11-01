@@ -366,6 +366,42 @@
             .lucky-card-3d.card-is-flipped { transform: rotateY(180deg); }
             .lucky-card-face { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 1.25rem; }
             .lucky-card-front { transform: rotateY(180deg); }
+
+            /* 3.5-second suspense horizontal 360-degree spin animation */
+            .lucky-card-3d.card-is-spinning {
+                animation: luckyCardSuspenseSpin 3.5s cubic-bezier(0.18, 0.82, 0.22, 1) forwards;
+                will-change: transform;
+            }
+
+            @keyframes luckyCardSuspenseSpin {
+                0% {
+                    transform: rotateY(0deg) scale(1);
+                    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.4));
+                }
+                20% {
+                    transform: rotateY(360deg) scale(1.05);
+                    filter: drop-shadow(0 15px 25px rgba(30, 58, 138, 0.5));
+                }
+                45% {
+                    transform: rotateY(720deg) scale(1.08);
+                    filter: drop-shadow(0 20px 30px rgba(37, 99, 235, 0.6));
+                }
+                70% {
+                    transform: rotateY(1080deg) scale(1.04);
+                    filter: drop-shadow(0 15px 22px rgba(30, 58, 138, 0.5));
+                }
+                88% {
+                    transform: rotateY(1220deg) scale(1.02);
+                    filter: drop-shadow(0 12px 18px rgba(30, 58, 138, 0.4));
+                }
+                96% {
+                    transform: rotateY(1255deg) scale(1.005);
+                }
+                100% {
+                    transform: rotateY(1260deg) scale(1);
+                    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.4));
+                }
+            }
         </style>
 
         <!-- Lucky Exam Draw Modal -->
@@ -482,7 +518,7 @@
                                 <!-- Card Face: BACK (Brand Dark Blue Theme) -->
                                 <div class="lucky-card-face lucky-card-back bg-[#0f172a] border-2 border-blue-600/50 rounded-2xl p-5 flex flex-col items-center justify-between shadow-2xl relative overflow-hidden group hover:border-blue-400 transition-colors">
                                     <div class="absolute inset-2 border border-dashed border-blue-800/40 rounded-xl pointer-events-none"></div>
-                                    <div class="text-[11px] font-bold text-blue-300/90 tracking-widest uppercase">UniDocs Tarot</div>
+                                    <div class="text-[11px] font-bold text-blue-300/90 tracking-widest uppercase">UniDocs Lucky Exam</div>
                                     
                                     <div class="flex flex-col items-center justify-center my-auto text-center">
                                         <div class="w-16 h-16 rounded-2xl bg-blue-900/40 border border-blue-700/50 flex items-center justify-center mb-3 shadow-inner group-hover:scale-105 transition-transform">
@@ -543,7 +579,7 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-        <script th:src="@{/js/lucky-draw.js(v='1.0')}" defer></script>
+        <script th:src="@{/js/lucky-draw.js(v='1.1')}" defer></script>
 
         <script th:src="@{/js/anti-theft.js(v=2.1)}" defer></script>
     </div>
