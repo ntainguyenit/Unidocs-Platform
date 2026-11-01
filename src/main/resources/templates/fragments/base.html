@@ -421,11 +421,10 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                            <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">
                                 Bốc Đề Thi May Mắn
-                                <span class="text-[11px] bg-blue-900/80 text-blue-200 font-semibold px-2.5 py-0.5 rounded-full border border-blue-700/50">UniDocs</span>
                             </h3>
-                            <p class="text-xs text-slate-400">Rút thẻ ngẫu nhiên • Tự tin qua môn</p>
+                            <p class="text-xs text-slate-400">Rút thẻ ngẫu nhiên</p>
                         </div>
                     </div>
 
@@ -458,11 +457,17 @@
                     <!-- Left Column: Controls and Actions -->
                     <div class="md:col-span-6 flex flex-col justify-between space-y-4 md:space-y-5">
                         
-                        <!-- Faculty Selection Dropdown -->
+                        <!-- Faculty Selection Dropdown & New Cards Button -->
                         <div>
-                            <label for="luckyFacultySelect" class="block text-xs font-semibold uppercase tracking-wider text-blue-200 mb-1.5">
-                                Chọn ngành / khoa học tập:
-                            </label>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label for="luckyFacultySelect" class="block text-xs font-semibold uppercase tracking-wider text-blue-200">
+                                    Chọn ngành / khoa học tập:
+                                </label>
+                                <button id="btnReshuffleDeck" type="button" class="inline-flex items-center gap-1 text-xs text-blue-300 hover:text-white font-medium transition-colors hover:underline" title="Lấy lượt thẻ mới">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    Thẻ mới
+                                </button>
+                            </div>
                             <div class="relative">
                                 <select id="luckyFacultySelect" class="w-full bg-slate-900/95 text-white text-sm rounded-xl border border-blue-800/60 px-3.5 py-2.5 pr-8 appearance-none focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all cursor-pointer">
                                     <option value="0">Tất cả các ngành / Toàn trường</option>
@@ -473,18 +478,9 @@
                             </div>
                         </div>
 
-                        <!-- Deck Status and Progress Bar -->
-                        <div class="bg-slate-900/80 rounded-xl p-3 border border-blue-900/40 flex flex-col gap-2">
-                            <div class="flex items-center justify-between text-xs text-slate-300">
-                                <span id="luckyDeckCounter" class="font-medium text-blue-200">Đang chuẩn bị bộ thẻ...</span>
-                                <button id="btnReshuffleDeck" type="button" class="text-xs text-blue-400 hover:text-white underline font-medium transition-colors">
-                                    Xào lại thẻ
-                                </button>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                <div id="luckyDeckProgress" class="bg-primary h-full rounded-full transition-all duration-300" style="width: 100%;"></div>
-                            </div>
-                        </div>
+                        <!-- Hidden compatibility placeholders -->
+                        <span id="luckyDeckCounter" class="hidden"></span>
+                        <div id="luckyDeckProgress" class="hidden"></div>
 
                         <!-- Action Buttons Section -->
                         <div class="pt-2">
@@ -568,9 +564,9 @@
                         <!-- Empty Deck State -->
                         <div id="luckyEmptyDeckState" class="hidden text-center py-6 px-4 bg-slate-900/90 rounded-2xl border border-blue-900/50 max-w-[270px]">
                             <h4 class="text-sm font-bold text-white mb-1">Đã bốc hết toàn bộ đề!</h4>
-                            <p class="text-xs text-slate-400 mb-3">Bạn có thể xào lại bộ thẻ để ôn vòng mới.</p>
+                            <p class="text-xs text-slate-400 mb-3">Bạn có thể bấm Thẻ mới để ôn vòng mới.</p>
                             <button id="btnReshuffleEmptyDeck" type="button" class="w-full bg-primary hover:bg-blue-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md">
-                                Xào lại bộ thẻ mới
+                                Thẻ mới
                             </button>
                         </div>
                     </div>
@@ -581,7 +577,7 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-        <script th:src="@{/js/lucky-draw.js(v='1.1')}" defer></script>
+        <script th:src="@{/js/lucky-draw.js(v='1.2')}" defer></script>
 
         <script th:src="@{/js/anti-theft.js(v=2.1)}" defer></script>
     </div>

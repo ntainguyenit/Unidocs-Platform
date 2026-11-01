@@ -299,7 +299,7 @@
         const emptyStateEl = document.getElementById('luckyEmptyDeckState');
         const cardScene = document.getElementById('luckyCardScene');
 
-        if (counterEl) counterEl.textContent = 'Đang xáo bài...';
+        if (counterEl) counterEl.textContent = 'Đang tải thẻ...';
 
         try {
             const url = facultyId && facultyId > 0
