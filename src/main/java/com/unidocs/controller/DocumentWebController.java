@@ -19,6 +19,11 @@ public class DocumentWebController {
         this.documentService = documentService;
     }
 
+    @GetMapping("/{slug}")
+    public String getDocumentPage(@PathVariable String slug) {
+        return "redirect:/document/" + slug + "/view";
+    }
+
     @GetMapping("/{slug}/view")
     public String viewDocument(@PathVariable String slug, Model model) {
         Document doc = documentService.getDocumentBySlug(slug);

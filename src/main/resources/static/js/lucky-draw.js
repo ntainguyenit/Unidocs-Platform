@@ -388,6 +388,34 @@
         }
     }
 
+    // Format card title nicely in case backend returns raw machine code
+    function formatLuckyTitle(card) {
+        if (!card) return 'Đề thi học thuật';
+        const t = (card.title || '').trim();
+        const course = card.courseName || '';
+        const folder = (card.folderName || '').trim();
+
+        const lower = t.toLowerCase();
+        if (lower.includes('com.') || lower.includes('activity') || lower.includes('edit') || /^\d+$/.test(t) || /^[A-Z0-9]{4,}/.test(t)) {
+            const hasVietWord = ['đề', 'thi', 'tài', 'liệu', 'bài', 'tập', 'giáo', 'trình', 'ôn', 'kỳ', 'học', 'cuối', 'giữa']
+                .some(w => lower.includes(w));
+            if (!hasVietWord) {
+                if (folder && /\d{4}/.test(folder)) {
+                    return `Đề thi học phần (${folder})`;
+                } else if (folder.toLowerCase().includes('giữa kỳ')) {
+                    return 'Đề thi giữa kỳ';
+                } else if (folder.toLowerCase().includes('cuối kỳ')) {
+                    return 'Đề thi cuối kỳ';
+                } else if (folder.toLowerCase().includes('đề cương')) {
+                    return `Đề cương ôn tập ${course}`;
+                } else {
+                    return `Đề thi môn ${course || 'học phần'}`;
+                }
+            }
+        }
+        return t || `Đề thi môn ${course || 'học phần'}`;
+    }
+
     // Execute drawing a card with suspense 360-degree horizontal spin
     function drawCard() {
         if (isShuffling || isFlipped) return;
@@ -414,16 +442,18 @@
         const quoteEl = document.getElementById('luckyCardQuote');
         const viewLinkEl = document.getElementById('luckyCardViewLink');
 
-        if (titleEl) titleEl.textContent = currentCard.title || 'Đề thi học thuật';
-        if (courseEl) courseEl.textContent = currentCard.courseName || 'Học phần chung';
+        if (titleEl) titleEl.textContent = formatLuckyTitle(currentCard);
+        if (courseEl) courseEl.textContent = currentCard.courseName ? `Môn: ${currentCard.courseName}` : 'Học phần chung';
         if (facultyEl) facultyEl.textContent = currentCard.facultyName || 'UniDocs HUSC';
-        if (folderEl) folderEl.textContent = currentCard.folderName || 'Đề thi & Đề cương';
+        if (folderEl) folderEl.textContent = (currentCard.folderName && currentCard.folderName !== '0') ? currentCard.folderName : 'Đề thi';
 
         const randomQuote = luckyQuotes[Math.floor(Math.random() * luckyQuotes.length)];
         if (quoteEl) quoteEl.textContent = `"${randomQuote}"`;
 
         if (viewLinkEl) {
-            viewLinkEl.href = currentCard.slug ? `/document/${currentCard.slug}` : '/#section-university';
+            viewLinkEl.href = currentCard.slug ? `/document/${currentCard.slug}/view` : '/#section-university';
+            viewLinkEl.target = '_blank';
+            viewLinkEl.rel = 'noopener noreferrer';
         }
 
         const drawBtn = document.getElementById('btnDrawCard');

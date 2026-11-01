@@ -66,13 +66,20 @@ public class UtilitiesApiController {
 
             List<Map<String, Object>> result = docs.stream().map(d -> {
                 Map<String, Object> map = new HashMap<>();
+                String courseName = d.getCourse() != null ? d.getCourse().getName() : "Học phần chung";
+                String rawFolder = d.getFolderName();
+                String folderName = (rawFolder == null || rawFolder.trim().equals("0") || rawFolder.isBlank())
+                        ? "Đề thi" : rawFolder.trim();
+                String cleanTitle = formatLuckyTitle(d.getTitle(), courseName, folderName);
+
                 map.put("id", d.getId());
-                map.put("title", d.getTitle());
+                map.put("title", cleanTitle);
+                map.put("rawTitle", d.getTitle());
                 map.put("slug", d.getSlug());
-                map.put("courseName", d.getCourse() != null ? d.getCourse().getName() : "Học phần chung");
+                map.put("courseName", courseName);
                 map.put("facultyName", (d.getCourse() != null && d.getCourse().getFaculty() != null)
                         ? d.getCourse().getFaculty().getName() : "Đại học");
-                map.put("folderName", d.getFolderName() != null ? d.getFolderName() : "Đề thi & Đề cương");
+                map.put("folderName", folderName);
                 map.put("fileType", d.getFileType() != null ? d.getFileType().name() : "PDF");
                 map.put("views", d.getViews());
                 map.put("downloads", d.getDownloads());
@@ -83,6 +90,47 @@ public class UtilitiesApiController {
         } catch (Exception e) {
             return ResponseEntity.ok(new ArrayList<>());
         }
+    }
+
+    // Clean and standardize lucky draw titles for student display
+    private String formatLuckyTitle(String title, String courseName, String folderName) {
+        if (title == null || title.isBlank()) {
+            return "Đề thi môn " + (courseName != null ? courseName : "học phần");
+        }
+        String t = title.trim();
+        boolean isCode = false;
+
+        String lower = t.toLowerCase();
+        if (lower.contains("com.") || lower.contains("activity") || lower.contains("edit") || lower.contains("quicksearchbox")) {
+            isCode = true;
+        } else if (t.matches("^\\d+$")) {
+            isCode = true;
+        } else if (t.matches("^[A-Z0-9]{4,}.*") || t.matches("^[0-9A-Z]{3,}[A-Z0-9\\s._-]+$")) {
+            boolean hasVietWord = lower.contains("đề") || lower.contains("thi") || lower.contains("tài")
+                    || lower.contains("liệu") || lower.contains("bài") || lower.contains("tập")
+                    || lower.contains("giáo") || lower.contains("trình") || lower.contains("ôn")
+                    || lower.contains("kỳ") || lower.contains("học") || lower.contains("cuối") || lower.contains("giữa");
+            if (!hasVietWord) {
+                isCode = true;
+            }
+        }
+
+        if (isCode) {
+            String f = (folderName != null && !folderName.equals("0")) ? folderName.trim() : "";
+            if (f.matches(".*\\d{4}.*")) {
+                return "Đề thi học phần (" + f + ")";
+            } else if (f.toLowerCase().contains("giữa kỳ")) {
+                return "Đề thi giữa kỳ";
+            } else if (f.toLowerCase().contains("cuối kỳ")) {
+                return "Đề thi cuối kỳ";
+            } else if (f.toLowerCase().contains("đề cương")) {
+                return "Đề cương ôn tập " + (courseName != null ? courseName : "");
+            } else {
+                return "Đề thi môn " + (courseName != null ? courseName : "học phần");
+            }
+        }
+
+        return t;
     }
 
     @PostMapping("/timetable/export")
