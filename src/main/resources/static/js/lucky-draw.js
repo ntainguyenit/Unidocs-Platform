@@ -65,23 +65,23 @@
             const droneGain = audioCtx.createGain();
             droneOsc.type = 'triangle';
             droneOsc.frequency.setValueAtTime(140, now);
-            droneOsc.frequency.exponentialRampToValueAtTime(320, now + 3.2);
+            droneOsc.frequency.exponentialRampToValueAtTime(320, now + 2.9);
 
             droneGain.gain.setValueAtTime(0.001, now);
-            droneGain.gain.exponentialRampToValueAtTime(0.07, now + 0.4);
-            droneGain.gain.setValueAtTime(0.07, now + 2.8);
-            droneGain.gain.exponentialRampToValueAtTime(0.001, now + 3.4);
+            droneGain.gain.exponentialRampToValueAtTime(0.07, now + 0.3);
+            droneGain.gain.setValueAtTime(0.07, now + 2.6);
+            droneGain.gain.exponentialRampToValueAtTime(0.001, now + 3.1);
 
             droneOsc.connect(droneGain);
             droneGain.connect(audioCtx.destination);
             droneOsc.start(now);
-            droneOsc.stop(now + 3.45);
+            droneOsc.stop(now + 3.15);
 
             // Decelerating ticks (mimicking spinning card flutter)
             const tickTimes = [];
             let t = 0;
             let gap = 0.08;
-            while (t < 3.25) {
+            while (t < 2.95) {
                 tickTimes.push(t);
                 if (t < 1.2) {
                     gap += 0.004;
@@ -365,7 +365,7 @@
         }
     }
 
-    // Reset card visual state to back
+    // Reset card visual state to back cleanly without reverse spin
     function resetCardVisualState() {
         const card = document.getElementById('lucky3DCard');
         const actionArea = document.getElementById('luckyCardActionArea');
@@ -373,7 +373,10 @@
 
         isFlipped = false;
         if (card) {
+            card.style.transition = 'none';
             card.classList.remove('card-is-spinning', 'card-is-flipped');
+            void card.offsetWidth;
+            card.style.transition = '';
         }
         if (actionArea) {
             actionArea.classList.add('hidden');
@@ -435,24 +438,18 @@
         const reshuffleBtn = document.getElementById('btnReshuffleDeck');
         if (reshuffleBtn) reshuffleBtn.disabled = true;
 
-        // Apply 3.5s horizontal 360-degree suspense spin
+        // Apply butter-smooth 3.2s horizontal 360-degree suspense spin
         const card = document.getElementById('lucky3DCard');
         if (card) {
-            card.classList.remove('card-is-flipped');
+            card.style.transition = 'none';
+            card.classList.remove('card-is-spinning', 'card-is-flipped');
             void card.offsetWidth;
+            card.style.transition = '';
             card.classList.add('card-is-spinning');
         }
 
-        // Complete spin after 3500ms
+        // Spin completes naturally with forwards animation at 3200ms
         setTimeout(() => {
-            if (card) {
-                card.style.transition = 'none';
-                card.classList.remove('card-is-spinning');
-                card.classList.add('card-is-flipped');
-                void card.offsetWidth;
-                card.style.transition = '';
-            }
-
             isFlipped = true;
             isShuffling = false;
 
@@ -473,7 +470,7 @@
             }
 
             updateCounter();
-        }, 3500);
+        }, 3200);
     }
 
     // Reshuffle deck from scratch
