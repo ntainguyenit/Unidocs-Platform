@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <div th:replace="~{fragments/base :: head('Bốc Đề Thi May Mắn | UniDocs')}"></div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .lucky-page-scene { perspective: 1200px; }
+        .lucky-page-card { position: relative; width: 100%; height: 380px; transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }
+        .lucky-page-card.is-flipped { transform: rotateY(180deg); }
+        .lucky-page-face { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 1.5rem; }
+        .lucky-page-front { transform: rotateY(180deg); }
+    </style>
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen text-text">
+    
+    <div th:replace="~{fragments/base :: navbar}" th:with="hideExtraTools=true"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- Back Navigation & Breadcrumb -->
+        <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 mb-6 shadow-sm w-fit">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Quay lại Tiện ích
+        </a>
+
+        <nav class="flex text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a th:href="@{/}" class="hover:text-primary transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                        Trang chủ
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        <span class="ml-1 md:ml-2 text-text font-medium">Bốc Đề Thi May Mắn</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Hero Header -->
+        <div class="max-w-4xl mx-auto mb-8 text-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/10 to-rose-500/10 border border-amber-300 text-amber-700 text-xs font-bold uppercase tracking-wider mb-3">
+                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                UniTarot • Trải Nghiệm Luyện Đề Mới
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                Bốc Đề Thi May Mắn
+            </h1>
+            <p class="text-gray-600 mt-2 max-w-2xl mx-auto text-sm md:text-base">
+                Thử vận may ôn thi hôm nay! Chọn khoa bạn đang theo học, lật thẻ 3D ngẫu nhiên và chinh phục đề thi chuẩn format không lo trùng lặp.
+            </p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                <button type="button" data-open-lucky-draw="true" class="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-orange-500/25 hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 text-sm">
+                    <svg class="w-5 h-5 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Mở Bàn Bốc Thẻ Toàn Màn Hình
+                </button>
+            </div>
+        </div>
+
+        <!-- Highlighted Features Row -->
+        <div class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex items-start gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900 text-sm">Không Trùng Lặp</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Thuật toán Fisher-Yates xáo bài chuẩn, đảm bảo không bốc lặp đề trong cùng phiên luyện.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex items-start gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900 text-sm">Âm Thanh Sống Động</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Tích hợp Web Audio API phát tiếng xào bài, lật thẻ và chuông chiến thắng cả mobile & PC.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex items-start gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900 text-sm">Tài Liệu Chuẩn Khoa</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Bộ đề và đề cương được lọc theo khoa thực tế từ thư viện số sinh viên HUSC.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div th:replace="~{fragments/base :: footer}"></div>
+    <div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

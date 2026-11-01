@@ -163,4 +163,10 @@ public class UtilitiesController {
     public String cryptoHash() {
         return "utilities/crypto-hash";
     }
+
+    // Render lucky exam draw utility page
+    @GetMapping("/lucky-exam")
+    public String luckyExam() {
+        return "utilities/lucky-exam";
+    }
 }
