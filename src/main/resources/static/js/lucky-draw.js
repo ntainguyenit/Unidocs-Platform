@@ -564,10 +564,15 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadFaculties();
 
-        // Floating trigger button
+        // Floating trigger button - only active and visible on the homepage
         const floatingBtn = document.getElementById('luckyDrawBtn');
         if (floatingBtn) {
-            floatingBtn.addEventListener('click', openModal);
+            const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '';
+            if (!isHomePage) {
+                floatingBtn.remove();
+            } else {
+                floatingBtn.addEventListener('click', openModal);
+            }
         }
 
         // Generic trigger buttons with data attribute
