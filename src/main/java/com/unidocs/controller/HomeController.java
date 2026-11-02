@@ -111,6 +111,7 @@ public class HomeController {
         model.addAttribute("faculty", faculty);
         model.addAttribute("courses", sortedCourses);
         model.addAttribute("otherFaculties", otherFaculties);
+        model.addAttribute("sevenDaysAgo", sevenDaysAgo);
         return "faculty";
     }
 
