@@ -51,9 +51,37 @@
         </div>
 
         <!-- Courses Grid -->
-        <div class="mb-4 flex justify-between items-end border-b border-divider pb-2">
-            <h2 class="text-xl font-bold text-text">Danh sách Học phần (<span th:text="${courses.size()}">0</span>)</h2>
-            <div class="flex items-center gap-3">
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-divider pb-2">
+            <h2 class="text-xl font-bold text-text">Danh sách Học phần (<span id="facultyCourseCount" th:text="${courses.size()}">0</span>)</h2>
+            <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
+                <!-- Search Box -->
+                <div class="relative flex-grow sm:flex-grow-0">
+                    <input type="text" id="courseSearchInput" oninput="filterAndSortCourses()" placeholder="Tìm nhanh học phần..." 
+                           class="w-full sm:w-44 text-xs pl-7 pr-2.5 py-2 border border-divider rounded-lg focus:outline-none focus:border-primary transition-colors bg-gray-50/50">
+                    <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 1114 0z"></path>
+                    </svg>
+                </div>
+
+                <!-- Sort Dropdown matching user mockup -->
+                <div class="relative flex items-center shrink-0">
+                    <div class="flex items-center gap-1.5 border border-blue-400 bg-white px-2.5 py-1.5 rounded-lg shadow-2xs hover:border-blue-500 transition-colors">
+                        <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                        </svg>
+                        <select id="courseSortSelect" onchange="filterAndSortCourses()" 
+                                class="text-xs sm:text-sm font-medium text-gray-800 bg-transparent pr-5 focus:outline-none cursor-pointer appearance-none">
+                            <option value="name-asc" selected>Tên A → Z</option>
+                            <option value="name-desc">Tên Z → A</option>
+                            <option value="newest">Mới nhất</option>
+                        </select>
+                        <svg class="w-3.5 h-3.5 text-gray-400 absolute right-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- View Toggle Buttons -->
                 <div class="flex bg-gray-100 p-1 rounded-md shrink-0">
                     <button id="btnGridView" onclick="toggleView('grid')" class="p-1.5 rounded bg-white shadow-sm text-primary transition-all">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
@@ -74,7 +102,11 @@
                 </div>
             </div>
 
-            <a th:each="course : ${courses}" th:id="'course-card-' + ${course.id}" th:href="@{/course/{slug}(slug=${course.slug})}" class="card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
+            <a th:each="course : ${courses}" th:id="'course-card-' + ${course.id}" th:href="@{/course/{slug}(slug=${course.slug})}" 
+               class="course-card-item card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer"
+               th:data-name="${course.name}"
+               th:data-id="${course.id}"
+               th:data-new="${course.createdAt != null and course.createdAt.isAfter(T(java.time.LocalDateTime).now().minusDays(7)) ? 'true' : 'false'}">
                 <div class="flex justify-between items-start w-full gap-2">
                     <div class="flex-1">
                         <div class="flex flex-wrap items-center gap-2 mb-1">
@@ -143,24 +175,25 @@
     </div>
 
     <script>
-        let initialOrder = [];
+        let currentCourseView = 'grid';
+
         document.addEventListener("DOMContentLoaded", () => {
             const container = document.getElementById('dataContainer');
             if(container) {
-                initialOrder = Array.from(container.children);
                 if (window.innerWidth < 768) {
                     toggleView('list');
+                } else {
+                    filterAndSortCourses();
                 }
             }
         });
 
         function toggleView(view) {
+            currentCourseView = view;
             const container = document.getElementById('dataContainer');
             if(!container) return;
             const btnGrid = document.getElementById('btnGridView');
             const btnList = document.getElementById('btnListView');
-            
-            let items = Array.from(container.children);
             
             if (view === 'list') {
                 container.className = 'flex flex-col gap-3 transition-all duration-300';
@@ -168,28 +201,65 @@
                 btnList.classList.remove('text-gray-500', 'hover:text-gray-700');
                 btnGrid.classList.remove('bg-white', 'shadow-sm', 'text-primary');
                 btnGrid.classList.add('text-gray-500', 'hover:text-gray-700');
-                
-                // Keep the first item (Create Course) at top, sort the rest
-                const createBtn = items.shift();
-                items.sort((a, b) => {
-                    const textA = a.querySelector('h3') ? a.querySelector('h3').textContent.trim() : '';
-                    const textB = b.querySelector('h3') ? b.querySelector('h3').textContent.trim() : '';
-                    return textA.localeCompare(textB, 'vi');
-                });
-                items.unshift(createBtn);
-                
             } else {
                 container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-300';
                 btnGrid.classList.add('bg-white', 'shadow-sm', 'text-primary');
                 btnGrid.classList.remove('text-gray-500', 'hover:text-gray-700');
                 btnList.classList.remove('bg-white', 'shadow-sm', 'text-primary');
                 btnList.classList.add('text-gray-500', 'hover:text-gray-700');
-                
-                items = initialOrder.length > 0 ? [...initialOrder] : items;
             }
-            
+            filterAndSortCourses();
+        }
+
+        function filterAndSortCourses() {
+            const container = document.getElementById('dataContainer');
+            if (!container) return;
+
+            const searchInput = document.getElementById('courseSearchInput');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const sortSelect = document.getElementById('courseSortSelect');
+            const sortMode = sortSelect ? sortSelect.value : 'name-asc';
+
+            const items = Array.from(container.children);
+            // First item is always Create Course card
+            const createCard = items.find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('openCreateCourseModal'));
+            const courseCards = items.filter(el => el !== createCard);
+
+            let visibleCount = 0;
+            courseCards.forEach(card => {
+                const name = (card.getAttribute('data-name') || card.querySelector('h3')?.textContent || '').toLowerCase();
+                if (!query || name.includes(query)) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            courseCards.sort((a, b) => {
+                const nameA = a.getAttribute('data-name') || a.querySelector('h3')?.textContent || '';
+                const nameB = b.getAttribute('data-name') || b.querySelector('h3')?.textContent || '';
+                if (sortMode === 'name-asc') {
+                    return nameA.localeCompare(nameB, 'vi');
+                } else if (sortMode === 'name-desc') {
+                    return nameB.localeCompare(nameA, 'vi');
+                } else if (sortMode === 'newest') {
+                    const isNewA = a.getAttribute('data-new') === 'true' ? 1 : 0;
+                    const isNewB = b.getAttribute('data-new') === 'true' ? 1 : 0;
+                    if (isNewA !== isNewB) return isNewB - isNewA;
+                    const idA = parseInt(a.getAttribute('data-id') || '0', 10);
+                    const idB = parseInt(b.getAttribute('data-id') || '0', 10);
+                    return idB - idA;
+                }
+                return 0;
+            });
+
             container.innerHTML = '';
-            items.forEach(item => container.appendChild(item));
+            if (createCard) container.appendChild(createCard);
+            courseCards.forEach(card => container.appendChild(card));
+
+            const countEl = document.getElementById('facultyCourseCount');
+            if (countEl) countEl.textContent = visibleCount;
         }
     </script>
     <script th:inline="javascript">

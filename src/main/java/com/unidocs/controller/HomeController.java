@@ -138,6 +138,8 @@ public class HomeController {
                 .toList();
         model.addAttribute("otherCourses", otherCourses);
         
+        model.addAttribute("allDocsCount", allDocs.size());
+        
         if (folder == null) {
             // Get unique folder names, optionally sort them
             java.util.List<String> folders = allDocs.stream()
@@ -148,10 +150,16 @@ public class HomeController {
             model.addAttribute("folders", folders);
             model.addAttribute("documents", null);
         } else {
-            java.util.List<com.unidocs.domain.Document> filteredDocs = allDocs.stream()
-                .filter(d -> folder.equals(d.getFolderName()) || (folder.equals("Khác (Tài liệu không xác định năm)") && d.getFolderName() == null))
-                .toList();
-            model.addAttribute("currentFolder", folder);
+            java.util.List<com.unidocs.domain.Document> filteredDocs;
+            if ("all".equalsIgnoreCase(folder)) {
+                filteredDocs = allDocs;
+                model.addAttribute("currentFolder", "Tất cả tài liệu");
+            } else {
+                filteredDocs = allDocs.stream()
+                    .filter(d -> folder.equals(d.getFolderName()) || (folder.equals("Khác (Tài liệu không xác định năm)") && d.getFolderName() == null))
+                    .toList();
+                model.addAttribute("currentFolder", folder);
+            }
             model.addAttribute("documents", filteredDocs);
         }
         

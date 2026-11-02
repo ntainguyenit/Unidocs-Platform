@@ -79,6 +79,22 @@
             </div>
             
             <div th:unless="${folders.empty}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-300">
+                <!-- All Documents Card -->
+                <a th:href="@{/course/{slug}(slug=${course.slug}, folder='all')}" class="card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer bg-blue-50/60 border-blue-200 hover:border-blue-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-1.5 mb-1">
+                                <span class="text-[10px] font-bold text-primary bg-blue-100 px-2 py-0.5 rounded-full uppercase">Tổng hợp</span>
+                                <h3 class="text-base font-bold text-primary group-hover:text-blue-800 transition-colors">Tất cả tài liệu</h3>
+                            </div>
+                            <p class="text-xs text-gray-500" th:text="${allDocsCount} + ' tài liệu & đề thi'">Toàn bộ tài liệu</p>
+                        </div>
+                        <div class="text-primary mt-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        </div>
+                    </div>
+                </a>
+
                 <a th:each="f : ${folders}" th:href="@{/course/{slug}(slug=${course.slug}, folder=${f})}" class="card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
                     <div class="flex justify-between items-start">
                         <div>
@@ -160,9 +176,93 @@
                 <p class="text-gray-500">Thư mục này hiện chưa có tài liệu nào.</p>
             </div>
 
-            <div th:unless="${documents.empty}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Document Card -->
-                <div th:each="doc : ${documents}" class="card p-4 flex flex-col group hover:-translate-y-1 hover:shadow-md transition-all">
+            <div th:unless="${documents.empty}">
+                <!-- Filter & Sort Toolbar -->
+                <div class="bg-white p-3 md:p-3.5 rounded-xl border border-divider shadow-2xs mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <!-- Left: File Type Filter Pills -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-1 hidden sm:inline">Định dạng:</span>
+                        <button type="button" onclick="setDocFileTypeFilter('ALL')" data-filetype-btn="ALL"
+                                class="doc-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all border bg-primary text-white border-primary shadow-xs cursor-pointer">
+                            Tất cả (<span id="countTypeAll" th:text="${documents.size()}">0</span>)
+                        </button>
+                        <button type="button" onclick="setDocFileTypeFilter('PDF')" data-filetype-btn="PDF"
+                                class="doc-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-gray-50 text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 cursor-pointer">
+                            <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>PDF (<span id="countTypePDF">0</span>)
+                        </button>
+                        <button type="button" onclick="setDocFileTypeFilter('DOCX')" data-filetype-btn="DOCX"
+                                class="doc-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-gray-50 text-gray-700 border-gray-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 cursor-pointer">
+                            <span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1"></span>DOCX (<span id="countTypeDOCX">0</span>)
+                        </button>
+                        <button type="button" onclick="setDocFileTypeFilter('PPTX')" data-filetype-btn="PPTX"
+                                class="doc-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-gray-50 text-gray-700 border-gray-200 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 cursor-pointer">
+                            <span class="inline-block w-2 h-2 rounded-full bg-orange-500 mr-1"></span>PPTX (<span id="countTypePPTX">0</span>)
+                        </button>
+                        <button type="button" onclick="setDocFileTypeFilter('IMAGE')" data-filetype-btn="IMAGE"
+                                class="doc-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-gray-50 text-gray-700 border-gray-200 hover:bg-green-50 hover:text-green-700 hover:border-green-200 cursor-pointer">
+                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>ẢNH (<span id="countTypeIMAGE">0</span>)
+                        </button>
+                    </div>
+
+                    <!-- Right: Sort Dropdown & Quick Search -->
+                    <div class="flex items-center gap-2 self-stretch md:self-auto justify-between md:justify-end">
+                        <!-- Search input within documents -->
+                        <div class="relative flex-grow md:flex-grow-0">
+                            <input type="text" id="docSearchInput" oninput="applyDocFiltersAndSort()" placeholder="Tìm tên đề thi..." 
+                                   class="w-full md:w-44 text-xs pl-7 pr-2.5 py-2 border border-divider rounded-lg focus:outline-none focus:border-primary transition-colors bg-gray-50/50">
+                            <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 1114 0z"></path>
+                            </svg>
+                        </div>
+
+                        <!-- Sort Dropdown (Custom matching user's image) -->
+                        <div class="relative flex items-center shrink-0">
+                            <div class="flex items-center gap-1.5 border border-blue-400 bg-white px-2.5 py-1.5 rounded-lg shadow-2xs hover:border-blue-500 transition-colors">
+                                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                </svg>
+                                <select id="docSortSelect" onchange="applyDocFiltersAndSort()" 
+                                        class="text-xs md:text-sm font-medium text-gray-800 bg-transparent pr-5 focus:outline-none cursor-pointer appearance-none">
+                                    <option value="name-asc" selected>Tên A → Z</option>
+                                    <option value="name-desc">Tên Z → A</option>
+                                    <option value="views-desc">Xem nhiều nhất</option>
+                                    <option value="downloads-desc">Tải nhiều nhất</option>
+                                    <option value="date-desc">Mới nhất</option>
+                                </select>
+                                <svg class="w-3.5 h-3.5 text-gray-400 absolute right-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Counter -->
+                <div class="flex items-center justify-between text-xs text-gray-500 mb-3 px-1">
+                    <span id="docResultCount">Hiển thị <strong class="text-gray-800" th:text="${documents.size()}">0</strong> tài liệu</span>
+                </div>
+
+                <!-- Empty Filter State -->
+                <div id="docEmptyFilterState" class="hidden text-center py-12 bg-white rounded-xl border border-divider mb-4">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-600 mb-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 1114 0z"></path></svg>
+                    </div>
+                    <h3 class="text-base font-bold text-gray-900 mb-1">Không tìm thấy tài liệu phù hợp</h3>
+                    <p class="text-xs text-gray-500 mb-3">Thử đổi định dạng file hoặc từ khóa tìm kiếm.</p>
+                    <button type="button" onclick="resetDocFilters()" class="text-xs font-semibold text-primary hover:underline bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors cursor-pointer">
+                        Đặt lại bộ lọc
+                    </button>
+                </div>
+
+                <div id="docGridContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Document Card -->
+                    <div th:each="doc : ${documents}" 
+                         class="doc-item card p-4 flex flex-col group hover:-translate-y-1 hover:shadow-md transition-all"
+                         th:data-title="${doc.title}"
+                         th:data-views="${doc.views}"
+                         th:data-downloads="${doc.downloads}"
+                         th:data-filetype="${doc.fileType.name()}"
+                         th:data-id="${doc.id}">
                     <div class="flex items-start gap-3">
                         <!-- Icon based on type -->
                         <div th:if="${doc.thumbnailUrl != null}" class="w-12 h-16 shrink-0 rounded overflow-hidden shadow-sm border border-gray-200">
@@ -420,6 +520,128 @@
                 resultMessage.classList.add('bg-red-100', 'text-red-800');
             }
         }
+    </script>
+        <script>
+        // Document Filtering and Sorting Engine
+        let currentDocFileType = 'ALL';
+
+        function initDocFilterCounts() {
+            const items = document.querySelectorAll('.doc-item');
+            if (!items.length) return;
+            let all = items.length, pdf = 0, docx = 0, pptx = 0, img = 0;
+            items.forEach(el => {
+                const ft = el.getAttribute('data-filetype');
+                if (ft === 'PDF') pdf++;
+                else if (ft === 'DOCX') docx++;
+                else if (ft === 'PPTX') pptx++;
+                else if (ft === 'IMAGE') img++;
+            });
+            const cAll = document.getElementById('countTypeAll');
+            const cPdf = document.getElementById('countTypePDF');
+            const cDocx = document.getElementById('countTypeDOCX');
+            const cPptx = document.getElementById('countTypePPTX');
+            const cImg = document.getElementById('countTypeIMAGE');
+            if (cAll) cAll.textContent = all;
+            if (cPdf) cPdf.textContent = pdf;
+            if (cDocx) cDocx.textContent = docx;
+            if (cPptx) cPptx.textContent = pptx;
+            if (cImg) cImg.textContent = img;
+        }
+
+        function setDocFileTypeFilter(type) {
+            currentDocFileType = type;
+            document.querySelectorAll('.doc-filter-btn').forEach(btn => {
+                const btnType = btn.getAttribute('data-filetype-btn');
+                if (btnType === type) {
+                    btn.className = 'doc-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all border bg-primary text-white border-primary shadow-xs cursor-pointer';
+                } else {
+                    btn.className = 'doc-filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 cursor-pointer';
+                }
+            });
+            applyDocFiltersAndSort();
+        }
+
+        function applyDocFiltersAndSort() {
+            const container = document.getElementById('docGridContainer');
+            if (!container) return;
+
+            const searchInput = document.getElementById('docSearchInput');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const sortSelect = document.getElementById('docSortSelect');
+            const sortMode = sortSelect ? sortSelect.value : 'name-asc';
+
+            const items = Array.from(container.querySelectorAll('.doc-item'));
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const title = (item.getAttribute('data-title') || '').toLowerCase();
+                const fileType = item.getAttribute('data-filetype') || '';
+
+                const matchesType = (currentDocFileType === 'ALL' || fileType === currentDocFileType);
+                const matchesQuery = (!query || title.includes(query));
+
+                if (matchesType && matchesQuery) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            items.sort((a, b) => {
+                if (sortMode === 'name-asc') {
+                    const titleA = a.getAttribute('data-title') || '';
+                    const titleB = b.getAttribute('data-title') || '';
+                    return titleA.localeCompare(titleB, 'vi');
+                } else if (sortMode === 'name-desc') {
+                    const titleA = a.getAttribute('data-title') || '';
+                    const titleB = b.getAttribute('data-title') || '';
+                    return titleB.localeCompare(titleA, 'vi');
+                } else if (sortMode === 'views-desc') {
+                    const vA = parseInt(a.getAttribute('data-views') || '0', 10);
+                    const vB = parseInt(b.getAttribute('data-views') || '0', 10);
+                    return vB - vA;
+                } else if (sortMode === 'downloads-desc') {
+                    const dA = parseInt(a.getAttribute('data-downloads') || '0', 10);
+                    const dB = parseInt(b.getAttribute('data-downloads') || '0', 10);
+                    return dB - dA;
+                } else if (sortMode === 'date-desc') {
+                    const idA = parseInt(a.getAttribute('data-id') || '0', 10);
+                    const idB = parseInt(b.getAttribute('data-id') || '0', 10);
+                    return idB - idA;
+                }
+                return 0;
+            });
+
+            items.forEach(item => container.appendChild(item));
+
+            const countEl = document.getElementById('docResultCount');
+            if (countEl) {
+                countEl.innerHTML = `Hiển thị <strong class="text-gray-800">${visibleCount}</strong> / ${items.length} tài liệu`;
+            }
+
+            const emptyState = document.getElementById('docEmptyFilterState');
+            if (emptyState) {
+                if (visibleCount === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+            }
+        }
+
+        function resetDocFilters() {
+            const searchInput = document.getElementById('docSearchInput');
+            if (searchInput) searchInput.value = '';
+            const sortSelect = document.getElementById('docSortSelect');
+            if (sortSelect) sortSelect.value = 'name-asc';
+            setDocFileTypeFilter('ALL');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDocFilterCounts();
+            applyDocFiltersAndSort();
+        });
     </script>
     <div th:replace="~{fragments/base :: scripts}"></div>
 </body>
