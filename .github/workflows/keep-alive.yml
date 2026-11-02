@@ -1,17 +1,33 @@
-name: Render Keep-Alive Pinger
+name: Render Smart Keep-Alive Pinger
 
 on:
   schedule:
-    # Runs every 10 minutes to prevent Render free tier from sleeping (sleep threshold is 15m)
-    - cron: '*/10 * * * *'
+    # Chạy mỗi 14 phút trong khung giờ học tập (06:00 - 24:00 giờ Việt Nam / 23:00 - 17:00 UTC)
+    # Nghỉ 6 tiếng đêm (00:00 - 06:00 ICT) để tiết kiệm ~186 giờ/tháng, đảm bảo không làm cạn kiệt 750 giờ Free của Render
+    - cron: '0,14,28,42,56 0-16,23 * * *'
   workflow_dispatch:
 
 jobs:
   keep-alive:
-    name: Keep Alive Ping
+    name: Ping Render Web Service
     runs-on: ubuntu-latest
     steps:
-      - name: Send keep-alive HTTP GET to UniDocs
+      - name: Send keep-alive HTTP GET
         run: |
-          STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" --max-time 30 https://unidocs-husc.pages.dev/api/health || true)
-          echo "Pinged https://unidocs-husc.pages.dev/api/health - HTTP Status: $STATUS"
+          TARGET_URL="${{ secrets.RENDER_URL }}"
+          if [ -z "$TARGET_URL" ]; then
+            TARGET_URL="https://unidocs-husc.pages.dev/api/health"
+          fi
+          
+          echo "Sending keep-alive ping to: $TARGET_URL"
+          HTTP_STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" --max-time 60 "$TARGET_URL" || true)
+          echo "Response HTTP Status: $HTTP_STATUS"
+          
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "SUCCESS: Service is active and responding."
+          else
+            echo "WARNING: Received status $HTTP_STATUS. Retrying in 10s..."
+            sleep 10
+            RETRY_STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" --max-time 60 "$TARGET_URL" || true)
+            echo "Retry Response HTTP Status: $RETRY_STATUS"
+          fi
