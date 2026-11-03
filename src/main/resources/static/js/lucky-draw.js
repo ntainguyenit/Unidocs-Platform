@@ -1,19 +1,15 @@
 // Lucky Exam Draw Engine for UniDocs with 3D Card Flip, Web Audio API, and No-Duplication Logic
 
 (function () {
-    // Web Audio API context for zero-latency multiplatform sound synthesis
-    let audioCtx = null;
-    let isMuted = localStorage.getItem('unidocs_lucky_muted') === 'true';
-
-    // State management - pre-initialize with fallbackCards so remainingDeck is NEVER empty on initial page load
-    let facultiesList = [];
-    let allDocuments = [...fallbackCards];
-    let remainingDeck = shuffleArray([...fallbackCards]);
-    let drawnHistory = [];
-    let currentCard = null;
-    let isFlipped = false;
-    let isShuffling = false;
-    let isLoadingDocuments = false;
+    // Fisher-Yates shuffle algorithm
+    function shuffleArray(arr) {
+        const result = [...arr];
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    }
 
     // Inspirational student study quotes
     const luckyQuotes = [
@@ -38,6 +34,23 @@
         { id: 7, title: "Đề thi Cuối kỳ Cơ sở Dữ liệu Quan hệ & SQL", courseName: "Cơ sở dữ liệu", facultyName: "Công nghệ thông tin", folderName: "Đề thi cuối kỳ", slug: "de-thi-cuoi-ky-co-so-du-lieu", fileType: "PDF" },
         { id: 8, title: "Đề thi Thử Mạng máy tính & An toàn Thông tin", courseName: "Mạng máy tính", facultyName: "Công nghệ thông tin", folderName: "Đề thi thử", slug: "de-thi-thu-mang-may-tinh", fileType: "PDF" }
     ];
+
+    // Web Audio API context for zero-latency multiplatform sound synthesis
+    let audioCtx = null;
+    let isMuted = false;
+    try {
+        isMuted = typeof localStorage !== 'undefined' && localStorage.getItem('unidocs_lucky_muted') === 'true';
+    } catch (e) {}
+
+    // State management - pre-initialize with fallbackCards so remainingDeck is NEVER empty on initial page load
+    let facultiesList = [];
+    let allDocuments = [...fallbackCards];
+    let remainingDeck = shuffleArray([...fallbackCards]);
+    let drawnHistory = [];
+    let currentCard = null;
+    let isFlipped = false;
+    let isShuffling = false;
+    let isLoadingDocuments = false;
 
     // Initialize audio context safely on first user gesture
     function initAudio() {
@@ -257,16 +270,6 @@
                 colors: ['#1e3a8a', '#2563eb', '#38bdf8', '#60a5fa', '#ffffff']
             });
         }
-    }
-
-    // Fisher-Yates shuffle algorithm
-    function shuffleArray(arr) {
-        const result = [...arr];
-        for (let i = result.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [result[i], result[j]] = [result[j], result[i]];
-        }
-        return result;
     }
 
     // Fetch faculties list from API
