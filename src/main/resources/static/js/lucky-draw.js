@@ -5,14 +5,15 @@
     let audioCtx = null;
     let isMuted = localStorage.getItem('unidocs_lucky_muted') === 'true';
 
-    // State management
+    // State management - pre-initialize with fallbackCards so remainingDeck is NEVER empty on initial page load
     let facultiesList = [];
-    let allDocuments = [];
-    let remainingDeck = [];
+    let allDocuments = [...fallbackCards];
+    let remainingDeck = shuffleArray([...fallbackCards]);
     let drawnHistory = [];
     let currentCard = null;
     let isFlipped = false;
     let isShuffling = false;
+    let isLoadingDocuments = false;
 
     // Inspirational student study quotes
     const luckyQuotes = [
@@ -294,11 +295,11 @@
     }
 
     // Fetch documents for the selected faculty
-    async function loadDocuments(facultyId) {
-        const counterEl = document.getElementById('luckyDeckCounter');
-        const emptyStateEl = document.getElementById('luckyEmptyDeckState');
-        const cardScene = document.getElementById('luckyCardScene');
+    async function loadDocuments(facultyId, playSound = false) {
+        if (isLoadingDocuments) return;
+        isLoadingDocuments = true;
 
+        const counterEl = document.getElementById('luckyDeckCounter');
         if (counterEl) counterEl.textContent = 'Đang tải thẻ...';
 
         try {
@@ -323,7 +324,7 @@
 
             resetCardVisualState();
             updateCounter();
-            playShuffleSound();
+            if (playSound) playShuffleSound();
         } catch (e) {
             allDocuments = fallbackCards;
             remainingDeck = shuffleArray(allDocuments);
@@ -331,6 +332,8 @@
             currentCard = null;
             resetCardVisualState();
             updateCounter();
+        } finally {
+            isLoadingDocuments = false;
         }
     }
 
@@ -354,7 +357,8 @@
             progressBar.style.width = `${pct}%`;
         }
 
-        if (remaining === 0 && !isFlipped) {
+        // Only show empty state if user genuinely drew all cards (drawnHistory > 0 and deck empty)
+        if (remaining === 0 && !isFlipped && drawnHistory.length > 0) {
             if (emptyState) emptyState.classList.remove('hidden');
             if (cardScene) cardScene.classList.add('hidden');
             if (drawBtn) drawBtn.disabled = true;
@@ -420,9 +424,15 @@
     function drawCard() {
         if (isShuffling || isFlipped) return;
 
+        // Failsafe: if deck is somehow empty, refill immediately
         if (remainingDeck.length === 0) {
-            updateCounter();
-            return;
+            if (drawnHistory.length === 0) {
+                allDocuments = [...fallbackCards];
+                remainingDeck = shuffleArray([...fallbackCards]);
+            } else {
+                updateCounter();
+                return;
+            }
         }
 
         isShuffling = true;
@@ -525,10 +535,19 @@
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
 
-            if (allDocuments.length === 0) {
+            // Ensure empty state is never falsely displayed on open
+            const emptyState = document.getElementById('luckyEmptyDeckState');
+            const cardScene = document.getElementById('luckyCardScene');
+            if (drawnHistory.length === 0) {
+                if (emptyState) emptyState.classList.add('hidden');
+                if (cardScene) cardScene.classList.remove('hidden');
+            }
+
+            // If documents haven't loaded from DB yet, load now
+            if (allDocuments.length <= fallbackCards.length && !isLoadingDocuments) {
                 const select = document.getElementById('luckyFacultySelect');
                 const facultyId = select ? select.value : 0;
-                loadDocuments(facultyId);
+                loadDocuments(facultyId, false);
             }
         }
     }
@@ -563,6 +582,8 @@
     // Bind event listeners on DOM ready
     document.addEventListener('DOMContentLoaded', () => {
         loadFaculties();
+        // Preload documents immediately in background on page load
+        loadDocuments(0, false);
 
         // Floating trigger button - only active and visible on the homepage
         const floatingBtn = document.getElementById('luckyDrawBtn');
@@ -598,7 +619,7 @@
         const facultySelect = document.getElementById('luckyFacultySelect');
         if (facultySelect) {
             facultySelect.addEventListener('change', () => {
-                loadDocuments(facultySelect.value);
+                loadDocuments(facultySelect.value, true);
             });
         }
 
