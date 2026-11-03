@@ -624,11 +624,14 @@
         
 
         <button id="scrollToTopBtn" 
-                class="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-[99] bg-primary text-white p-3 rounded-full shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-blue-800 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary flex items-center justify-center"
-                aria-label="Cuộn lên đầu trang">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                class="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-[99] bg-primary text-white p-3 rounded-full shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-blue-800 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary flex items-center justify-center group"
+                aria-label="Quay lại đầu trang">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
             </svg>
+            <span class="hidden md:group-hover:inline-block absolute right-full mr-3 whitespace-nowrap bg-slate-900 text-white border border-blue-800 text-xs px-3 py-1.5 rounded-lg shadow-xl font-medium tracking-wide pointer-events-none">
+                Quay lại đầu trang
+            </span>
         </button>
     </footer>
     <!-- Manual Modal and Scripts are now inside the scripts fragment -->
