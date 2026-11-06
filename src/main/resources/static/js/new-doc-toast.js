@@ -52,7 +52,15 @@
         // Single-line English comment: Fixed top-right, flat black background, square corners, responsive width
         toast.className = 'fixed top-20 sm:top-24 right-4 sm:right-6 left-4 sm:left-auto z-[999] max-w-sm sm:max-w-md bg-slate-900 border border-slate-700/80 text-white rounded-none shadow-2xl p-4 flex items-start gap-3 transition-all duration-300 transform -translate-y-5 opacity-0 select-none';
 
-        // Single-line English comment: Build inner HTML structure with exact message format
+        // Single-line English comment: Extract title line and italicized smaller time line
+        const titleLine = data.mainText || (data.courseName && data.facultyName
+            ? ('Có tài liệu mới Học phần: ' + data.courseName + ' - ' + data.facultyName)
+            : (data.message ? data.message.split('\n')[0] : 'Có tài liệu mới'));
+        const timeLine = data.timeText || (data.time
+            ? ('Lúc ' + data.time)
+            : (data.message && data.message.includes('\n') ? data.message.split('\n')[1] : ''));
+
+        // Single-line English comment: Build inner HTML structure with exact two-line format
         toast.innerHTML = [
             '<div class="w-8 h-8 rounded-none bg-blue-600/30 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">',
             '  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">',
@@ -64,8 +72,13 @@
             '    <span class="inline-block w-2 h-2 rounded-none bg-emerald-400 animate-pulse"></span>',
             '    <span class="text-[11px] font-bold tracking-wider text-blue-400 uppercase">Thông báo học thuật</span>',
             '  </div>',
-            '  <a href="' + (data.url || '#') + '" class="block text-xs sm:text-sm font-medium text-white hover:text-blue-300 transition-colors leading-relaxed break-words">',
-            '    ' + escapeHtml(data.message),
+            '  <a href="' + (data.url || '#') + '" class="block group leading-relaxed break-words">',
+            '    <div class="text-xs sm:text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">',
+            '      ' + escapeHtml(titleLine),
+            '    </div>',
+            '    <div class="text-[11px] sm:text-xs text-slate-400 group-hover:text-blue-200 italic mt-0.5 transition-colors">',
+            '      ' + escapeHtml(timeLine),
+            '    </div>',
             '  </a>',
             '</div>',
             '<button type="button" id="btnDismissNewDocToast" class="text-slate-400 hover:text-white p-1 rounded-none hover:bg-slate-800 transition-colors shrink-0 cursor-pointer" aria-label="Đóng thông báo">',

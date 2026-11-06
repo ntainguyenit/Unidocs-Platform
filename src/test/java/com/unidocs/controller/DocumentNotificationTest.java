@@ -84,7 +84,9 @@ class DocumentNotificationTest {
         assertEquals("Luật Hành Chính", body.get("courseName"));
         assertEquals("Khoa Lý luận chính trị", body.get("facultyName"));
         assertEquals("09:13 ngày 06/11/2026", body.get("time"));
-        assertEquals("Có tài liệu mới Học phần: Luật Hành Chính - Khoa Lý luận chính trị lúc 09:13 ngày 06/11/2026", body.get("message"));
+        assertEquals("Có tài liệu mới Học phần: Luật Hành Chính - Khoa Lý luận chính trị", body.get("mainText"));
+        assertEquals("Lúc 09:13 ngày 06/11/2026", body.get("timeText"));
+        assertEquals("Có tài liệu mới Học phần: Luật Hành Chính - Khoa Lý luận chính trị\nLúc 09:13 ngày 06/11/2026", body.get("message"));
     }
 
     @Test

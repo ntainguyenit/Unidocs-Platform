@@ -61,8 +61,10 @@ public class DocumentController {
             // Single-line English comment: Format time as HH:mm ngày dd/MM/yyyy
             LocalDateTime timeToFormat = doc.getApprovedAt() != null ? doc.getApprovedAt() : (doc.getUploadedAt() != null ? doc.getUploadedAt() : LocalDateTime.now());
             String formattedTime = timeToFormat.format(DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy"));
-            // Single-line English comment: Exact format string specified by requirement
-            String message = String.format("Có tài liệu mới Học phần: %s - %s lúc %s", courseName, facultyName, formattedTime);
+            // Single-line English comment: Format two-line notification message with italicized smaller timestamp
+            String mainText = String.format("Có tài liệu mới Học phần: %s - %s", courseName, facultyName);
+            String timeText = String.format("Lúc %s", formattedTime);
+            String message = mainText + "\n" + timeText;
 
             Map<String, Object> result = new HashMap<>();
             result.put("id", doc.getId());
@@ -71,6 +73,8 @@ public class DocumentController {
             result.put("courseName", courseName);
             result.put("facultyName", facultyName);
             result.put("time", formattedTime);
+            result.put("mainText", mainText);
+            result.put("timeText", timeText);
             result.put("message", message);
             result.put("url", "/document/" + doc.getSlug());
 
