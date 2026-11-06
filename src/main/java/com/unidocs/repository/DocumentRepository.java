@@ -54,7 +54,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT d.course.id, COUNT(d) FROM Document d GROUP BY d.course.id")
     List<Object[]> countDocumentsGroupedByCourse();
 
-    // Query latest approved document with course and faculty eagerly loaded
-    @org.springframework.data.jpa.repository.Query("SELECT d FROM Document d LEFT JOIN FETCH d.course c LEFT JOIN FETCH c.faculty f WHERE d.status = :status ORDER BY COALESCE(d.approvedAt, d.uploadedAt) DESC")
+    // Query latest approved document with course and faculty eagerly loaded (only documents explicitly approved by admin)
+    @org.springframework.data.jpa.repository.Query("SELECT d FROM Document d LEFT JOIN FETCH d.course c LEFT JOIN FETCH c.faculty f WHERE d.status = :status AND d.approvedAt IS NOT NULL ORDER BY d.approvedAt DESC")
     List<Document> findLatestApprovedDocumentsWithCourseAndFaculty(@org.springframework.data.repository.query.Param("status") DocumentStatus status, Pageable pageable);
 }

@@ -59,10 +59,10 @@ public class DocumentController {
                     ? doc.getCourse().getFaculty().getName()
                     : "Khoa";
             // Single-line English comment: Format time as HH:mm ngày dd/MM/yyyy
-            LocalDateTime timeToFormat = doc.getUploadedAt() != null ? doc.getUploadedAt() : (doc.getApprovedAt() != null ? doc.getApprovedAt() : LocalDateTime.now());
+            LocalDateTime timeToFormat = doc.getApprovedAt() != null ? doc.getApprovedAt() : (doc.getUploadedAt() != null ? doc.getUploadedAt() : LocalDateTime.now());
             String formattedTime = timeToFormat.format(DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy"));
             // Single-line English comment: Exact format string specified by requirement
-            String message = String.format("Có tài liệu mới {Học phần: %s - %s} lúc {%s}", courseName, facultyName, formattedTime);
+            String message = String.format("Có tài liệu mới Học phần: %s - %s lúc %s", courseName, facultyName, formattedTime);
 
             Map<String, Object> result = new HashMap<>();
             result.put("id", doc.getId());

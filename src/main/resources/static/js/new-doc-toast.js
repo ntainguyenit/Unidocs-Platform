@@ -50,7 +50,7 @@
         const toast = document.createElement('div');
         toast.id = 'newDocNotificationToast';
         // Single-line English comment: Fixed top-right, flat black background, square corners, responsive width
-        toast.className = 'fixed top-4 right-4 left-4 sm:left-auto sm:right-5 z-[200] max-w-sm sm:max-w-md bg-slate-900 border border-slate-700/80 text-white rounded-none shadow-2xl p-4 flex items-start gap-3 transition-all duration-300 transform -translate-y-5 opacity-0 select-none';
+        toast.className = 'fixed top-20 sm:top-24 right-4 sm:right-6 left-4 sm:left-auto z-[999] max-w-sm sm:max-w-md bg-slate-900 border border-slate-700/80 text-white rounded-none shadow-2xl p-4 flex items-start gap-3 transition-all duration-300 transform -translate-y-5 opacity-0 select-none';
 
         // Single-line English comment: Build inner HTML structure with exact message format
         toast.innerHTML = [

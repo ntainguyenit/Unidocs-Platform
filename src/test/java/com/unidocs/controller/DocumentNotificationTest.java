@@ -63,8 +63,8 @@ class DocumentNotificationTest {
         document.setSlug("kinh-te-chinh-tri-mac-le-nin");
         document.setStatus(DocumentStatus.APPROVED);
         document.setCourse(course);
-        document.setUploadedAt(LocalDateTime.of(2026, 11, 6, 9, 13));
-        document.setApprovedAt(LocalDateTime.of(2026, 11, 6, 9, 15));
+        document.setUploadedAt(LocalDateTime.of(2026, 11, 6, 9, 10));
+        document.setApprovedAt(LocalDateTime.of(2026, 11, 6, 9, 13));
 
         // Single-line English comment: Mock repository response
         when(documentRepository.findLatestApprovedDocumentsWithCourseAndFaculty(eq(DocumentStatus.APPROVED), any()))
@@ -84,7 +84,7 @@ class DocumentNotificationTest {
         assertEquals("Luật Hành Chính", body.get("courseName"));
         assertEquals("Khoa Lý luận chính trị", body.get("facultyName"));
         assertEquals("09:13 ngày 06/11/2026", body.get("time"));
-        assertEquals("Có tài liệu mới {Học phần: Luật Hành Chính - Khoa Lý luận chính trị} lúc {09:13 ngày 06/11/2026}", body.get("message"));
+        assertEquals("Có tài liệu mới Học phần: Luật Hành Chính - Khoa Lý luận chính trị lúc 09:13 ngày 06/11/2026", body.get("message"));
     }
 
     @Test
