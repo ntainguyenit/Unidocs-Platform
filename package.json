@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "UniDocs - Open-source Academic Document Management Platform",
   "scripts": {
+    "build": "npm run build:css",
     "build:css": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/output.css --minify",
     "watch:css": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/output.css --watch"
   },

@@ -192,6 +192,18 @@ export async function onRequest(context) {
     const { request } = context;
     const url = new URL(request.url);
 
+    // Single-line English comment: Serve Google AdSense publisher verification file directly from Cloudflare Edge
+    if (url.pathname === '/ads.txt') {
+        return new Response("google.com, pub-3722649225395463, DIRECT, f08c47fec0942fa0\n", {
+            status: 200,
+            headers: {
+                'Content-Type': 'text/plain; charset=UTF-8',
+                'Cache-Control': 'public, max-age=86400',
+                'X-Edge-Handler': 'UniDocs-AdSense-Verification'
+            }
+        });
+    }
+
     // 1. Direct request to /maintenance or /maintenance.html: Serve maintenance HTML directly from Cloudflare Edge
     if (url.pathname === '/maintenance' || url.pathname === '/maintenance.html') {
         return new Response(MAINTENANCE_HTML, {
@@ -270,8 +282,8 @@ export async function onRequest(context) {
                     });
                 }
 
-                // If static asset (.css, .js, .png, etc.), let response pass through
-                if (/\.(css|js|png|jpg|jpeg|svg|ico|woff2?|webmanifest)$/i.test(url.pathname)) {
+                // If static asset (.css, .js, .png, .txt, etc.), let response pass through
+                if (/\.(css|js|png|jpg|jpeg|svg|ico|woff2?|webmanifest|txt)$/i.test(url.pathname)) {
                     return response;
                 }
 
@@ -303,7 +315,7 @@ export async function onRequest(context) {
             });
         }
 
-        if (/\.(css|js|png|jpg|jpeg|svg|ico|woff2?|webmanifest)$/i.test(url.pathname)) {
+        if (/\.(css|js|png|jpg|jpeg|svg|ico|woff2?|webmanifest|txt)$/i.test(url.pathname)) {
             return new Response('Asset temporarily unavailable', { status: 503 });
         }
 
