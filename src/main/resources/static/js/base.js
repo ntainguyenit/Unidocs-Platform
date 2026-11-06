@@ -1,3 +1,48 @@
+// Smart interceptor: Auto-detect Render downtime (503) or suspension (502 Service Suspended) and redirect to /maintenance
+(function() {
+    if (typeof window === 'undefined' || !window.fetch) return;
+    const _origFetch = window.fetch;
+    window.fetch = async function(...args) {
+        try {
+            const res = await _origFetch.apply(this, args);
+            const reqUrl = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
+            
+            // Skip intercepting health check or if already on maintenance page
+            if (reqUrl.includes('/api/health') || window.location.pathname.startsWith('/maintenance')) {
+                return res;
+            }
+
+            if (res.status === 503) {
+                const currentPath = window.location.pathname + window.location.search;
+                const target = '/maintenance' + (currentPath !== '/' ? '?from=' + encodeURIComponent(currentPath) : '');
+                window.location.href = target;
+                return res;
+            }
+
+            if (res.status === 502) {
+                try {
+                    const clone = res.clone();
+                    clone.text().then(text => {
+                        if (text && (
+                            text.includes('Service Suspended') || 
+                            text.includes('suspended') || 
+                            text.includes('Application failed to respond') || 
+                            text.includes('Render')
+                        )) {
+                            const currentPath = window.location.pathname + window.location.search;
+                            const target = '/maintenance' + (currentPath !== '/' ? '?from=' + encodeURIComponent(currentPath) : '');
+                            window.location.href = target;
+                        }
+                    }).catch(() => {});
+                } catch (e) {}
+            }
+            return res;
+        } catch (err) {
+            throw err;
+        }
+    };
+})();
+
 function openReportModal(docId) {
     document.getElementById('reportDocumentId').value = docId;
     document.getElementById('reportModal').classList.remove('hidden');
