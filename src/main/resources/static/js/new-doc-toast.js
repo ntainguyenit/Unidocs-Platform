@@ -41,6 +41,27 @@
             });
     }
 
+    // Single-line English comment: Dynamically calculate responsive positioning below header navbar for mobile and desktop
+    function applyToastResponsivePosition(toast) {
+        const header = document.querySelector('header');
+        const headerBottom = header ? header.getBoundingClientRect().bottom : (window.innerWidth < 768 ? 116 : 64);
+        const topPos = Math.max(headerBottom + 12, 70);
+
+        toast.style.position = 'fixed';
+        toast.style.top = topPos + 'px';
+        toast.style.zIndex = '99999';
+
+        if (window.innerWidth < 640) {
+            toast.style.left = '16px';
+            toast.style.right = '16px';
+            toast.style.maxWidth = 'calc(100vw - 32px)';
+        } else {
+            toast.style.left = 'auto';
+            toast.style.right = '24px';
+            toast.style.maxWidth = '420px';
+        }
+    }
+
     // Single-line English comment: Create and render toast element with 4 sharp square corners
     function renderToast(data) {
         // Single-line English comment: Mark document as seen immediately in local storage
@@ -51,13 +72,8 @@
         toast.id = 'newDocNotificationToast';
         // Single-line English comment: Fixed top-right, flat black background, square corners, responsive width
         toast.className = 'fixed bg-slate-900 border border-slate-700/80 text-white rounded-none shadow-2xl p-4 flex items-start gap-3 transition-all duration-300 transform -translate-y-5 opacity-0 select-none';
-        // Single-line English comment: Enforce strict top-right positioning and highest z-index above all layers
-        toast.style.position = 'fixed';
-        toast.style.top = '5rem';
-        toast.style.right = '1.25rem';
-        toast.style.left = 'auto';
-        toast.style.zIndex = '99999';
-        toast.style.maxWidth = 'min(420px, calc(100vw - 2.5rem))';
+        // Single-line English comment: Calculate responsive positioning to clear dynamic header height on both mobile and desktop
+        applyToastResponsivePosition(toast);
 
         // Single-line English comment: Extract title line and italicized smaller time line
         const titleLine = data.mainText || (data.courseName && data.facultyName
@@ -76,7 +92,6 @@
             '</div>',
             '<div class="flex-1 min-w-0 pr-1">',
             '  <div class="flex items-center gap-2 mb-1">',
-            '    <span class="inline-block w-2 h-2 rounded-none bg-emerald-400 animate-pulse"></span>',
             '    <span class="text-[11px] font-bold tracking-wider text-blue-400 uppercase">Thông báo học thuật</span>',
             '  </div>',
             '  <a href="' + (data.url || '#') + '" class="block group leading-relaxed break-words">',

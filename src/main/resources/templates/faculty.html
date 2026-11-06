@@ -353,6 +353,27 @@
             }, 300);
         }
 
+        // Single-line English comment: Dynamically calculate responsive positioning below header navbar for mobile and desktop
+        function applyCourseToastResponsivePosition(toast) {
+            const header = document.querySelector('header');
+            const headerBottom = header ? header.getBoundingClientRect().bottom : (window.innerWidth < 768 ? 116 : 64);
+            const topPos = Math.max(headerBottom + 12, 70);
+
+            toast.style.position = 'fixed';
+            toast.style.top = topPos + 'px';
+            toast.style.zIndex = '99999';
+
+            if (window.innerWidth < 640) {
+                toast.style.left = '16px';
+                toast.style.right = '16px';
+                toast.style.maxWidth = 'calc(100vw - 32px)';
+            } else {
+                toast.style.left = 'auto';
+                toast.style.right = '24px';
+                toast.style.maxWidth = '420px';
+            }
+        }
+
         // Single-line English comment: Display top-right notification toast when user contributes a new course
         function showCourseSuccessToast(msg) {
             let toast = document.getElementById('courseSuccessToast');
@@ -360,21 +381,15 @@
                 toast = document.createElement('div');
                 toast.id = 'courseSuccessToast';
                 toast.className = 'fixed bg-slate-900 border border-slate-700/80 text-white rounded-none shadow-2xl p-4 flex items-start gap-3 transition-all duration-300 transform -translate-y-5 opacity-0 select-none';
-                // Single-line English comment: Enforce strict top-right positioning and highest z-index above all layers
-                toast.style.position = 'fixed';
-                toast.style.top = '5rem';
-                toast.style.right = '1.25rem';
-                toast.style.left = 'auto';
-                toast.style.zIndex = '99999';
-                toast.style.maxWidth = 'min(420px, calc(100vw - 2.5rem))';
+                // Single-line English comment: Enforce responsive positioning below header navbar
+                applyCourseToastResponsivePosition(toast);
                 toast.innerHTML = [
-                    '<div class="w-8 h-8 rounded-none bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">',
+                    '<div class="w-8 h-8 rounded-none bg-blue-600/30 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">',
                     '  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
                     '</div>',
                     '<div class="flex-1 min-w-0 pr-1">',
                     '  <div class="flex items-center gap-2 mb-1">',
-                    '    <span class="inline-block w-2 h-2 rounded-none bg-emerald-400 animate-pulse"></span>',
-                    '    <span class="text-[11px] font-bold tracking-wider text-emerald-400 uppercase">Thành công</span>',
+                    '    <span class="text-[11px] font-bold tracking-wider text-blue-400 uppercase">Thành công</span>',
                     '  </div>',
                     '  <p class="text-xs sm:text-sm font-medium text-white leading-relaxed break-words" id="courseSuccessToastMsg"></p>',
                     '</div>',
@@ -393,6 +408,7 @@
                 document.body.appendChild(toast);
             }
 
+            applyCourseToastResponsivePosition(toast);
             document.getElementById('courseSuccessToastMsg').textContent = msg;
             toast.classList.remove('hidden', '-translate-y-5', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');
