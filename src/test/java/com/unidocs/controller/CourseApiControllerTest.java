@@ -118,7 +118,11 @@ class CourseApiControllerTest {
                 .build();
 
         when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
-        when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> {
+            Course c = invocation.getArgument(0);
+            c.setId(101L);
+            return c;
+        });
 
         ResponseEntity<?> response = controller.approveCourse(10L);
 
@@ -128,6 +132,36 @@ class CourseApiControllerTest {
         assertEquals("active", body.get("status"));
         assertEquals("active", course.getStatus());
         assertNotNull(course.getCreatedAt());
+    }
+
+    @Test
+    void createCourse_BurstSpam_ReturnsTooManyRequests() {
+        Faculty faculty = Faculty.builder().id(1L).name("Khoa CNTT").build();
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(faculty));
+        when(courseRepository.findBySlug(anyString())).thenReturn(Optional.empty());
+        when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> {
+            Course c = invocation.getArgument(0);
+            c.setId(101L);
+            return c;
+        });
+
+        when(mockRequest.getRemoteAddr()).thenReturn("192.168.1.100");
+
+        Map<String, String> payload1 = Map.of("name", "Học Phần Test 1", "facultyId", "1");
+        Map<String, String> payload2 = Map.of("name", "Học Phần Test 2", "facultyId", "1");
+        Map<String, String> payload3 = Map.of("name", "Học Phần Test 3", "facultyId", "1");
+
+        // First 2 submissions succeed (within burst limit)
+        ResponseEntity<?> resp1 = controller.createCourse(payload1, mockRequest);
+        assertEquals(HttpStatus.OK, resp1.getStatusCode());
+
+        ResponseEntity<?> resp2 = controller.createCourse(payload2, mockRequest);
+        assertEquals(HttpStatus.OK, resp2.getStatusCode());
+
+        // 3rd rapid submission exceeds burst limit (2 per 30s) -> 429 Too Many Requests
+        ResponseEntity<?> resp3 = controller.createCourse(payload3, mockRequest);
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, resp3.getStatusCode());
+        assertTrue(resp3.getBody().toString().contains("quá thường xuyên"));
     }
 
     @Test

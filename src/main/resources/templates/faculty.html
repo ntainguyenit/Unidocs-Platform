@@ -142,7 +142,6 @@
 
     </main>
 
-    <script th:if="${turnstileSiteKey != null and !turnstileSiteKey.isEmpty()}" src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <!-- Create Course Modal -->
     <div id="createCourseModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black bg-opacity-50 transition-opacity backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="createCourseModalContent">
@@ -163,10 +162,6 @@
                         <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span>Lưu ý: Bắt buộc <strong>viết hoa chữ cái đầu</strong> cho toàn bộ tên học phần để đồng bộ giao diện chung bạn nhé. (Hệ thống sẽ tự động điều chỉnh nếu bạn lỡ quên).</span>
                     </p>
-                    <!-- Cloudflare Turnstile Captcha Widget -->
-                    <div th:if="${turnstileSiteKey != null and !turnstileSiteKey.isEmpty()}" class="mt-3 flex justify-center">
-                        <div class="cf-turnstile" th:data-sitekey="${turnstileSiteKey}" data-theme="light"></div>
-                    </div>
                     <p id="createCourseError" class="mt-2 text-sm text-red-600 hidden"></p>
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
@@ -318,15 +313,10 @@
                 const headers = { 'Content-Type': 'application/json' };
                 if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
 
-                let turnstileToken = '';
-                if (typeof turnstile !== 'undefined') {
-                    try { turnstileToken = turnstile.getResponse() || ''; } catch(e) {}
-                }
-
                 const res = await fetch('/api/courses', {
                     method: 'POST',
                     headers: headers,
-                    body: JSON.stringify({ name, facultyId, turnstileToken })
+                    body: JSON.stringify({ name, facultyId })
                 });
                 const data = await res.json();
                 
@@ -336,18 +326,12 @@
 
                 closeCreateCourseModal();
                 input.value = '';
-                if (typeof turnstile !== 'undefined') {
-                    try { turnstile.reset(); } catch(e) {}
-                }
 
                 showCourseSuccessToast(data.message || 'Đóng góp học phần thành công! Học phần của bạn đã được gửi đến ban quản trị để phê duyệt.');
 
             } catch (e) {
                 errorEl.textContent = e.message;
                 errorEl.classList.remove('hidden');
-                if (typeof turnstile !== 'undefined') {
-                    try { turnstile.reset(); } catch(err) {}
-                }
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<span>Tạo mới</span>';

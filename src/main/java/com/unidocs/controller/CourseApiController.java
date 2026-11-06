@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,22 +54,11 @@ public class CourseApiController {
         try {
             String ip = getClientIp(request);
 
-            // 1. Rate Limiting Check (Max 3 submissions per 15 minutes per IP)
+            // 1. IP-Based Rate Limiting (Anti-Spam & Anti-Bot protection for JS loops)
             Bucket bucket = rateLimitingService.resolveCourseBucket(ip);
             if (!bucket.tryConsume(1)) {
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of(
-                    "message", "Bạn đã gửi quá nhiều yêu cầu tạo học phần. Vui lòng thử lại sau 15 phút."
-                ));
-            }
-
-            // 2. Cloudflare Turnstile Verification
-            String turnstileToken = payload.get("turnstileToken");
-            if (turnstileToken == null || turnstileToken.isEmpty()) {
-                turnstileToken = payload.get("cf-turnstile-response");
-            }
-            if (!turnstileService.verifyToken(turnstileToken, ip)) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "message", "Xác thực bảo mật Captcha không thành công. Vui lòng thử lại."
+                    "message", "Hệ thống phát hiện gửi yêu cầu quá thường xuyên. Vui lòng thử lại sau giây lát!"
                 ));
             }
 
@@ -79,7 +69,7 @@ public class CourseApiController {
                 return ResponseEntity.badRequest().body(Map.of("message", "Tên học phần và khoa không được để trống"));
             }
 
-            // 3. Bad Words & Content Moderation Validation
+            // 2. Bad Words & Content Moderation Validation
             String validationError = contentModerationService.validateCourseName(name);
             if (validationError != null) {
                 return ResponseEntity.badRequest().body(Map.of("message", validationError));
@@ -107,14 +97,15 @@ public class CourseApiController {
             
             Course saved = courseRepository.save(course);
             
-            return ResponseEntity.ok(Map.of(
-                "id", saved.getId(),
-                "name", saved.getName(),
-                "slug", saved.getSlug(),
-                "status", saved.getStatus(),
-                "createdAt", saved.getCreatedAt() != null ? saved.getCreatedAt().toString() : "",
-                "message", "Đóng góp học phần thành công! Học phần của bạn đã được gửi đến ban quản trị để phê duyệt."
-            ));
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("id", saved.getId());
+            responseBody.put("name", saved.getName());
+            responseBody.put("slug", saved.getSlug());
+            responseBody.put("status", saved.getStatus());
+            responseBody.put("createdAt", saved.getCreatedAt() != null ? saved.getCreatedAt().toString() : "");
+            responseBody.put("message", "Đóng góp học phần thành công! Học phần của bạn đã được gửi đến ban quản trị để phê duyệt.");
+
+            return ResponseEntity.ok(responseBody);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi hệ thống: " + e.getMessage()));
         }
@@ -207,6 +198,14 @@ public class CourseApiController {
     }
 
     private String getClientIp(HttpServletRequest request) {
+        String cfConnectingIp = request.getHeader("CF-Connecting-IP");
+        if (cfConnectingIp != null && !cfConnectingIp.trim().isEmpty()) {
+            return cfConnectingIp.trim();
+        }
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.trim().isEmpty()) {
+            return xRealIp.trim();
+        }
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null || xfHeader.trim().isEmpty()) {
             return request.getRemoteAddr();

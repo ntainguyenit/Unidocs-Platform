@@ -32,10 +32,15 @@ public class RateLimitingService {
     }
 
     private Bucket newCourseBucket(String ip) {
-        // 3 course contributions per 15 minutes per IP
-        Bandwidth limit = Bandwidth.classic(3, Refill.intervally(3, Duration.ofMinutes(15)));
+        // Multi-layered rate limiting to prevent automated JS spam scripts and loops:
+        // 1. Anti-Burst protection: Maximum 2 submissions per 30 seconds (stops script loops immediately)
+        Bandwidth burstLimit = Bandwidth.classic(2, Refill.greedy(2, Duration.ofSeconds(30)));
+        // 2. Sustained protection: Maximum 5 submissions per 15 minutes per IP
+        Bandwidth windowLimit = Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(15)));
+
         return Bucket.builder()
-                .addLimit(limit)
+                .addLimit(burstLimit)
+                .addLimit(windowLimit)
                 .build();
     }
 }
