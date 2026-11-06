@@ -38,7 +38,7 @@ public class Course {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20, columnDefinition = "varchar(20) default 'active'")
     @Builder.Default
     private String status = "active";
     

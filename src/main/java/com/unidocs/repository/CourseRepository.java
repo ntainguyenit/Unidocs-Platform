@@ -23,6 +23,15 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     List<Course> findByStatusOrderByCreatedAtDesc(String status);
 
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c LEFT JOIN FETCH c.faculty WHERE c.status = 'pending' ORDER BY c.createdAt DESC")
+    List<Course> findPendingCoursesWithFaculty();
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c LEFT JOIN FETCH c.faculty WHERE c.status = 'active' OR c.status IS NULL ORDER BY c.createdAt DESC")
+    List<Course> findActiveCoursesWithFaculty();
+
+    @org.springframework.data.jpa.repository.Query("SELECT c.faculty.id, COUNT(c) FROM Course c WHERE c.status = 'active' OR c.status IS NULL GROUP BY c.faculty.id")
+    List<Object[]> countActiveCoursesGroupedByFaculty();
+
     List<Course> findByFacultyIdAndStatus(Long facultyId, String status);
 
     long countByStatus(String status);

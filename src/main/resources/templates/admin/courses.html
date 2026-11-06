@@ -93,7 +93,7 @@
                                 <span class="font-bold text-gray-900" th:id="'course-name-' + ${course.id}" th:text="${course.name}">Tên học phần</span>
                             </td>
                             <td class="px-6 py-4 text-gray-600" th:text="${course.faculty != null ? course.faculty.name : 'N/A'}">Khoa</td>
-                            <td class="px-6 py-4 text-gray-500 text-xs" th:text="${#temporals.format(course.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</td>
+                            <td class="px-6 py-4 text-gray-500 text-xs" th:text="${course.createdAt != null ? #temporals.format(course.createdAt, 'dd/MM/yyyy HH:mm') : 'Mới tạo'}">Thời gian</td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
@@ -167,7 +167,7 @@
                             </td>
                             <td class="px-6 py-4 text-gray-600" th:text="${course.faculty != null ? course.faculty.name : 'N/A'}">Khoa</td>
                             <td class="px-6 py-4 text-gray-500 font-medium">
-                                <span class="px-2 py-0.5 rounded text-xs bg-blue-50 text-blue-700" th:text="${course.documents != null ? course.documents.size() : 0} + ' tài liệu'">0</span>
+                                <span class="px-2 py-0.5 rounded text-xs bg-blue-50 text-blue-700" th:text="${(docCounts != null and docCounts[course.id] != null ? docCounts[course.id] : (course.documents != null ? course.documents.size() : 0))} + ' tài liệu'">0</span>
                             </td>
                             <td class="px-6 py-4 text-gray-500 text-xs" th:text="${course.createdAt != null ? #temporals.format(course.createdAt, 'dd/MM/yyyy HH:mm') : 'Hệ thống'}">Ngày</td>
                             <td class="px-6 py-4 text-right">

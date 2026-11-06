@@ -50,4 +50,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     // Query approved documents for lucky draw by faculty or all
     @org.springframework.data.jpa.repository.Query("SELECT d FROM Document d WHERE (:facultyId IS NULL OR d.course.faculty.id = :facultyId) AND d.status = :status ORDER BY d.uploadedAt DESC")
     List<Document> findLuckyDrawDocuments(@org.springframework.data.repository.query.Param("facultyId") Long facultyId, @org.springframework.data.repository.query.Param("status") DocumentStatus status, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT d.course.id, COUNT(d) FROM Document d GROUP BY d.course.id")
+    List<Object[]> countDocumentsGroupedByCourse();
 }

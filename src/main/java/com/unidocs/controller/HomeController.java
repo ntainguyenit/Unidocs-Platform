@@ -70,8 +70,20 @@ public class HomeController {
         long totalViews = documentRepository.sumViewsByUniversity(uni.getId());
         long totalDownloads = documentRepository.sumDownloadsByUniversity(uni.getId());
 
+        java.util.Map<Long, Long> courseCounts = new java.util.HashMap<>();
+        try {
+            for (Object[] row : courseRepository.countActiveCoursesGroupedByFaculty()) {
+                if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
+                    courseCounts.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
+                }
+            }
+        } catch (Exception e) {
+            // Graceful fallback
+        }
+
         model.addAttribute("university", uni);
         model.addAttribute("faculties", sortedFaculties);
+        model.addAttribute("courseCounts", courseCounts);
         model.addAttribute("totalViews", totalViews);
         model.addAttribute("totalDownloads", totalDownloads);
         return "university";

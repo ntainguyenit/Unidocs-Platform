@@ -85,12 +85,25 @@ public class AdminController {
 
     @GetMapping("/courses")
     public String viewCourses(Model model) {
-        java.util.List<com.unidocs.domain.Course> pendingCourses = courseRepository.findByStatusOrderByCreatedAtDesc("pending");
-        java.util.List<com.unidocs.domain.Course> activeCourses = courseRepository.findByStatusOrderByCreatedAtDesc("active");
+        java.util.List<com.unidocs.domain.Course> pendingCourses = courseRepository.findPendingCoursesWithFaculty();
+        java.util.List<com.unidocs.domain.Course> activeCourses = courseRepository.findActiveCoursesWithFaculty();
+        
+        java.util.Map<Long, Long> docCounts = new java.util.HashMap<>();
+        try {
+            for (Object[] row : documentRepository.countDocumentsGroupedByCourse()) {
+                if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
+                    docCounts.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
+                }
+            }
+        } catch (Exception e) {
+            // Graceful fallback
+        }
+
         model.addAttribute("pendingCourses", pendingCourses);
         model.addAttribute("activeCourses", activeCourses);
         model.addAttribute("pendingCount", pendingCourses.size());
         model.addAttribute("activeCount", activeCourses.size());
+        model.addAttribute("docCounts", docCounts);
         return "admin/courses";
     }
 

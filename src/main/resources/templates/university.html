@@ -76,7 +76,7 @@
                     <div>
                         <h3 class="text-lg font-bold text-text group-hover:text-primary transition-colors" th:text="${faculty.name}">Tên khoa</h3>
                         <p class="text-sm text-gray-500 mt-1">
-                            <span th:text="${faculty.courses.size()}"></span> Học phần
+                            <span th:text="${courseCounts != null and courseCounts[faculty.id] != null ? courseCounts[faculty.id] : (faculty.courses != null ? faculty.courses.size() : 0)}">0</span> Học phần
                         </p>
                     </div>
                     <div class="text-gray-300 group-hover:text-primary transition-colors">
