@@ -20,4 +20,10 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findAllWithFaculty();
 
     List<Course> findByCreatedAtIsNotNullOrderByCreatedAtDesc();
+
+    List<Course> findByStatusOrderByCreatedAtDesc(String status);
+
+    List<Course> findByFacultyIdAndStatus(Long facultyId, String status);
+
+    long countByStatus(String status);
 }

@@ -85,8 +85,12 @@ public class AdminController {
 
     @GetMapping("/courses")
     public String viewCourses(Model model) {
-        java.util.List<com.unidocs.domain.Course> newCourses = courseRepository.findByCreatedAtIsNotNullOrderByCreatedAtDesc();
-        model.addAttribute("newCourses", newCourses);
+        java.util.List<com.unidocs.domain.Course> pendingCourses = courseRepository.findByStatusOrderByCreatedAtDesc("pending");
+        java.util.List<com.unidocs.domain.Course> activeCourses = courseRepository.findByStatusOrderByCreatedAtDesc("active");
+        model.addAttribute("pendingCourses", pendingCourses);
+        model.addAttribute("activeCourses", activeCourses);
+        model.addAttribute("pendingCount", pendingCourses.size());
+        model.addAttribute("activeCount", activeCourses.size());
         return "admin/courses";
     }
 

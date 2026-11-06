@@ -32,6 +32,9 @@ public class SearchController {
         // Get all courses
         List<Course> courses = courseRepository.findAllWithFaculty();
         for (Course c : courses) {
+            if (c.getStatus() != null && !"active".equalsIgnoreCase(c.getStatus())) {
+                continue;
+            }
             results.add(new SearchResult(
                     c.getName(),
                     "/course/" + c.getSlug(),

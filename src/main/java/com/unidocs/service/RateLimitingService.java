@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitingService {
 
     private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> courseCache = new ConcurrentHashMap<>();
 
     public Bucket resolveBucket(String ip) {
         return cache.computeIfAbsent(ip, this::newBucket);
@@ -21,6 +22,18 @@ public class RateLimitingService {
     private Bucket newBucket(String ip) {
         // 5 uploads per hour per IP
         Bandwidth limit = Bandwidth.classic(5, Refill.intervally(5, Duration.ofHours(1)));
+        return Bucket.builder()
+                .addLimit(limit)
+                .build();
+    }
+
+    public Bucket resolveCourseBucket(String ip) {
+        return courseCache.computeIfAbsent(ip, this::newCourseBucket);
+    }
+
+    private Bucket newCourseBucket(String ip) {
+        // 3 course contributions per 15 minutes per IP
+        Bandwidth limit = Bandwidth.classic(3, Refill.intervally(3, Duration.ofMinutes(15)));
         return Bucket.builder()
                 .addLimit(limit)
                 .build();

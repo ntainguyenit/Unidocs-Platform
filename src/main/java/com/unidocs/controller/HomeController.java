@@ -84,6 +84,7 @@ public class HomeController {
         
         java.time.LocalDateTime sevenDaysAgo = java.time.LocalDateTime.now().minusDays(7);
         java.util.List<com.unidocs.domain.Course> sortedCourses = faculty.getCourses().stream()
+                .filter(c -> c.getStatus() == null || "active".equalsIgnoreCase(c.getStatus()))
                 .sorted((c1, c2) -> {
                     boolean c1IsNew = c1.getCreatedAt() != null && c1.getCreatedAt().isAfter(sevenDaysAgo);
                     boolean c2IsNew = c2.getCreatedAt() != null && c2.getCreatedAt().isAfter(sevenDaysAgo);
@@ -112,6 +113,7 @@ public class HomeController {
         model.addAttribute("courses", sortedCourses);
         model.addAttribute("otherFaculties", otherFaculties);
         model.addAttribute("sevenDaysAgo", sevenDaysAgo);
+        model.addAttribute("turnstileSiteKey", turnstileSiteKey);
         return "faculty";
     }
 
@@ -125,6 +127,10 @@ public class HomeController {
         com.unidocs.domain.Course course = courseRepository.findBySlug(slug)
             .orElseThrow(() -> new IllegalArgumentException("Invalid course slug:" + slug));
         
+        if (course.getStatus() != null && "pending".equalsIgnoreCase(course.getStatus())) {
+            throw new IllegalArgumentException("Học phần đang trong trạng thái chờ ban quản trị phê duyệt.");
+        }
+        
         java.util.List<com.unidocs.domain.Document> allDocs = documentService.getApprovedDocumentsByCourse(course.getId());
             
         model.addAttribute("course", course);
@@ -135,6 +141,7 @@ public class HomeController {
 
         java.util.List<com.unidocs.domain.Course> otherCourses = course.getFaculty().getCourses().stream()
                 .filter(c -> !c.getId().equals(course.getId()))
+                .filter(c -> c.getStatus() == null || "active".equalsIgnoreCase(c.getStatus()))
                 .sorted(java.util.Comparator.comparing(com.unidocs.domain.Course::getName))
                 .toList();
         model.addAttribute("otherCourses", otherCourses);

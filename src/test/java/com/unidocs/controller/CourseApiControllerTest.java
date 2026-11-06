@@ -1,0 +1,143 @@
+package com.unidocs.controller;
+
+import com.unidocs.domain.Course;
+import com.unidocs.domain.Faculty;
+import com.unidocs.repository.CourseRepository;
+import com.unidocs.repository.FacultyRepository;
+import com.unidocs.security.service.ContentModerationService;
+import com.unidocs.service.CourseSpamCleanupService;
+import com.unidocs.service.RateLimitingService;
+import com.unidocs.service.TurnstileService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+class CourseApiControllerTest {
+
+    private CourseRepository courseRepository;
+    private FacultyRepository facultyRepository;
+    private ContentModerationService contentModerationService;
+    private RateLimitingService rateLimitingService;
+    private TurnstileService turnstileService;
+    private CourseSpamCleanupService courseSpamCleanupService;
+    private CourseApiController controller;
+    private HttpServletRequest mockRequest;
+
+    @BeforeEach
+    void setUp() {
+        courseRepository = mock(CourseRepository.class);
+        facultyRepository = mock(FacultyRepository.class);
+        contentModerationService = new ContentModerationService();
+        rateLimitingService = new RateLimitingService();
+        turnstileService = mock(TurnstileService.class);
+        courseSpamCleanupService = mock(CourseSpamCleanupService.class);
+
+        controller = new CourseApiController(
+                courseRepository,
+                facultyRepository,
+                contentModerationService,
+                rateLimitingService,
+                turnstileService,
+                courseSpamCleanupService
+        );
+
+        mockRequest = mock(HttpServletRequest.class);
+        when(mockRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(turnstileService.verifyToken(any(), any())).thenReturn(true);
+    }
+
+    @Test
+    void createCourse_ValidName_CreatesWithPendingStatus() {
+        Faculty faculty = Faculty.builder().id(1L).name("Khoa CNTT").build();
+        when(facultyRepository.findById(1L)).thenReturn(Optional.of(faculty));
+        when(courseRepository.findBySlug(anyString())).thenReturn(Optional.empty());
+
+        when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> {
+            Course c = invocation.getArgument(0);
+            c.setId(100L);
+            return c;
+        });
+
+        Map<String, String> payload = Map.of(
+                "name", "Trí Tuệ Nhân Tạo Nâng Cao",
+                "facultyId", "1"
+        );
+
+        ResponseEntity<?> response = controller.createCourse(payload, mockRequest);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        assertNotNull(body);
+        assertEquals("pending", body.get("status"), "New course must be created with status 'pending'!");
+        assertTrue(body.get("message").toString().contains("phê duyệt"));
+    }
+
+    @Test
+    void createCourse_SpamOrProfanity_ReturnsBadRequest() {
+        Map<String, String> payload = Map.of(
+                "name", "Fuck",
+                "facultyId", "1"
+        );
+
+        ResponseEntity<?> response = controller.createCourse(payload, mockRequest);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void createCourse_SingleCharacter_ReturnsBadRequest() {
+        Map<String, String> payload = Map.of(
+                "name", "Ứ",
+                "facultyId", "1"
+        );
+
+        ResponseEntity<?> response = controller.createCourse(payload, mockRequest);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void approveCourse_AdminApprove_ChangesStatusToActive() {
+        Course course = Course.builder()
+                .id(10L)
+                .name("Kỹ Nghệ Dữ Liệu")
+                .slug("ky-nghe-du-lieu")
+                .status("pending")
+                .build();
+
+        when(courseRepository.findById(10L)).thenReturn(Optional.of(course));
+        when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ResponseEntity<?> response = controller.approveCourse(10L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        assertNotNull(body);
+        assertEquals("active", body.get("status"));
+        assertEquals("active", course.getStatus());
+        assertNotNull(course.getCreatedAt());
+    }
+
+    @Test
+    void deleteCourse_AdminDelete_CallsRepositoryDelete() {
+        Course course = Course.builder().id(20L).name("Course To Delete").build();
+        when(courseRepository.findById(20L)).thenReturn(Optional.of(course));
+
+        ResponseEntity<?> response = controller.deleteCourse(20L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(courseRepository).delete(course);
+    }
+}
