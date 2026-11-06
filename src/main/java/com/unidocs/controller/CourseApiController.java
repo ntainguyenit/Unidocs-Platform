@@ -103,7 +103,7 @@ public class CourseApiController {
             responseBody.put("slug", saved.getSlug());
             responseBody.put("status", saved.getStatus());
             responseBody.put("createdAt", saved.getCreatedAt() != null ? saved.getCreatedAt().toString() : "");
-            responseBody.put("message", "Đóng góp học phần thành công! Học phần của bạn đã được gửi đến ban quản trị để phê duyệt.");
+            responseBody.put("message", "Đã đóng góp Học phần mới thành công! Vui lòng đợi duyệt...");
 
             return ResponseEntity.ok(responseBody);
         } catch (Exception e) {

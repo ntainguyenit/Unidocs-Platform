@@ -79,7 +79,7 @@ class CourseApiControllerTest {
         Map<?, ?> body = (Map<?, ?>) response.getBody();
         assertNotNull(body);
         assertEquals("pending", body.get("status"), "New course must be created with status 'pending'!");
-        assertTrue(body.get("message").toString().contains("phê duyệt"));
+        assertEquals("Đã đóng góp Học phần mới thành công! Vui lòng đợi duyệt...", body.get("message"));
     }
 
     @Test

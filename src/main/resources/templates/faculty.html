@@ -327,7 +327,7 @@
                 closeCreateCourseModal();
                 input.value = '';
 
-                showCourseSuccessToast(data.message || 'Đóng góp học phần thành công! Học phần của bạn đã được gửi đến ban quản trị để phê duyệt.');
+                showCourseSuccessToast(data.message || 'Đã đóng góp Học phần mới thành công! Vui lòng đợi duyệt...');
 
             } catch (e) {
                 errorEl.textContent = e.message;
@@ -338,30 +338,60 @@
             }
         }
 
+        // Single-line English comment: Timer reference for auto-dismissing course contribution toast
+        let courseToastTimer = null;
+
+        // Single-line English comment: Dismiss course contribution success toast with smooth exit animation
+        function dismissCourseToast() {
+            const toast = document.getElementById('courseSuccessToast');
+            if (!toast) return;
+            if (courseToastTimer) clearTimeout(courseToastTimer);
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('-translate-y-5', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
+        }
+
+        // Single-line English comment: Display top-right notification toast when user contributes a new course
         function showCourseSuccessToast(msg) {
             let toast = document.getElementById('courseSuccessToast');
             if (!toast) {
                 toast = document.createElement('div');
                 toast.id = 'courseSuccessToast';
-                toast.className = 'fixed bottom-5 right-5 z-[150] max-w-md bg-emerald-600 text-white px-5 py-4 rounded-xl shadow-2xl flex items-start gap-3 transition-all duration-300 transform translate-y-10 opacity-0';
-                toast.innerHTML = `
-                    <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                    </div>
-                    <div class="flex-1 text-sm font-medium leading-relaxed" id="courseSuccessToastMsg"></div>
-                    <button onclick="this.parentElement.classList.add('opacity-0', 'translate-y-10')" class="text-white/80 hover:text-white shrink-0 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                `;
+                toast.className = 'fixed top-20 sm:top-24 right-4 sm:right-6 left-4 sm:left-auto z-[999] max-w-sm sm:max-w-md bg-slate-900 border border-slate-700/80 text-white rounded-none shadow-2xl p-4 flex items-start gap-3 transition-all duration-300 transform -translate-y-5 opacity-0 select-none';
+                toast.innerHTML = [
+                    '<div class="w-8 h-8 rounded-none bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">',
+                    '  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
+                    '</div>',
+                    '<div class="flex-1 min-w-0 pr-1">',
+                    '  <div class="flex items-center gap-2 mb-1">',
+                    '    <span class="inline-block w-2 h-2 rounded-none bg-emerald-400 animate-pulse"></span>',
+                    '    <span class="text-[11px] font-bold tracking-wider text-emerald-400 uppercase">Thành công</span>',
+                    '  </div>',
+                    '  <p class="text-xs sm:text-sm font-medium text-white leading-relaxed break-words" id="courseSuccessToastMsg"></p>',
+                    '</div>',
+                    '<button type="button" onclick="dismissCourseToast()" class="text-slate-400 hover:text-white p-1 rounded-none hover:bg-slate-800 transition-colors shrink-0 cursor-pointer" aria-label="Đóng thông báo">',
+                    '  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>',
+                    '</button>'
+                ].join('');
+
+                toast.addEventListener('mouseenter', () => {
+                    if (courseToastTimer) clearTimeout(courseToastTimer);
+                });
+                toast.addEventListener('mouseleave', () => {
+                    courseToastTimer = setTimeout(dismissCourseToast, 3000);
+                });
+
                 document.body.appendChild(toast);
             }
+
             document.getElementById('courseSuccessToastMsg').textContent = msg;
-            toast.classList.remove('hidden', 'opacity-0', 'translate-y-10');
-            toast.classList.add('opacity-100', 'translate-y-0');
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', 'translate-y-10');
-            }, 6000);
+            toast.classList.remove('hidden', '-translate-y-5', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            if (courseToastTimer) clearTimeout(courseToastTimer);
+            courseToastTimer = setTimeout(dismissCourseToast, 5000);
         }
     </script>
     <div th:replace="~{fragments/base :: footer}"></div>
