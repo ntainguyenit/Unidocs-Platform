@@ -1,18 +1,24 @@
 package com.unidocs.controller;
 
 import com.unidocs.domain.Document;
+import com.unidocs.domain.DocumentStatus;
+import com.unidocs.repository.DocumentRepository;
 import com.unidocs.service.DocumentService;
 import com.unidocs.service.RateLimitingService;
 import com.unidocs.service.TurnstileService;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -20,13 +26,59 @@ import java.util.Map;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final DocumentRepository documentRepository;
     private final TurnstileService turnstileService;
     private final RateLimitingService rateLimitingService;
 
-    public DocumentController(DocumentService documentService, TurnstileService turnstileService, RateLimitingService rateLimitingService) {
+    // Single-line English comment: Constructor with injected dependencies
+    public DocumentController(DocumentService documentService,
+                              DocumentRepository documentRepository,
+                              TurnstileService turnstileService,
+                              RateLimitingService rateLimitingService) {
         this.documentService = documentService;
+        this.documentRepository = documentRepository;
         this.turnstileService = turnstileService;
         this.rateLimitingService = rateLimitingService;
+    }
+
+    // Single-line English comment: Get latest approved document info for user notification toast
+    @GetMapping("/latest-approved")
+    public ResponseEntity<?> getLatestApprovedDocument() {
+        try {
+            // Single-line English comment: Fetch single most recently approved document
+            List<Document> list = documentRepository.findLatestApprovedDocumentsWithCourseAndFaculty(
+                    DocumentStatus.APPROVED,
+                    PageRequest.of(0, 1)
+            );
+            if (list == null || list.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            Document doc = list.get(0);
+            String courseName = doc.getCourse() != null ? doc.getCourse().getName() : "Học phần";
+            String facultyName = (doc.getCourse() != null && doc.getCourse().getFaculty() != null)
+                    ? doc.getCourse().getFaculty().getName()
+                    : "Khoa";
+            // Single-line English comment: Format time as HH:mm ngày dd/MM/yyyy
+            LocalDateTime timeToFormat = doc.getUploadedAt() != null ? doc.getUploadedAt() : (doc.getApprovedAt() != null ? doc.getApprovedAt() : LocalDateTime.now());
+            String formattedTime = timeToFormat.format(DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy"));
+            // Single-line English comment: Exact format string specified by requirement
+            String message = String.format("Có tài liệu mới {Học phần: %s - %s} lúc {%s}", courseName, facultyName, formattedTime);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", doc.getId());
+            result.put("title", doc.getTitle());
+            result.put("slug", doc.getSlug());
+            result.put("courseName", courseName);
+            result.put("facultyName", facultyName);
+            result.put("time", formattedTime);
+            result.put("message", message);
+            result.put("url", "/document/" + doc.getSlug());
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            // Single-line English comment: Graceful fallback on unexpected error
+            return ResponseEntity.noContent().build();
+        }
     }
 
     @PostMapping("/upload")

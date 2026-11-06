@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -163,6 +164,8 @@ public class DocumentService {
         Document doc = documentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài liệu"));
         doc.setStatus(DocumentStatus.APPROVED);
+        // Set approval timestamp when approved by admin
+        doc.setApprovedAt(LocalDateTime.now());
         documentRepository.save(doc);
     }
 

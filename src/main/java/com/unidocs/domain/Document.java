@@ -62,6 +62,10 @@ public class Document {
     @Column(name = "reliability_score", nullable = false, columnDefinition = "integer default 100")
     private int reliabilityScore = 100;
 
+    // Approval timestamp set when document is approved by admin
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
