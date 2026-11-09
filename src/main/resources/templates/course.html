@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <div th:replace="~{fragments/base :: head(${course.name} + ' - ' + (${course.faculty.university.shortName != null ? course.faculty.university.shortName : course.faculty.university.name}) + ' | UniDocs')}"></div>
-    <!-- Removed Turnstile Script --></head>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Học phần ' + ${course.name} + ' - ' + ${course.faculty.name} + ' | ĐHKH Huế UniDocs')}"></head>
 <!-- Apply pale sky-blue canvas background while keeping cards white -->
 <body class="bg-[#eaf2ff] flex flex-col min-h-screen">
     
@@ -66,6 +64,20 @@
                 Tải lên Tài liệu
             </button>
         </div>
+
+        <!-- Single-line English comment: GEO AI contextual intro at top of course page with local and university aliases -->
+        <section aria-label="Giới thiệu ngữ cảnh học phần" class="bg-white rounded-lg shadow-sm border border-divider border-l-4 border-l-primary p-4 md:p-5 mb-4 md:mb-6">
+            <h2 class="text-sm md:text-base font-bold text-gray-900 mb-1.5"
+                th:text="'Giới thiệu học phần ' + ${course.name} + ' - ' + ${course.faculty.name} + ' (ĐHKH Huế - HUSC)'">
+                Giới thiệu học phần
+            </h2>
+            <p class="text-xs md:text-sm text-gray-700 leading-relaxed"
+               th:text="${seo != null and seo.contextualIntro != null ? seo.contextualIntro : ('Học phần ' + course.name + ' thuộc ' + course.faculty.name + ' — Trường Đại học Khoa học, Đại học Huế (Trường Khoa học Huế, Khoa học Huế, ĐHKH, ĐHKH Huế, HUSC tại TP. Huế). Tổng hợp tài liệu học tập, đề thi, bài tập và giáo trình miễn phí trên UniDocs (unidocs).')}">
+            </p>
+            <p class="text-xs text-gray-600 mt-1.5 leading-relaxed"
+               th:text="${seo != null and seo.contextualSummary != null ? seo.contextualSummary : 'Sinh viên HUSC có thể xem trực tuyến và tải xuống miễn phí tài liệu ôn tập không cần đăng nhập.'}">
+            </p>
+        </section>
 
         <!-- Documents List -->
         <h2 class="text-lg md:text-xl font-bold text-text mb-3 md:mb-4 border-b border-blue-200/80 pb-2">Danh sách Tài liệu / Đề thi</h2>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/base :: head(${university.name} + ' | UniDocs')}"></head>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head(${university.name} + ' - Trường Đại học Khoa học Huế (ĐHKH Huế, HUSC) | UniDocs')}"></head>
 <!-- Apply pale sky-blue canvas background matched to intro screen -->
 <body class="bg-[#eaf2ff] flex flex-col min-h-screen">
     
@@ -70,6 +70,14 @@
                 </button>
             </div>
         </div>
+
+        <!-- Single-line English comment: GEO AI contextual intro summarizing affiliated faculties and HUSC brand aliases -->
+        <section aria-label="Giới thiệu tổng quan các khoa trực thuộc" class="bg-white rounded-lg shadow-sm border border-divider border-l-4 border-l-primary p-4 md:p-5 mb-6">
+            <h2 class="text-sm md:text-base font-bold text-gray-900 mb-1.5" th:text="'Tổng quan các khoa trực thuộc ' + ${university.name} + ' (ĐHKH Huế - HUSC)'">Tổng quan các khoa trực thuộc</h2>
+            <p class="text-xs md:text-sm text-gray-700 leading-relaxed"
+               th:text="${seo != null and seo.contextualIntro != null ? seo.contextualIntro : ('Kho tài liệu học tập, đề thi và giáo trình các khoa trực thuộc ' + university.name + ' — Trường Đại học Khoa học Huế (Trường Khoa học Huế, Khoa học Huế, ĐHKH, ĐHKH Huế, HUSC tại TP. Huế), chia sẻ miễn phí trên UniDocs (unidocs).')}">
+            </p>
+        </section>
 
         <div id="dataContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300">
             <a th:each="faculty : ${faculties}" th:href="@{/faculty/{slug}(slug=${faculty.slug})}" class="card group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">

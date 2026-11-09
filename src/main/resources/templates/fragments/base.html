@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" class="scroll-smooth">
-<head th:fragment="head(title)">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" class="scroll-smooth">
+<head th:fragment="head(title)"
+      th:with="resolvedTitle=${seo != null and seo.title != null ? seo.title : title},
+               resolvedDesc=${seo != null and seo.description != null ? seo.description : 'Nền tảng chia sẻ tài liệu học tập, đề thi đại học hàng đầu dành cho sinh viên Trường Đại học Khoa học Huế (Trường Khoa học Huế, Khoa học Huế, ĐHKH, ĐHKH Huế, HUSC). Miễn phí trên UniDocs.'},
+               resolvedKeywords=${seo != null and seo.keywords != null ? seo.keywords : 'uni doc, unidoc, uni docs, unidocs, Trường Đại học Khoa học, Trường Khoa học Huế, Khoa học Huế, ĐHKH, ĐHKH Huế, HUSC, tài liệu đại học, đề thi đại học, chia sẻ tài liệu, ntainguyenit, Tai Nguyen, Tài Nguyễn'},
+               resolvedSiteUrl=${@environment.getProperty('app.site-url', 'https://unidocs-husc.pages.dev')},
+               resolvedUrl=${seo != null and seo.canonicalUrl != null ? seo.canonicalUrl : resolvedSiteUrl},
+               resolvedOgImage=${seo != null and seo.ogImage != null ? seo.ogImage : resolvedSiteUrl + '/favicon.svg'},
+               resolvedOgType=${seo != null and seo.ogType != null ? seo.ogType : 'website'},
+               resolvedRobots=${seo != null and seo.robots != null ? seo.robots : 'index, follow'}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title}">UniDocs</title>
+    <title th:text="${resolvedTitle}">UniDocs</title>
     
     <!-- Security Monitor: Loaded very early to prevent DevTools -->
     <script th:src="@{/js/security-monitor.js}"></script>
@@ -21,28 +29,37 @@
             gtag('config', /*[[${gaId}]]*/ 'G-M6LSLB0VKP');
         </script>
     </th:block>
-    <!-- SEO & GEO AI Mode Meta Tags -->
-    <meta name="description" content="Nền tảng chia sẻ tài liệu học tập, đề thi đại học hàng đầu dành cho sinh viên. Khám phá các khóa học, tài liệu ôn thi HUSC, UniDocs.">
-    <meta name="keywords" content="uni doc, unidoc, uni docs, unidocs, husc, đại học khoa học huế, tài liệu đại học, đề thi đại học, chia sẻ tài liệu, ntainguyenit, Tai Nguyen, Tài Nguyễn">
+    <!-- Single-line English comment: Dynamic SEO & GEO AI Mode Meta Tags with HUSC keyword cluster fallback -->
+    <meta name="description" th:content="${resolvedDesc}">
+    <meta name="keywords" th:content="${resolvedKeywords}">
     <meta name="author" content="ntainguyenit, Tai Nguyen (Tài Nguyễn)">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" th:content="${resolvedRobots}">
+    <link rel="canonical" th:if="${seo != null and seo.canonicalUrl != null}" th:href="${seo.canonicalUrl}">
 
     <!-- Open Graph for Social Media -->
-    <meta property="og:title" th:content="${title}">
-    <meta property="og:description" content="Nền tảng chia sẻ tài liệu học tập, đề thi đại học dành cho sinh viên HUSC">
-    <meta property="og:image" th:content="@{/favicon.svg}">
-    <meta property="og:url" content="https://unidocs.pages.dev">
-    <meta property="og:type" content="website">
+    <meta property="og:title" th:content="${resolvedTitle}">
+    <meta property="og:description" th:content="${resolvedDesc}">
+    <meta property="og:image" th:content="${resolvedOgImage}">
+    <meta property="og:url" th:content="${resolvedUrl}">
+    <meta property="og:type" th:content="${resolvedOgType}">
+    <meta property="og:site_name" content="UniDocs HUSC">
+    <meta property="og:locale" content="vi_VN">
+
+    <!-- Single-line English comment: Twitter Card meta tags aligned with Open Graph metadata -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" th:content="${resolvedTitle}">
+    <meta name="twitter:description" th:content="${resolvedDesc}">
 
     <!-- JSON-LD Structured Data for GEO AI -->
-    <script type="application/ld+json">
+    <script th:if="${seo != null and seo.jsonLd != null}" type="application/ld+json" th:utext="${seo.jsonLd}"></script>
+    <script th:if="${seo == null or seo.jsonLd == null}" type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "UniDocs",
-      "alternateName": ["uni doc", "unidoc", "uni docs", "husc"],
-      "url": "https://unidocs.pages.dev",
-      "description": "Nền tảng chia sẻ tài liệu học tập, đề thi đại học dành cho sinh viên HUSC",
+      "alternateName": ["uni doc", "unidoc", "uni docs", "unidocs", "Trường Đại học Khoa học", "Trường Khoa học Huế", "Khoa học Huế", "ĐHKH", "ĐHKH Huế", "HUSC"],
+      "url": "https://unidocs-husc.pages.dev",
+      "description": "Nền tảng chia sẻ tài liệu học tập, đề thi đại học dành cho sinh viên Trường Đại học Khoa học Huế (HUSC, ĐHKH Huế)",
       "author": {
         "@type": "Person",
         "name": "Tài Nguyễn (ntainguyenit)",
@@ -58,7 +75,7 @@
         "name": "UniDocs HUSC",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://unidocs.pages.dev/favicon.svg"
+          "url": "https://unidocs-husc.pages.dev/favicon.svg"
         }
       }
     }

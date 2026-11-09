@@ -1,5 +1,6 @@
 package com.unidocs.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.unidocs.domain.University;
 import com.unidocs.repository.FacultyRepository;
 import com.unidocs.repository.UniversityRepository;
+import com.unidocs.service.SeoMetadataService;
 import java.util.List;
 
 // Controller handling home page requests and main view presentation
@@ -20,18 +22,30 @@ public class HomeController {
     private final com.unidocs.repository.DocumentRepository documentRepository;
     private final com.unidocs.service.DocumentService documentService;
     private final com.unidocs.service.NotificationService notificationService;
+    private final SeoMetadataService seoMetadataService;
 
-
-    public HomeController(UniversityRepository universityRepository, FacultyRepository facultyRepository, 
+    // Preserve 6-arg constructor for direct controller unit tests
+    public HomeController(UniversityRepository universityRepository, FacultyRepository facultyRepository,
                           com.unidocs.repository.CourseRepository courseRepository, com.unidocs.repository.DocumentRepository documentRepository,
                           com.unidocs.service.DocumentService documentService,
                           com.unidocs.service.NotificationService notificationService) {
+        this(universityRepository, facultyRepository, courseRepository, documentRepository,
+                documentService, notificationService, new SeoMetadataService("https://unidocs-husc.pages.dev"));
+    }
+
+    @Autowired
+    public HomeController(UniversityRepository universityRepository, FacultyRepository facultyRepository, 
+                          com.unidocs.repository.CourseRepository courseRepository, com.unidocs.repository.DocumentRepository documentRepository,
+                          com.unidocs.service.DocumentService documentService,
+                          com.unidocs.service.NotificationService notificationService,
+                          SeoMetadataService seoMetadataService) {
         this.universityRepository = universityRepository;
         this.facultyRepository = facultyRepository;
         this.courseRepository = courseRepository;
         this.documentRepository = documentRepository;
         this.documentService = documentService;
         this.notificationService = notificationService;
+        this.seoMetadataService = seoMetadataService;
 
     }
 
@@ -48,6 +62,8 @@ public class HomeController {
         model.addAttribute("uniViews", uniViews);
         model.addAttribute("uniDownloads", uniDownloads);
         model.addAttribute("notifications", notificationService.getRecentNotifications());
+        // Inject dynamic homepage SEO and GEO AI metadata
+        model.addAttribute("seo", seoMetadataService.buildHomepageSeo(unis));
         // Single-line English comment: Public feedback list removed from homepage model
         return "index";
     }
@@ -86,6 +102,8 @@ public class HomeController {
         model.addAttribute("courseCounts", courseCounts);
         model.addAttribute("totalViews", totalViews);
         model.addAttribute("totalDownloads", totalDownloads);
+        // Generate dynamic SEO metadata and affiliated faculty Schema.org markup
+        model.addAttribute("seo", seoMetadataService.buildUniversitySeo(uni, sortedFaculties));
         return "university";
     }
 
@@ -126,6 +144,8 @@ public class HomeController {
         model.addAttribute("otherFaculties", otherFaculties);
         model.addAttribute("sevenDaysAgo", sevenDaysAgo);
         model.addAttribute("turnstileSiteKey", turnstileSiteKey);
+        // Generate dynamic SEO metadata and CollectionPage/EducationalOrganization Schema.org graph
+        model.addAttribute("seo", seoMetadataService.buildFacultySeo(faculty, sortedCourses));
         return "faculty";
     }
 
@@ -147,6 +167,8 @@ public class HomeController {
             
         model.addAttribute("course", course);
         model.addAttribute("turnstileSiteKey", turnstileSiteKey);
+        // Generate dynamic SEO metadata, GEO AI contextual intro, and Course Schema.org graph
+        model.addAttribute("seo", seoMetadataService.buildCourseSeo(course, allDocs));
         
         java.util.List<com.unidocs.domain.Document> trendingDocs = documentService.getTrendingDocumentsForCourse(course.getId(), 4);
         model.addAttribute("trendingDocs", trendingDocs);

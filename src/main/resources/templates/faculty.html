@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/base :: head(${faculty.name} + ' - ' + (${faculty.university.shortName != null ? faculty.university.shortName : faculty.university.name}) + ' | UniDocs')}"></head>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/base :: head(${faculty.name} + ' - Trường Đại học Khoa học Huế | HUSC UniDocs')}"></head>
 <!-- Apply pale sky-blue canvas background while keeping cards white -->
 <body class="bg-[#eaf2ff] flex flex-col min-h-screen">
     
@@ -50,6 +50,14 @@
                 <p class="text-gray-500 mt-1.5" th:text="'Thuộc ' + ${faculty.university.name}">Thuộc trường</p>
             </div>
         </div>
+
+        <!-- Single-line English comment: GEO AI contextual intro for faculty academic resources and HUSC school aliases -->
+        <section aria-label="Giới thiệu tài liệu và học phần của khoa" class="bg-white rounded-lg shadow-sm border border-divider border-l-4 border-l-primary p-4 md:p-5 mb-6">
+            <h2 class="text-sm md:text-base font-bold text-gray-900 mb-1.5" th:text="'Tài liệu &amp; Đề thi ' + ${faculty.name} + ' (ĐHKH Huế - HUSC)'">Tài liệu &amp; Đề thi Khoa</h2>
+            <p class="text-xs md:text-sm text-gray-700 leading-relaxed"
+               th:text="${seo != null and seo.contextualIntro != null ? seo.contextualIntro : ('Tổng hợp tài liệu, đề thi, giáo trình chính thống của ' + faculty.name + ' tại Trường Đại học Khoa học Huế (Trường Khoa học Huế, Khoa học Huế, ĐHKH, ĐHKH Huế, HUSC). Chia sẻ học tập miễn phí trên UniDocs (unidocs).')}">
+            </p>
+        </section>
 
         <!-- Courses Grid -->
         <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-blue-200/80 pb-2">
