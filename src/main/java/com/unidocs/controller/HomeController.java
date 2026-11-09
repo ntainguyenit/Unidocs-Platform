@@ -20,19 +20,19 @@ public class HomeController {
     private final com.unidocs.repository.DocumentRepository documentRepository;
     private final com.unidocs.service.DocumentService documentService;
     private final com.unidocs.service.NotificationService notificationService;
-    private final com.unidocs.service.FeedbackService feedbackService;
+
 
     public HomeController(UniversityRepository universityRepository, FacultyRepository facultyRepository, 
                           com.unidocs.repository.CourseRepository courseRepository, com.unidocs.repository.DocumentRepository documentRepository,
                           com.unidocs.service.DocumentService documentService,
-                          com.unidocs.service.NotificationService notificationService, com.unidocs.service.FeedbackService feedbackService) {
+                          com.unidocs.service.NotificationService notificationService) {
         this.universityRepository = universityRepository;
         this.facultyRepository = facultyRepository;
         this.courseRepository = courseRepository;
         this.documentRepository = documentRepository;
         this.documentService = documentService;
         this.notificationService = notificationService;
-        this.feedbackService = feedbackService;
+
     }
 
     @GetMapping("/")
@@ -48,7 +48,7 @@ public class HomeController {
         model.addAttribute("uniViews", uniViews);
         model.addAttribute("uniDownloads", uniDownloads);
         model.addAttribute("notifications", notificationService.getRecentNotifications());
-        model.addAttribute("feedbacks", feedbackService.getAllFeedbacks());
+        // Single-line English comment: Public feedback list removed from homepage model
         return "index";
     }
 

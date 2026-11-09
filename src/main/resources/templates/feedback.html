@@ -1,133 +1,72 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3722649225395463" crossorigin="anonymous"></script>
-    <title>Góp ý - UniDocs</title>
-    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
-    <link th:href="@{/css/output.css}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .sse-new-item {
-            animation: highlightFade 3s ease-out forwards;
-        }
-        @keyframes highlightFade {
-            0% { background-color: #f0fdf4; border-color: #22c55e; }
-            100% { background-color: white; border-color: #e5e7eb; }
-        }
-    </style>
-</head>
-<body class="bg-bg text-text font-sans antialiased">
+<head th:replace="~{fragments/base :: head('Góp ý - UniDocs')}"></head>
+<body class="bg-bg text-text font-sans antialiased flex flex-col min-h-screen">
     <!-- Navbar -->
     <div th:replace="~{fragments/base :: navbar}"></div>
 
-    <main class="max-w-7xl mx-auto px-4 py-8 mt-24 min-h-screen">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Góp ý & Phản hồi</h1>
-            <p class="text-gray-600">Gửi phản hồi hoặc báo lỗi cho Quản trị UniDocs. Mọi đóng góp của bạn đều được ghi nhận trực tiếp theo thời gian thực.</p>
+    <!-- Single-line English comment: Centered feedback form layout with public list removed -->
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-2xl">
+        <div class="mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Góp ý &amp; Phản hồi</h1>
+            <p class="text-sm md:text-base text-gray-600">Gửi phản hồi hoặc báo lỗi cho Quản trị UniDocs. Mọi đóng góp của bạn đều được ghi nhận và chuyển trực tiếp tới ban quản trị.</p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- Left col: Form -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-lg shadow-sm border border-divider p-6 sticky top-28">
-                    <h2 class="text-xl font-bold mb-4">Gửi Góp Ý</h2>
-                    <form id="feedbackForm" onsubmit="submitFeedback(event)">
-                        <div class="mb-4">
-                            <label for="authorName" class="block text-sm font-medium text-gray-700 mb-1">Tên hiển thị</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="authorName" value="Người dùng" readonly class="flex-grow px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none">
-                                <button type="button" onclick="randomizeName()" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-md border border-blue-200 hover:bg-blue-100 transition-colors" title="Đổi tên ngẫu nhiên">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Nội dung <span class="text-red-500">*</span></label>
-                            <textarea id="content" name="content" rows="4" maxlength="500" required placeholder="Nhập góp ý của bạn (tối đa 500 ký tự)..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"></textarea>
-                            <div class="flex justify-between mt-1 mb-2">
-                                <span id="charCount" class="text-xs text-gray-500">0/500</span>
-                            </div>
-                            <div class="flex items-center mb-4 mt-2">
-                                <input id="termsConsent" name="termsConsent" type="checkbox" required class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer">
-                                <label for="termsConsent" class="ml-2 block text-sm text-gray-700 cursor-pointer select-none">
-                                    Tôi đồng ý với <a href="/terms" class="text-primary font-bold hover:underline">Điều khoản sử dụng</a> và <a href="/privacy" class="text-primary font-bold hover:underline">Chính sách bảo mật.</a>
-                                </label>
-                            </div>
-                        <div id="formMessage" class="hidden mb-4 text-sm px-3 py-2 rounded-md"></div>
-                        <button type="submit" id="submitBtn" class="w-full bg-primary text-white font-medium py-2 px-4 rounded-md hover:bg-primary-dark transition-colors">
-                            Gửi Góp Ý
+        <div class="bg-white rounded-lg shadow-sm border border-divider p-6 md:p-8">
+            <h2 class="text-xl font-bold mb-4">Gửi Góp Ý</h2>
+            <form id="feedbackForm" onsubmit="submitFeedback(event)">
+                <div class="mb-4">
+                    <label for="authorName" class="block text-sm font-medium text-gray-700 mb-1">Tên hiển thị</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="authorName" value="Người dùng" readonly class="flex-grow px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none">
+                        <button type="button" onclick="randomizeName()" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-md border border-blue-200 hover:bg-blue-100 transition-colors" title="Đổi tên ngẫu nhiên">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </button>
-                        <p class="text-xs text-gray-500 italic mt-3 text-center">
-                            "Mỗi góp ý đều mang một giá trị riêng — giúp chúng tôi nhìn nhận những điều cần cải thiện, những giá trị cần gìn giữ và cùng nhau tạo nên một cộng đồng ngày càng tích cực, tốt đẹp."
-                        </p>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Right col: List of feedbacks -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-lg shadow-sm border border-divider p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold">Danh sách Góp ý</h2>
-                        <span class="inline-flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-200">
-                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            Cập nhật theo thời gian thực
-                        </span>
-                    </div>
-
-                    <div id="feedbackList" class="space-y-4">
-                        <!-- Iteration using Thymeleaf for initial load -->
-                        <div th:each="fb : ${feedbacks}" th:id="'fb-' + ${fb.id}" class="border border-gray-200 rounded-lg p-4 bg-white transition-colors">
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="font-bold text-gray-900" th:text="${fb.authorName}">Người dùng</div>
-                                <div class="text-xs text-gray-500" th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</div>
-                            </div>
-                            <p class="text-gray-700 text-sm whitespace-pre-wrap" th:text="${fb.content}">Nội dung</p>
-                            
-                            <!-- Reply block if exists -->
-                            <div th:id="'reply-' + ${fb.id}" th:if="${fb.replyContent != null}" class="mt-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-md">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
-                                    <span class="text-xs text-blue-600" th:text="${#temporals.format(fb.repliedAt, 'dd/MM/yyyy HH:mm')}">Thời gian</span>
-                                </div>
-                                <p class="text-sm text-blue-900 whitespace-pre-wrap" th:text="${fb.replyContent}">Phản hồi</p>
-                            </div>
-                            <!-- Placeholder for SSE replies if not replied yet -->
-                            <div th:id="'reply-' + ${fb.id}" th:unless="${fb.replyContent != null}"></div>
-                        </div>
-
-                        <div th:if="${#lists.isEmpty(feedbacks)}" id="emptyState" class="text-center py-10 text-gray-500">
-                            Chưa có góp ý nào. Hãy là người đầu tiên!
-                        </div>
                     </div>
                 </div>
-            </div>
-
+                <div class="mb-4">
+                    <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Nội dung <span class="text-red-500">*</span></label>
+                    <textarea id="content" name="content" rows="4" maxlength="500" required placeholder="Nhập góp ý của bạn (tối đa 500 ký tự)..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none transition-colors"></textarea>
+                    <div class="flex justify-between mt-1 mb-2">
+                        <span id="charCount" class="text-xs text-gray-500">0/500</span>
+                    </div>
+                    <div class="flex items-center mb-4 mt-2">
+                        <input id="termsConsent" name="termsConsent" type="checkbox" required class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer">
+                        <label for="termsConsent" class="ml-2 block text-sm text-gray-700 cursor-pointer select-none">
+                            Tôi đồng ý với <a href="/terms" class="text-primary font-bold hover:underline">Điều khoản sử dụng</a> và <a href="/privacy" class="text-primary font-bold hover:underline">Chính sách bảo mật.</a>
+                        </label>
+                    </div>
+                </div>
+                <div id="formMessage" class="hidden mb-4 text-sm px-3 py-2 rounded-md"></div>
+                <button type="submit" id="submitBtn" class="w-full bg-primary text-white font-medium py-2.5 px-4 rounded-md hover:bg-primary-dark transition-colors">
+                    Gửi Góp Ý
+                </button>
+                <p class="text-xs text-gray-500 italic mt-3 text-center">
+                    "Mỗi góp ý đều mang một giá trị riêng — giúp chúng tôi nhìn nhận những điều cần cải thiện, những giá trị cần gìn giữ và cùng nhau tạo nên một cộng đồng ngày càng tích cực, tốt đẹp."
+                </p>
+            </form>
         </div>
     </main>
 
     <!-- Footer -->
     <div th:replace="~{fragments/base :: footer}"></div>
+    <div th:replace="~{fragments/base :: scripts}"></div>
 
-    <script th:src="@{/js/navbar.js}"></script>
     <script>
         const contentInput = document.getElementById('content');
         const charCount = document.getElementById('charCount');
         const submitBtn = document.getElementById('submitBtn');
         const formMessage = document.getElementById('formMessage');
-        const feedbackList = document.getElementById('feedbackList');
-        const emptyState = document.getElementById('emptyState');
 
-        // Character count
-        contentInput.addEventListener('input', function() {
-            charCount.innerText = this.value.length + '/500';
-        });
+        // Single-line English comment: Update live character counter when user types feedback
+        if (contentInput && charCount) {
+            contentInput.addEventListener('input', function() {
+                charCount.innerText = this.value.length + '/500';
+            });
+        }
 
         function showMessage(msg, type) {
+            if (!formMessage) return;
             formMessage.innerText = msg;
             formMessage.className = `mb-4 text-sm px-3 py-2 rounded-md block ${type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`;
             setTimeout(() => {
@@ -136,120 +75,31 @@
         }
 
         const authorNames = [
-  "Sinh viên chăm chỉ",
-  "Sinh viên vui vẻ",
-  "Sinh viên thân thiện",
-  "Sinh viên nhiệt tình",
-  "Sinh viên bí ẩn",
-  "Sinh viên tích cực",
-  "Sinh viên ngáp ngủ",
-  "Sinh viên ngủ gật",
-  "Sinh viên siêng năng",
-  "Sinh viên cần cù",
-  "Sinh viên lạc lối",
-  "Sinh viên đáng yêu",
-  "Sinh viên tốt bụng",
-  "Sinh viên năng động",
-  "Sinh viên sáng tạo",
-  "Sinh viên thông minh",
-  "Sinh viên hài hước",
-  "Sinh viên mơ mộng",
-  "Sinh viên tự tin",
-  "Sinh viên trầm tính",
-  "Học giả chăm chỉ",
-  "Học giả vui vẻ",
-  "Học giả thân thiện",
-  "Học giả nhiệt tình",
-  "Học giả bí ẩn",
-  "Học giả tích cực",
-  "Học giả ngáp ngủ",
-  "Học giả ngủ gật",
-  "Học giả siêng năng",
-  "Học giả cần cù",
-  "Học giả lạc lối",
-  "Học giả đáng yêu",
-  "Học giả tốt bụng",
-  "Học giả năng động",
-  "Học giả sáng tạo",
-  "Học giả thông minh",
-  "Học giả hài hước",
-  "Học giả mơ mộng",
-  "Học giả tự tin",
-  "Học giả trầm tính",
-  "Mọt sách chăm chỉ",
-  "Mọt sách vui vẻ",
-  "Mọt sách thân thiện",
-  "Mọt sách nhiệt tình",
-  "Mọt sách bí ẩn",
-  "Mọt sách tích cực",
-  "Mọt sách ngáp ngủ",
-  "Mọt sách ngủ gật",
-  "Mọt sách siêng năng",
-  "Mọt sách cần cù",
-  "Mọt sách lạc lối",
-  "Mọt sách đáng yêu",
-  "Mọt sách tốt bụng",
-  "Mọt sách năng động",
-  "Mọt sách sáng tạo",
-  "Mọt sách thông minh",
-  "Mọt sách hài hước",
-  "Mọt sách mơ mộng",
-  "Mọt sách tự tin",
-  "Mọt sách trầm tính",
-  "Cú đêm chăm chỉ",
-  "Cú đêm vui vẻ",
-  "Cú đêm thân thiện",
-  "Cú đêm nhiệt tình",
-  "Cú đêm bí ẩn",
-  "Cú đêm tích cực",
-  "Cú đêm ngáp ngủ",
-  "Cú đêm ngủ gật",
-  "Cú đêm siêng năng",
-  "Cú đêm cần cù",
-  "Cú đêm lạc lối",
-  "Cú đêm đáng yêu",
-  "Cú đêm tốt bụng",
-  "Cú đêm năng động",
-  "Cú đêm sáng tạo",
-  "Cú đêm thông minh",
-  "Cú đêm hài hước",
-  "Cú đêm mơ mộng",
-  "Cú đêm tự tin",
-  "Cú đêm trầm tính",
-  "Người hùng chăm chỉ",
-  "Người hùng vui vẻ",
-  "Người hùng thân thiện",
-  "Người hùng nhiệt tình",
-  "Người hùng bí ẩn",
-  "Người hùng tích cực",
-  "Người hùng ngáp ngủ",
-  "Người hùng ngủ gật",
-  "Người hùng siêng năng",
-  "Người hùng cần cù",
-  "Người hùng lạc lối",
-  "Người hùng đáng yêu",
-  "Người hùng tốt bụng",
-  "Người hùng năng động",
-  "Người hùng sáng tạo",
-  "Người hùng thông minh",
-  "Người hùng hài hước",
-  "Người hùng mơ mộng",
-  "Người hùng tự tin",
-  "Người hùng trầm tính"
-];
+            "Sinh viên chăm chỉ", "Sinh viên vui vẻ", "Sinh viên thân thiện", "Sinh viên nhiệt tình", "Sinh viên bí ẩn",
+            "Sinh viên tích cực", "Sinh viên ngáp ngủ", "Sinh viên ngủ gật", "Sinh viên siêng năng", "Sinh viên cần cù",
+            "Sinh viên lạc lối", "Sinh viên đáng yêu", "Sinh viên tốt bụng", "Sinh viên năng động", "Sinh viên sáng tạo",
+            "Sinh viên thông minh", "Sinh viên hài hước", "Sinh viên mơ mộng", "Sinh viên tự tin", "Sinh viên trầm tính",
+            "Học giả chăm chỉ", "Học giả vui vẻ", "Học giả thân thiện", "Học giả nhiệt tình", "Học giả bí ẩn",
+            "Học giả tích cực", "Học giả ngáp ngủ", "Học giả ngủ gật", "Học giả siêng năng", "Học giả cần cù",
+            "Mọt sách chăm chỉ", "Mọt sách vui vẻ", "Mọt sách thân thiện", "Mọt sách nhiệt tình", "Mọt sách bí ẩn",
+            "Cú đêm chăm chỉ", "Cú đêm vui vẻ", "Cú đêm thân thiện", "Cú đêm nhiệt tình", "Cú đêm tích cực",
+            "Người hùng chăm chỉ", "Người hùng vui vẻ", "Người hùng thân thiện", "Người hùng thông minh", "Người hùng tự tin"
+        ];
 
         function randomizeName() {
             const authorInput = document.getElementById('authorName');
+            if (!authorInput) return;
             const randomName = authorNames[Math.floor(Math.random() * authorNames.length)];
             authorInput.value = randomName;
         }
 
-        // Handle Form Submission via AJAX
+        // Single-line English comment: Submit feedback payload to backend for persistence and admin delivery
         function submitFeedback(e) {
             e.preventDefault();
-            const content = contentInput.value.trim();
-            const authorName = document.getElementById('authorName').value.trim();
-            
+            const content = contentInput ? contentInput.value.trim() : '';
+            const authorInput = document.getElementById('authorName');
+            const authorName = authorInput ? authorInput.value.trim() : 'Người dùng';
+
             if (!content) return showMessage('Vui lòng nhập nội dung', 'error');
 
             submitBtn.disabled = true;
@@ -262,17 +112,34 @@
                 },
                 body: JSON.stringify({ content: content, authorName: authorName })
             })
-            .then(response => response.json())
+            .then(async response => {
+                const text = await response.text();
+                let data = {};
+                try {
+                    data = text ? JSON.parse(text) : {};
+                } catch (err) {
+                    // Single-line English comment: Handle plain-text rate limit response cleanly
+                    data = {
+                        error: response.status === 429
+                            ? 'Vui lòng đợi 1 phút trước khi gửi góp ý tiếp theo.'
+                            : (text || 'Có lỗi xảy ra khi gửi góp ý.')
+                    };
+                }
+                if (!response.ok && !data.error) {
+                    data.error = 'Có lỗi xảy ra khi gửi góp ý.';
+                }
+                return data;
+            })
             .then(data => {
                 if (data.error) {
                     showMessage(data.error, 'error');
                 } else {
-                    showMessage('Gửi góp ý thành công!', 'success');
-                    contentInput.value = '';
-                    charCount.innerText = '0/500';
+                    showMessage('Gửi góp ý thành công! Cảm ơn bạn đã đóng góp cho UniDocs.', 'success');
+                    if (contentInput) contentInput.value = '';
+                    if (charCount) charCount.innerText = '0/500';
                 }
             })
-            .catch(error => {
+            .catch(() => {
                 showMessage('Lỗi kết nối đến máy chủ.', 'error');
             })
             .finally(() => {
@@ -280,69 +147,6 @@
                 submitBtn.innerHTML = 'Gửi Góp Ý';
             });
         }
-
-        // Helper to format date
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-        }
-
-        // Initialize Server-Sent Events (SSE)
-        const eventSource = new EventSource('/api/feedback/stream');
-
-        eventSource.addEventListener('NEW_FEEDBACK', function(e) {
-            const fb = JSON.parse(e.data);
-            
-            // Check if already exists
-            if (document.getElementById('fb-' + fb.id)) return;
-
-            if (emptyState) emptyState.style.display = 'none';
-
-            const fbDiv = document.createElement('div');
-            fbDiv.id = 'fb-' + fb.id;
-            fbDiv.className = 'border border-gray-200 rounded-lg p-4 bg-white transition-colors sse-new-item';
-            
-            fbDiv.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <div class="font-bold text-gray-900">${fb.authorName}</div>
-                    <div class="text-xs text-gray-500">${formatDate(fb.createdAt)}</div>
-                </div>
-                <p class="text-gray-700 text-sm whitespace-pre-wrap">${fb.content}</p>
-                <div id="reply-${fb.id}"></div>
-            `;
-            
-            feedbackList.insertBefore(fbDiv, feedbackList.firstChild);
-        });
-
-        eventSource.addEventListener('REPLY_FEEDBACK', function(e) {
-            const fb = JSON.parse(e.data);
-            const replyContainer = document.getElementById('reply-' + fb.id);
-            if (replyContainer && fb.replyContent) {
-                replyContainer.className = 'mt-4 bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-md sse-new-item';
-                replyContainer.innerHTML = `
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-xs text-blue-800">Quản trị UniDocs</span>
-                        <span class="text-xs text-blue-600">${formatDate(fb.repliedAt)}</span>
-                    </div>
-                    <p class="text-sm text-blue-900 whitespace-pre-wrap">${fb.replyContent}</p>
-                `;
-            }
-        });
-
-        eventSource.addEventListener('DELETE_REPLY', function(e) {
-            const fb = JSON.parse(e.data);
-            const replyContainer = document.getElementById('reply-' + fb.id);
-            if (replyContainer) {
-                replyContainer.innerHTML = '';
-                replyContainer.className = '';
-            }
-        });
-
-        eventSource.onerror = function(err) {
-            console.error("SSE Error:", err);
-            // Browser will automatically attempt to reconnect
-        };
     </script>
 </body>
 </html>
-

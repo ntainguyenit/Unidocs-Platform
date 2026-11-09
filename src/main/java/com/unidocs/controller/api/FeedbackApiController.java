@@ -4,7 +4,6 @@ import com.unidocs.domain.Feedback;
 import com.unidocs.service.FeedbackService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
 
@@ -18,11 +17,7 @@ public class FeedbackApiController {
         this.feedbackService = feedbackService;
     }
 
-    @GetMapping("/stream")
-    public SseEmitter stream() {
-        return feedbackService.createEmitter();
-    }
-
+    // Single-line English comment: Persist user feedback and trigger admin real-time notification via service
     @PostMapping
     public ResponseEntity<?> submitFeedback(@RequestBody Map<String, String> payload) {
         try {

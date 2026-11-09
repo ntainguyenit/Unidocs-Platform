@@ -260,7 +260,7 @@
         </div>
 
         <script th:src="@{/js/lang.js}"></script>
-        <script th:src="@{/js/base.js(v='2.9')}"></script>
+        <script th:src="@{/js/base.js(v='3.0')}"></script>
 
         <!-- Bookmarks Modal -->
         <div id="bookmarksModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4">
@@ -615,6 +615,8 @@
                         <span class="text-gray-400">|</span>
                         <a th:href="@{/privacy}" class="hover:text-primary transition-colors font-medium text-xs" data-i18n="footer.privacy">Chính sách bảo mật</a>
                     </div>
+                    <!-- Single-line English comment: Display user session access time and device info below footer links -->
+                    <p id="lastAccessInfo" class="mt-2.5 text-xs text-gray-500 leading-relaxed px-2 text-balance break-words min-h-[1.25rem]" aria-live="polite"></p>
                 </div>
             </div>
             

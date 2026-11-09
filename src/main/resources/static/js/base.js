@@ -689,3 +689,114 @@ function initMotivationalQuotes() {
 }
 
 document.addEventListener('DOMContentLoaded', initMotivationalQuotes);
+
+// Single-line English comment: Record website access silently on backend and display formatted time and device in footer
+function initAccessTracker() {
+    const accessEl = document.getElementById('lastAccessInfo');
+    if (!accessEl) return;
+
+    const ua = navigator.userAgent || '';
+    const isTouchMac = /Macintosh/i.test(ua) && navigator.maxTouchPoints > 1;
+    const platformHint = (navigator.userAgentData && navigator.userAgentData.platform)
+        ? navigator.userAgentData.platform
+        : (navigator.platform || '');
+    const mobileHint = (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean')
+        ? navigator.userAgentData.mobile
+        : null;
+
+    const payload = {
+        path: window.location.pathname || '/',
+        platform: platformHint,
+        mobile: mobileHint,
+        touchMac: isTouchMac
+    };
+
+    // Single-line English comment: Send access metadata so server stores client IP silently without exposing it
+    fetch('/api/access-logs', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Failed to record access log');
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data && data.displayText) {
+                // Single-line English comment: Render sanitized display text cleanly using textContent
+                accessEl.textContent = data.displayText;
+                return;
+            }
+            if (data && data.time && data.date && data.deviceName) {
+                accessEl.textContent = `Lần truy cập cuối: lúc ${data.time} ngày ${data.date} (${data.deviceName})`;
+                return;
+            }
+            renderClientFallbackAccessInfo(accessEl);
+        })
+        .catch(() => {
+            // Single-line English comment: Render safe client-side timestamp and device fallback if request fails
+            renderClientFallbackAccessInfo(accessEl);
+        });
+}
+
+// Single-line English comment: Format fallback last-access string in Asia/Ho_Chi_Minh timezone
+function renderClientFallbackAccessInfo(accessEl) {
+    if (!accessEl) return;
+    try {
+        const now = new Date();
+        const timePart = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Asia/Ho_Chi_Minh',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }).format(now);
+        const datePart = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Asia/Ho_Chi_Minh',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(now);
+        const deviceName = detectFallbackDeviceName();
+        accessEl.textContent = `Lần truy cập cuối: lúc ${timePart} ngày ${datePart} (${deviceName})`;
+    } catch (e) {
+        // Single-line English comment: Silently skip fallback if Intl formatting is unavailable
+    }
+}
+
+// Single-line English comment: Resolve readable device and browser name strictly from navigator metadata
+function detectFallbackDeviceName() {
+    const ua = navigator.userAgent || '';
+    const isTouchMac = /Macintosh/i.test(ua) && navigator.maxTouchPoints > 1;
+    let os = '';
+    if (/iPad/i.test(ua) || isTouchMac) os = 'iPad';
+    else if (/iPhone/i.test(ua)) os = 'iPhone';
+    else if (/iPod/i.test(ua)) os = 'iPod';
+    else if (/Android/i.test(ua)) os = 'Android';
+    else if (/Windows Phone/i.test(ua)) os = 'Windows Phone';
+    else if (/Windows/i.test(ua)) os = 'Windows';
+    else if (/Macintosh|Mac OS X/i.test(ua)) os = 'macOS';
+    else if (/CrOS/i.test(ua)) os = 'Chromebook';
+    else if (/Linux/i.test(ua)) os = 'Linux';
+
+    let browser = '';
+    if (/Zalo/i.test(ua)) browser = 'Zalo Browser';
+    else if (/FBAN|FBAV/i.test(ua)) browser = 'Facebook Browser';
+    else if (/Instagram/i.test(ua)) browser = 'Instagram Browser';
+    else if (/BytedanceWebview|musical_ly|TikTok/i.test(ua)) browser = 'TikTok Browser';
+    else if (/coc_coc_browser/i.test(ua)) browser = 'Cốc Cốc';
+    else if (/Edg\/|EdgA\/|EdgiOS\//i.test(ua)) browser = 'Edge';
+    else if (/OPR\/|Opera/i.test(ua)) browser = 'Opera';
+    else if (/SamsungBrowser\//i.test(ua)) browser = 'Samsung Internet';
+    else if (/Firefox\/|FxiOS\//i.test(ua)) browser = 'Firefox';
+    else if (/Chrome\/|CriOS\//i.test(ua)) browser = 'Chrome';
+    else if (/Safari\//i.test(ua)) browser = 'Safari';
+
+    if (os && browser) return `${os} - ${browser}`;
+    return os || browser || 'Thiết bị web';
+}
+
+document.addEventListener('DOMContentLoaded', initAccessTracker);
