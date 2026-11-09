@@ -2,9 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Define primary pale sky-blue canvas token matched to intro splash screen */
+  --unidocs-bg: #eaf2ff;
+  color-scheme: light;
+}
+
+/* Switch native UI color scheme when dark mode class is toggled on body */
+:root:has(body.dark-mode) {
+  color-scheme: dark;
+}
+
 @layer base {
   body {
-    @apply antialiased text-text bg-white;
+    @apply antialiased text-text bg-canvas;
+    background-color: var(--unidocs-bg);
   }
   h1, h2, h3, h4, h5, h6 {
     @apply text-text font-bold;

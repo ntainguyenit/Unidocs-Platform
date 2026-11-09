@@ -1,13 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/base :: head(${pageTitle})}"></head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
+<!-- Apply pale sky-blue canvas background while keeping study group card white -->
+<body class="bg-[#eaf2ff] flex flex-col min-h-screen">
     <div th:replace="~{fragments/base :: navbar}"></div>
 
     <main class="flex-grow container mx-auto px-4 py-8 flex justify-center items-start md:items-center">
         <div class="w-full max-w-3xl">
             <div class="mb-6 flex items-center">
-                <a href="/?#utilities" class="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-medium hover:bg-blue-100 transition-colors border border-blue-100 w-max text-lg shadow-sm">
+                <a href="/?#utilities" class="inline-flex items-center gap-2 bg-white text-blue-600 px-4 py-2 rounded-xl font-medium hover:bg-blue-50 transition-colors border border-blue-200 w-max text-lg shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>

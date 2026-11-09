@@ -14,7 +14,9 @@ module.exports = {
         text: {
           DEFAULT: '#111827'
         },
-        divider: '#e5e7eb'
+        divider: '#e5e7eb',
+        // Pale sky-blue website canvas token derived from intro splash screen
+        canvas: '#eaf2ff'
       }
     },
   },

@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/base :: head(${document.title} + ' | UniDocs')}"></head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
+<!-- Apply pale sky-blue canvas background while keeping viewer cards white -->
+<body class="bg-[#eaf2ff] flex flex-col min-h-screen">
     
     <div th:replace="~{fragments/base :: navbar}"></div>
 
     <main class="flex-grow container mx-auto px-4 py-4 md:py-6 flex flex-col h-full">
         
         <!-- Breadcrumb -->
-        <nav class="flex text-sm text-gray-500 mb-4 sticky top-[60px] md:top-[64px] z-30 bg-gray-50/95 backdrop-blur-sm py-2 md:py-3 -mx-4 px-4 border-b border-gray-200/50 shadow-sm" aria-label="Breadcrumb">
+        <nav class="flex text-sm text-gray-600 mb-4 sticky top-[60px] md:top-[64px] z-30 bg-[#eaf2ff]/95 backdrop-blur-sm py-2 md:py-3 -mx-4 px-4 border-b border-blue-200/60 shadow-sm" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3 whitespace-nowrap overflow-x-auto pb-2">
                 <li class="inline-flex items-center">
                     <a th:href="@{/}" class="hover:text-primary transition-colors flex items-center">
@@ -18,13 +19,13 @@
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
                         <a th:href="@{/course/{slug}(slug=${document.course.slug})}" class="ml-1 hover:text-primary transition-colors font-medium" th:text="${document.course.name}">Học phần</a>
                     </div>
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
                         <span class="ml-1 text-text font-medium truncate max-w-[150px] sm:max-w-xs" th:text="${document.title}">Tài liệu</span>
                     </div>
                 </li>
@@ -96,13 +97,13 @@
             </div>
         </div>
 
-        <div th:if="${document.fileType.name() == 'IMAGE'}" class="bg-gray-100 rounded-lg shadow-sm border border-divider flex-grow relative min-h-[80vh] flex items-center justify-center p-2 md:p-4 overflow-hidden mb-6">
+        <div th:if="${document.fileType.name() == 'IMAGE'}" class="bg-white rounded-lg shadow-sm border border-divider flex-grow relative min-h-[80vh] flex items-center justify-center p-2 md:p-4 overflow-hidden mb-6">
             <img th:src="${document.storageUrl}" class="w-full h-full max-h-[80vh] object-contain rounded" alt="Document image" />
         </div>
 
         <!-- Related Documents -->
         <div th:if="${relatedDocs != null and !relatedDocs.empty}" class="mt-2 mb-6">
-            <div class="flex items-center gap-2 mb-3 md:mb-4 border-b border-divider pb-2">
+            <div class="flex items-center gap-2 mb-3 md:mb-4 border-b border-blue-200/80 pb-2">
                 <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path></svg>
                 <h2 class="text-lg md:text-xl font-bold text-text" data-i18n="Related Documents">Tài liệu liên quan</h2>
             </div>

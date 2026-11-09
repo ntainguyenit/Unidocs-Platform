@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/base :: head('Quản lý Học phần | UniDocs Admin')}"></head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
+<!-- Apply pale sky-blue canvas background while keeping admin tables white -->
+<body class="bg-[#eaf2ff] flex flex-col min-h-screen">
     
     <header class="bg-primary text-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4">
@@ -42,7 +43,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Quản lý Học phần</h1>
-                <p class="text-sm text-gray-500 mt-1">Kiểm duyệt các học phần đóng góp từ người dùng và quản lý học phần hiện hành.</p>
+                <p class="text-sm text-gray-600 mt-1">Kiểm duyệt các học phần đóng góp từ người dùng và quản lý học phần hiện hành.</p>
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="adminCleanSpam()" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors cursor-pointer">

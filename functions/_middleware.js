@@ -32,7 +32,8 @@ const MAINTENANCE_HTML = `<!DOCTYPE html>
         }
     </style>
 </head>
-<body class="bg-[#F4F7FE] text-slate-800 min-h-screen flex items-center justify-center p-4 sm:p-6 antialiased">
+<!-- Single-line English comment: Align maintenance edge background with pale sky-blue canvas -->
+<body class="bg-[#eaf2ff] text-slate-800 min-h-screen flex items-center justify-center p-4 sm:p-6 antialiased">
     <main class="w-full max-w-lg bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-10 text-center relative overflow-hidden">
         <div id="iconBox" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-blue-50 text-[#1E3A8A] flex items-center justify-center mx-auto mb-6 shadow-sm transition-colors duration-300">
             <svg class="w-9 h-9 sm:w-11 sm:h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

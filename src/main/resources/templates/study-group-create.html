@@ -1,13 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/base :: head(${pageTitle})}"></head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
+<!-- Apply pale sky-blue canvas background while keeping group cards white -->
+<body class="bg-[#eaf2ff] flex flex-col min-h-screen">
     <div th:replace="~{fragments/base :: navbar}"></div>
 
     <main class="flex-grow container mx-auto px-4 py-4 md:py-8">
         <div class="max-w-7xl mx-auto">
             <div class="mb-8 flex flex-col md:flex-row md:items-center gap-4">
-                <a href="/?#utilities" class="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-medium hover:bg-blue-100 transition-colors border border-blue-100 w-max">
+                <a href="/?#utilities" class="inline-flex items-center gap-2 bg-white text-blue-600 px-4 py-2 rounded-xl font-medium hover:bg-blue-50 transition-colors border border-blue-200 shadow-sm w-max">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
@@ -94,7 +95,7 @@
 
                 <!-- Right Column: Create Form -->
                 <div style="position: sticky; top: 6rem;" class="w-full">
-                    <div class="bg-white/90 backdrop-blur-md border border-white/20 rounded-2xl shadow-xl overflow-hidden relative">
+                    <div class="bg-white border border-divider rounded-2xl shadow-xl overflow-hidden relative">
                         <!-- Maintenance Overlay -->
                         <div class="absolute inset-0 z-50 bg-white/50 backdrop-blur-sm flex items-center justify-center cursor-not-allowed">
                             <div class="bg-white/90 px-6 py-4 rounded-xl shadow-xl border border-gray-200 flex flex-col items-center gap-2 transform -translate-y-4">

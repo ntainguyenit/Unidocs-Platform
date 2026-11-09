@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/base :: head(${faculty.name} + ' - ' + (${faculty.university.shortName != null ? faculty.university.shortName : faculty.university.name}) + ' | UniDocs')}"></head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
+<!-- Apply pale sky-blue canvas background while keeping cards white -->
+<body class="bg-[#eaf2ff] flex flex-col min-h-screen">
     
     <div th:replace="~{fragments/base :: navbar}"></div>
 
     <main class="flex-grow container mx-auto px-4 py-8">
         
         <!-- Breadcrumb -->
-        <nav class="flex text-sm text-gray-500 mb-6 sticky top-[60px] md:top-[64px] z-30 bg-gray-50/95 backdrop-blur-sm py-2 md:py-3 -mx-4 px-4 border-b border-gray-200/50 shadow-sm" aria-label="Breadcrumb">
+        <nav class="flex text-sm text-gray-600 mb-6 sticky top-[60px] md:top-[64px] z-30 bg-[#eaf2ff]/95 backdrop-blur-sm py-2 md:py-3 -mx-4 px-4 border-b border-blue-200/60 shadow-sm" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                 <li class="inline-flex items-center">
                     <a th:href="@{/}" class="hover:text-primary transition-colors flex items-center">
@@ -18,13 +19,13 @@
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
                         <a th:href="@{/university/{slug}(slug=${faculty.university.slug})}" class="ml-1 md:ml-2 hover:text-primary transition-colors font-medium" th:text="${faculty.university.name}">Đại học</a>
                     </div>
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
                         <span class="ml-1 md:ml-2 text-text font-medium" th:text="${faculty.name}">Khoa</span>
                     </div>
                 </li>
@@ -51,13 +52,13 @@
         </div>
 
         <!-- Courses Grid -->
-        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-divider pb-2">
+        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-blue-200/80 pb-2">
             <h2 class="text-xl font-bold text-text">Danh sách Học phần (<span id="facultyCourseCount" th:text="${courses.size()}">0</span>)</h2>
             <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
                 <!-- Search Box -->
                 <div class="relative flex-grow sm:flex-grow-0">
                     <input type="text" id="courseSearchInput" oninput="filterAndSortCourses()" placeholder="Tìm nhanh học phần..." 
-                           class="w-full sm:w-44 text-xs pl-7 pr-2.5 py-2 border border-divider rounded-lg focus:outline-none focus:border-primary transition-colors bg-gray-50/50">
+                           class="w-full sm:w-44 text-xs pl-7 pr-2.5 py-2 border border-divider rounded-lg focus:outline-none focus:border-primary transition-colors bg-white">
                     <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 1114 0z"></path>
                     </svg>
@@ -82,7 +83,7 @@
                 </div>
 
                 <!-- View Toggle Buttons -->
-                <div class="flex bg-gray-100 p-1 rounded-md shrink-0">
+                <div class="flex bg-blue-100/80 border border-blue-200/70 p-1 rounded-md shrink-0">
                     <button id="btnGridView" onclick="toggleView('grid')" class="p-1.5 rounded bg-white shadow-sm text-primary transition-all">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                     </button>
@@ -95,7 +96,8 @@
         
         <div id="dataContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-300">
             <!-- Create New Card -->
-            <div onclick="openCreateCourseModal()" class="card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-50 flex items-center justify-center min-h-[80px]">
+            <!-- Keep course contribution card white so dashed border separates cleanly from pale blue canvas -->
+            <div onclick="openCreateCourseModal()" class="card p-4 group hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer border-2 border-dashed border-blue-300 bg-white hover:bg-blue-50 flex items-center justify-center min-h-[80px]">
                 <div class="text-primary font-bold flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Đóng góp Học phần mới
@@ -124,7 +126,7 @@
 
         <!-- Other Faculties -->
         <div th:if="${not #lists.isEmpty(otherFaculties)}" class="mt-12">
-            <div class="mb-4 border-b border-divider pb-2">
+            <div class="mb-4 border-b border-blue-200/80 pb-2">
                 <h2 class="text-xl font-bold text-text">Danh sách các Khoa khác</h2>
             </div>
             

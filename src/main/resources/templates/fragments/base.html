@@ -64,20 +64,25 @@
     }
     </script>
 
-    <link th:href="@{/css/output.css(v='1.3')}" rel="stylesheet">
+    <link th:href="@{/css/output.css(v='1.5')}" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
-        body.dark-mode { background-color: #111827; color: #f9fafb; }
+        /* Apply pale sky-blue canvas token matched to intro screen and default light color scheme */
+        :root { --unidocs-bg: #eaf2ff; color-scheme: light; }
+        /* Adapt browser UI surfaces when dark-mode class is toggled on body */
+        :root:has(body.dark-mode) { color-scheme: dark; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--unidocs-bg); transition: background-color 0.3s, color 0.3s; }
+        body.dark-mode { background-color: #111827 !important; color: #f9fafb; }
         body.dark-mode .bg-white { background-color: #1f2937; border-color: #374151; color: #f9fafb; }
         body.dark-mode .text-gray-900, body.dark-mode .text-gray-800 { color: #f9fafb; }
         body.dark-mode .text-gray-700, body.dark-mode .text-gray-600 { color: #d1d5db; }
         body.dark-mode .text-gray-500 { color: #9ca3af; }
         body.dark-mode .bg-gray-50, body.dark-mode .bg-gray-100 { background-color: #374151; }
+        body.dark-mode .bg-\[\#eaf2ff\]\/95 { background-color: rgba(17, 24, 39, 0.95); border-color: #374151; }
         body.dark-mode .border-gray-200, body.dark-mode .border-divider, body.dark-mode .border-gray-100 { border-color: #374151; }
         body.dark-mode header.bg-primary { background-color: #1e3a8a; }
         body.dark-mode .shadow-sm, body.dark-mode .shadow-md, body.dark-mode .shadow-xl { box-shadow: none; border: 1px solid #374151; }
@@ -114,6 +119,11 @@
     <th:block th:fragment="navbar">
         <!-- Enhanced Splash Screen -->
         <style>
+            /* Provide shared canvas token and dark-mode fallback for standalone utility pages */
+            :root { --unidocs-bg: #eaf2ff; color-scheme: light; }
+            :root:has(body.dark-mode) { color-scheme: dark; }
+            body { background-color: var(--unidocs-bg); }
+            body.dark-mode { background-color: #111827 !important; color: #f9fafb; }
             @keyframes logo-flip {
                 0% { transform: perspective(400px) rotateY(0deg); }
                 50% { transform: perspective(400px) rotateY(180deg); }
@@ -179,7 +189,9 @@
                             colors: {
                                 primary: { DEFAULT: '#1e3a8a', dark: '#0f172a' },
                                 text: { DEFAULT: '#111827' },
-                                divider: '#e5e7eb'
+                                divider: '#e5e7eb',
+                                // Single-line English comment: Expose shared pale blue canvas token for Tailwind CDN pages
+                                canvas: '#eaf2ff'
                             }
                         }
                     }
@@ -563,7 +575,8 @@
         <script th:src="@{/js/anti-theft.js(v=2.1)}" defer></script>
     </div>
 
-    <footer th:fragment="footer" class="bg-gray-100 border-t border-divider mt-12 py-8 relative">
+    <!-- Keep footer surface crisp white for clear contrast against pale sky-blue canvas -->
+    <footer th:fragment="footer" class="bg-white border-t border-divider mt-12 py-8 relative">
         <div class="container mx-auto px-4">
             
             <!-- Google AdSense - Horizontal Banner (Footer) -->

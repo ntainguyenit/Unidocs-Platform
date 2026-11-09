@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/base :: head('Trang chủ | UniDocs')}"></head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
+<!-- Apply pale sky-blue website canvas background while keeping cards white -->
+<body class="bg-[#eaf2ff] flex flex-col min-h-screen">
     
     <div th:replace="~{fragments/base :: navbar}"></div>
     
@@ -48,10 +49,10 @@
         
 
         <div class="mb-12" id="section-university" style="scroll-margin-top: 100px;">
-            <div class="flex justify-between items-end mb-6 border-b border-divider pb-2">
+            <div class="flex justify-between items-end mb-6 border-b border-blue-200/80 pb-2">
                 <div class="flex items-center gap-3">
                     <h2 class="text-2xl text-text" data-i18n="home.university">Trường đại học</h2>
-                    <a href="#" onclick="showManualModal(); return false;" class="text-gray-500 hover:text-primary transition-colors flex items-center gap-1 text-sm font-medium">
+                    <a href="#" onclick="showManualModal(); return false;" class="text-gray-600 hover:text-primary transition-colors flex items-center gap-1 text-sm font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <span data-i18n="home.manual">Hướng dẫn sử dụng</span></a>
                 </div>
@@ -83,10 +84,10 @@
         </div>
 
         <div class="mb-12" id="section-notices" style="scroll-margin-top: 100px;">
-            <div class="flex flex-wrap justify-between items-center border-b border-gray-200 pb-4 mb-6 gap-2">
+            <div class="flex flex-wrap justify-between items-center border-b border-blue-200/80 pb-4 mb-6 gap-2">
                 <h2 class="text-2xl text-text flex flex-wrap items-center">
                     <span data-i18n="home.notices">Thông báo từ nhà trường</span> 
-                    <span class="text-gray-500 text-sm font-normal ml-1 md:ml-2" data-i18n="home.notices.desc">(Tổng hợp 5 thông báo mới nhất)</span>
+                    <span class="text-gray-600 text-sm font-normal ml-1 md:ml-2" data-i18n="home.notices.desc">(Tổng hợp 5 thông báo mới nhất)</span>
                 </h2>
                 <a href="https://ums.husc.edu.vn/" target="_blank" class="text-primary hover:text-blue-700 font-medium flex items-center gap-1 transition-colors whitespace-nowrap" data-i18n="home.view_all">
                     Xem tất cả
@@ -130,11 +131,11 @@
 
         
         <div class="mb-12" id="utilities" style="scroll-margin-top: 100px;">
-            <div class="flex flex-wrap items-center gap-4 mb-6 border-b border-divider pb-4">
+            <div class="flex flex-wrap items-center gap-4 mb-6 border-b border-blue-200/80 pb-4">
                 <h2 class="text-2xl text-text font-bold flex flex-wrap items-center gap-2">
                     <span data-i18n="home.utilities">Tiện ích sinh viên</span>
-                    <span class="text-gray-500 text-sm font-normal" data-i18n="home.utilities.desc">(Sử dụng miễn phí)</span>
-                    <span id="totalUtilitiesBadge" class="ml-1 text-gray-500 text-sm font-medium whitespace-nowrap">--</span>
+                    <span class="text-gray-600 text-sm font-normal" data-i18n="home.utilities.desc">(Sử dụng miễn phí)</span>
+                    <span id="totalUtilitiesBadge" class="ml-1 text-gray-600 text-sm font-medium whitespace-nowrap">--</span>
                 </h2>
                 
                 <div class="flex items-center gap-2">
@@ -146,7 +147,7 @@
                     </select>
                     <!-- Eye toggle button (exact height as select for symmetry) -->
                     <button id="toggleUtilitiesVisibilityBtn" type="button" 
-                            class="h-[34px] w-[34px] inline-flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors cursor-pointer shrink-0" 
+                            class="h-[34px] w-[34px] inline-flex items-center justify-center bg-white text-gray-500 hover:text-primary hover:bg-blue-50 rounded-lg border border-gray-300 transition-colors cursor-pointer shrink-0" 
                             title="Tắt/Bật tiện ích sinh viên" aria-label="Tắt/Bật tiện ích sinh viên">
                         <!-- Eye open icon (visible) -->
                         <svg id="utilEyeOpenIcon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -163,7 +164,7 @@
             </div>
 
             <!-- Utilities Hidden Banner -->
-            <div id="utilities-hidden-banner" class="hidden text-center py-10 px-6 bg-blue-50/70 border border-blue-200 rounded-2xl mb-6 shadow-sm transition-all">
+            <div id="utilities-hidden-banner" class="hidden text-center py-10 px-6 bg-white border border-blue-200 rounded-2xl mb-6 shadow-sm transition-all">
                 <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-primary mb-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -468,10 +469,10 @@
 
         <!-- Feedback & Response -->
         <div class="mb-12" id="section-feedback" style="scroll-margin-top: 100px;">
-            <div class="border-b border-gray-200 pb-4 mb-6">
+            <div class="border-b border-blue-200/80 pb-4 mb-6">
                 <h2 class="text-xl md:text-2xl font-bold text-gray-900">
                     <span data-i18n="home.feedback">Góp ý & Phản hồi</span>
-                    <span class="block sm:inline text-gray-500 text-sm font-normal mt-1 sm:mt-0" data-i18n="home.feedback.desc">(Giúp cải thiện UniDocs tốt hơn)</span>
+                    <span class="block sm:inline text-gray-600 text-sm font-normal mt-1 sm:mt-0" data-i18n="home.feedback.desc">(Giúp cải thiện UniDocs tốt hơn)</span>
                 </h2>
             </div>
             <!-- Single-line English comment: Responsive full-width container for feedback submission card without public list -->
@@ -517,7 +518,7 @@
         <div class="fixed right-0 top-[250px] z-[90] flex items-center justify-end pr-4 h-64 pointer-events-none hidden md:flex">
             <div class="relative group pointer-events-auto flex items-center justify-end w-64 h-full">
                 <!-- Trigger 4 dashes -->
-                <div class="flex flex-col gap-2 p-3 cursor-pointer bg-white/50 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 group-hover:opacity-0 transition-opacity duration-300 absolute right-0">
+                <div class="flex flex-col gap-2 p-3 cursor-pointer bg-white/95 backdrop-blur-sm rounded-lg shadow-sm border border-blue-200/70 group-hover:opacity-0 transition-opacity duration-300 absolute right-0">
                     <div class="toc-dash w-6 h-1 bg-gray-800 rounded-full transition-colors duration-300"></div>
                     <div class="toc-dash w-6 h-1 bg-gray-300 rounded-full transition-colors duration-300"></div>
                     <div class="toc-dash w-6 h-1 bg-gray-300 rounded-full transition-colors duration-300"></div>
@@ -750,7 +751,7 @@
         }
         @keyframes highlightFade {
             0% { background-color: #f0fdf4; border-color: #22c55e; }
-            100% { background-color: #f9fafb; border-color: #e5e7eb; }
+            100% { background-color: #ffffff; border-color: #e5e7eb; }
         }
     </style>
 

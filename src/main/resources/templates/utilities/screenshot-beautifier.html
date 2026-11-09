@@ -15,16 +15,17 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 flex flex-col min-h-screen text-text">
+<!-- Apply pale sky-blue canvas background while keeping utility cards white -->
+<body class="bg-[#eaf2ff] flex flex-col min-h-screen text-text">
     
     <div th:replace="~{fragments/base :: navbar}" th:with="hideExtraTools=true"></div>
 
     <main class="flex-grow container mx-auto px-4 py-8">
-        <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 mb-6 shadow-sm w-fit">
+        <a th:href="@{/#utilities}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors bg-white hover:bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 mb-6 shadow-sm w-fit">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Quay lại
         </a>
-        <nav class="flex text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+        <nav class="flex text-sm text-gray-600 mb-6" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                 <li class="inline-flex items-center">
                     <a th:href="@{/}" class="hover:text-primary transition-colors flex items-center">
@@ -34,7 +35,7 @@
                 </li>
                 <li>
                     <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
                         <span class="ml-1 md:ml-2 text-text font-medium">Làm đẹp ảnh chụp màn hình</span>
                     </div>
                 </li>
@@ -43,7 +44,7 @@
 
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900">Làm đẹp ảnh chụp màn hình</h1>
-            <p class="text-gray-500 mt-2">Biến bức ảnh chụp màn hình nhàm chán của bạn thành một kiệt tác với viền bo tròn, bóng đổ và hình nền cực chất.</p>
+            <p class="text-gray-600 mt-2">Biến bức ảnh chụp màn hình nhàm chán của bạn thành một kiệt tác với viền bo tròn, bóng đổ và hình nền cực chất.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
