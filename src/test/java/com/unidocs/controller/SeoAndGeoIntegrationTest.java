@@ -119,17 +119,20 @@ class SeoAndGeoIntegrationTest {
         documentRepository.saveAndFlush(doc);
         clearAllCaches();
 
-        // 1. Verify University directory page SEO + Schema + GEO intro
+        // 1. Verify University directory page SEO + Schema + uniformly bordered GEO intro card
         mockMvc.perform(get("/university/truong-dai-hoc-khoa-hoc-seo"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Trường đại học Khoa học - Trường Đại học Khoa học Huế (ĐHKH Huế, HUSC) | UniDocs")))
+                .andExpect(content().string(containsString("aria-label=\"Giới thiệu tổng quan các khoa trực thuộc\" class=\"bg-white rounded-lg shadow-sm border border-divider p-4 md:p-5 mb-6\"")))
+                .andExpect(content().string(not(containsString("border-l-4"))))
+                .andExpect(content().string(not(containsString("border-l-primary"))))
                 .andExpect(content().string(containsString("Khoa Công nghệ Thông tin")))
                 .andExpect(content().string(containsString("Khoa Báo chí - Truyền thông")))
                 .andExpect(content().string(containsString("<link rel=\"canonical\" href=\"https://unidocs-husc.pages.dev/university/truong-dai-hoc-khoa-hoc-seo\">")))
                 .andExpect(content().string(containsString("\"@type\":\"CollectionPage\"")))
                 .andExpect(content().string(containsString("\"@type\":\"EducationalOrganization\"")));
 
-        // 2. Verify Faculty page exact Title, Description, Canonical, Open Graph, CollectionPage/EducationalOrganization JSON-LD
+        // 2. Verify Faculty page Title, Description, Canonical, OG, Schema, and uniformly bordered GEO intro card
         mockMvc.perform(get("/faculty/khoa-cntt-seo"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("<title>Khoa Công nghệ Thông tin - Trường Đại học Khoa học Huế | HUSC UniDocs</title>")))
@@ -139,19 +142,24 @@ class SeoAndGeoIntegrationTest {
                 .andExpect(content().string(containsString("<meta property=\"og:site_name\" content=\"UniDocs HUSC\">")))
                 .andExpect(content().string(containsString("<meta property=\"og:locale\" content=\"vi_VN\">")))
                 .andExpect(content().string(containsString("<meta name=\"twitter:card\" content=\"summary\">")))
+                .andExpect(content().string(containsString("aria-label=\"Giới thiệu tài liệu và học phần của khoa\" class=\"bg-white rounded-lg shadow-sm border border-divider p-4 md:p-5 mb-6\"")))
+                .andExpect(content().string(not(containsString("border-l-4"))))
+                .andExpect(content().string(not(containsString("border-l-primary"))))
                 .andExpect(content().string(containsString("\"@type\":\"CollectionPage\"")))
                 .andExpect(content().string(containsString("\"@type\":\"EducationalOrganization\"")))
                 .andExpect(content().string(containsString("ĐHKH Huế")))
                 .andExpect(content().string(containsString("Trường Khoa học Huế")));
 
-        // 3. Verify Course page exact Title, Description, GEO Contextual Intro, single <head>, and canonical ignoring query param
+        // 3. Verify Course page Title, Description, uniformly bordered GEO intro card, single <head>, and canonical URL
         mockMvc.perform(get("/course/cau-truc-du-lieu-seo").param("folder", "2026"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("<head><head"))))
                 .andExpect(content().string(containsString("<title>Học phần Cấu trúc Dữ liệu và Thuật Toán - Khoa Công nghệ Thông tin | ĐHKH Huế UniDocs</title>")))
                 .andExpect(content().string(containsString("<meta name=\"description\" content=\"Tải tài liệu, đề thi, bài tập và hướng dẫn học tập học phần Cấu trúc Dữ liệu và Thuật Toán thuộc Khoa Công nghệ Thông tin - Trường Đại học Khoa học Huế (HUSC). Miễn phí trên UniDocs.\">")))
                 .andExpect(content().string(containsString("<link rel=\"canonical\" href=\"https://unidocs-husc.pages.dev/course/cau-truc-du-lieu-seo\">")))
-                .andExpect(content().string(containsString("aria-label=\"Giới thiệu ngữ cảnh học phần\"")))
+                .andExpect(content().string(containsString("aria-label=\"Giới thiệu ngữ cảnh học phần\" class=\"bg-white rounded-lg shadow-sm border border-divider p-4 md:p-5 mb-4 md:mb-6\"")))
+                .andExpect(content().string(not(containsString("border-l-4"))))
+                .andExpect(content().string(not(containsString("border-l-primary"))))
                 .andExpect(content().string(containsString("Trường Đại học Khoa học")))
                 .andExpect(content().string(containsString("Trường Khoa học Huế")))
                 .andExpect(content().string(containsString("Khoa học Huế")))

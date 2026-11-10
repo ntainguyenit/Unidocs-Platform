@@ -51,8 +51,8 @@
             </div>
         </div>
 
-        <!-- Single-line English comment: GEO AI contextual intro for faculty academic resources and HUSC school aliases -->
-        <section aria-label="Giới thiệu tài liệu và học phần của khoa" class="bg-white rounded-lg shadow-sm border border-divider border-l-4 border-l-primary p-4 md:p-5 mb-6">
+        <!-- Uniformly bordered white card for GEO AI faculty contextual intro -->
+        <section aria-label="Giới thiệu tài liệu và học phần của khoa" class="bg-white rounded-lg shadow-sm border border-divider p-4 md:p-5 mb-6">
             <h2 class="text-sm md:text-base font-bold text-gray-900 mb-1.5" th:text="'Tài liệu &amp; Đề thi ' + ${faculty.name} + ' (ĐHKH Huế - HUSC)'">Tài liệu &amp; Đề thi Khoa</h2>
             <p class="text-xs md:text-sm text-gray-700 leading-relaxed"
                th:text="${seo != null and seo.contextualIntro != null ? seo.contextualIntro : ('Tổng hợp tài liệu, đề thi, giáo trình chính thống của ' + faculty.name + ' tại Trường Đại học Khoa học Huế (Trường Khoa học Huế, Khoa học Huế, ĐHKH, ĐHKH Huế, HUSC). Chia sẻ học tập miễn phí trên UniDocs (unidocs).')}">

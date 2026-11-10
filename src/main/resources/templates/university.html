@@ -71,8 +71,8 @@
             </div>
         </div>
 
-        <!-- Single-line English comment: GEO AI contextual intro summarizing affiliated faculties and HUSC brand aliases -->
-        <section aria-label="Giới thiệu tổng quan các khoa trực thuộc" class="bg-white rounded-lg shadow-sm border border-divider border-l-4 border-l-primary p-4 md:p-5 mb-6">
+        <!-- Uniformly bordered white card for GEO AI university contextual intro -->
+        <section aria-label="Giới thiệu tổng quan các khoa trực thuộc" class="bg-white rounded-lg shadow-sm border border-divider p-4 md:p-5 mb-6">
             <h2 class="text-sm md:text-base font-bold text-gray-900 mb-1.5" th:text="'Tổng quan các khoa trực thuộc ' + ${university.name} + ' (ĐHKH Huế - HUSC)'">Tổng quan các khoa trực thuộc</h2>
             <p class="text-xs md:text-sm text-gray-700 leading-relaxed"
                th:text="${seo != null and seo.contextualIntro != null ? seo.contextualIntro : ('Kho tài liệu học tập, đề thi và giáo trình các khoa trực thuộc ' + university.name + ' — Trường Đại học Khoa học Huế (Trường Khoa học Huế, Khoa học Huế, ĐHKH, ĐHKH Huế, HUSC tại TP. Huế), chia sẻ miễn phí trên UniDocs (unidocs).')}">
