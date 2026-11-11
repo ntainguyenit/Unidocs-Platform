@@ -285,8 +285,8 @@ export async function onRequest(context) {
                     });
                 }
 
-                // If static asset (.css, .js, .png, .txt, etc.), let response pass through
-                if (/\.(css|js|png|jpg|jpeg|svg|ico|woff2?|webmanifest|txt)$/i.test(url.pathname)) {
+                // If static asset (.css, .js, .png, .glb, .txt, etc.), let response pass through
+                if (/\.(css|js|png|jpg|jpeg|svg|ico|woff2?|webmanifest|txt|glb|gltf|bin|wasm)$/i.test(url.pathname)) {
                     return response;
                 }
 
@@ -318,7 +318,7 @@ export async function onRequest(context) {
             });
         }
 
-        if (/\.(css|js|png|jpg|jpeg|svg|ico|woff2?|webmanifest|txt)$/i.test(url.pathname)) {
+        if (/\.(css|js|png|jpg|jpeg|svg|ico|woff2?|webmanifest|txt|glb|gltf|bin|wasm)$/i.test(url.pathname)) {
             return new Response('Asset temporarily unavailable', { status: 503 });
         }
 

@@ -124,6 +124,63 @@ class SeoMetadataServiceTest {
         assertTrue(safeSeo.getJsonLd().contains("\\u003c/script\\u003e"));
     }
 
+    @Test
+    void buildHuscCampusSeo_GeneratesMetaTagsAuthorClusterAndGeoSchema() throws Exception {
+        SeoMetadataDto seo = seoMetadataService.buildHuscCampusSeo();
+
+        assertEquals("Khám phá Khuôn viên 3D - Trường Đại học Khoa học Huế (HUSC) | UniDocs", seo.getTitle());
+        assertTrue(seo.getDescription().contains("Trường Đại học Khoa học Huế"));
+        assertTrue(seo.getDescription().contains("UniDocs"));
+        assertTrue(seo.getDescription().contains("77 Nguyễn Huệ"));
+        assertEquals("Tài Nguyễn (Nguyễn Ngọc Thành Tài - ntainguyen.it@gmail.com)", seo.getAuthor());
+        assertEquals("https://unidocs-husc.pages.dev/husc-campus", seo.getCanonicalUrl());
+        assertEquals("https://unidocs-husc.pages.dev/images/campus-map.jpeg", seo.getOgImage());
+
+        for (String requiredKeyword : List.of(
+                "husc campus 3d",
+                "sơ đồ 3d trường đại học khoa học huế",
+                "đhkh huế",
+                "husc",
+                "unidocs",
+                "tài nguyễn",
+                "nguyễn ngọc thành tài",
+                "ntainguyenit"
+        )) {
+            assertTrue(seo.getKeywords().contains(requiredKeyword), "Expected keyword: " + requiredKeyword);
+        }
+
+        // Parse JSON-LD graph cleanly and assert InteractiveModel, CollegeOrUniversity, and Person author nodes
+        JsonNode root = objectMapper.readTree(seo.getJsonLd());
+        assertEquals("https://schema.org", root.get("@context").asText());
+        JsonNode graph = root.get("@graph");
+        assertTrue(graph.isArray());
+
+        JsonNode universityNode = null;
+        JsonNode modelNode = null;
+        for (JsonNode node : graph) {
+            String type = node.get("@type").asText();
+            if ("CollegeOrUniversity".equals(type)) {
+                universityNode = node;
+            } else if ("InteractiveModel".equals(type)) {
+                modelNode = node;
+            }
+        }
+
+        assertNotNull(universityNode, "Expected CollegeOrUniversity node in JSON-LD @graph");
+        assertEquals("Trường Đại học Khoa học, Đại học Huế", universityNode.get("name").asText());
+        assertEquals("77 Nguyễn Huệ", universityNode.get("address").get("streetAddress").asText());
+        assertEquals("Thành phố Huế", universityNode.get("address").get("addressLocality").asText());
+
+        assertNotNull(modelNode, "Expected InteractiveModel node in JSON-LD @graph");
+        assertEquals("model/gltf-binary", modelNode.get("encodingFormat").asText());
+        JsonNode authorNode = modelNode.get("author");
+        assertNotNull(authorNode);
+        assertEquals("Tài Nguyễn", authorNode.get("name").asText());
+        assertTrue(authorNode.get("alternateName").toString().contains("Nguyễn Ngọc Thành Tài"));
+        assertEquals("ntainguyen.it@gmail.com", authorNode.get("email").asText());
+        assertEquals("https://github.com/ntainguyenit", authorNode.get("url").asText());
+    }
+
     private void assertKeywordClusterPresent(String text) {
         assertNotNull(text);
         String lower = text.toLowerCase();

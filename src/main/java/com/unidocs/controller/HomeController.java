@@ -74,6 +74,14 @@ public class HomeController {
         return "maintenance";
     }
 
+    // Render standalone interactive 3D HUSC campus explorer view with SEO and GEO AI metadata
+    @GetMapping("/husc-campus")
+    public String huscCampus(Model model) {
+        // Inject dedicated SEO and Schema.org InteractiveModel metadata for /husc-campus
+        model.addAttribute("seo", seoMetadataService.buildHuscCampusSeo());
+        return "husc-campus";
+    }
+
     @GetMapping("/university/{slug}")
     public String universityDetail(@org.springframework.web.bind.annotation.PathVariable String slug, Model model) {
         University uni = universityRepository.findBySlug(slug)

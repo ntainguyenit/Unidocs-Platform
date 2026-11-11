@@ -14,6 +14,7 @@ public class SeoMetadataDto {
     private String title;
     private String description;
     private String keywords;
+    private String author;
     private String canonicalUrl;
     private String ogType;
     private String ogImage;

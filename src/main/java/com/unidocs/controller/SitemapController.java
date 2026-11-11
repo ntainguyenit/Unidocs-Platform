@@ -84,6 +84,7 @@ public class SitemapController {
 
         // Core static landing and policy URLs
         appendUrl(xml, "/", null, "daily", "1.0");
+        appendUrl(xml, "/husc-campus", null, "monthly", "0.7");
         appendUrl(xml, "/feedback", null, "monthly", "0.7");
         appendUrl(xml, "/terms", null, "yearly", "0.4");
         appendUrl(xml, "/privacy", null, "yearly", "0.4");

@@ -481,8 +481,92 @@ public class SeoMetadataService {
                 .build();
     }
 
+    // Build SEO meta tags and Schema.org InteractiveModel + CollegeOrUniversity JSON-LD for /husc-campus
+    public SeoMetadataDto buildHuscCampusSeo() {
+        String title = "Khám phá Khuôn viên 3D - Trường Đại học Khoa học Huế (HUSC) | UniDocs";
+        String description = "Khám phá khuôn viên 3D Trường Đại học Khoa học Huế (HUSC, ĐHKH Huế) trực tuyến trên UniDocs với sơ đồ giảng đường, góc quay flycam và trải nghiệm WebGL tại 77 Nguyễn Huệ.";
+        String canonicalUrl = siteUrl + "/husc-campus";
+        String author = "Tài Nguyễn (Nguyễn Ngọc Thành Tài - ntainguyen.it@gmail.com)";
+
+        // Include all required lowercase keyword variants plus institutional brand cluster terms
+        Set<String> keywordSet = new LinkedHashSet<>();
+        keywordSet.add("husc campus 3d");
+        keywordSet.add("sơ đồ 3d trường đại học khoa học huế");
+        keywordSet.add("đhkh huế");
+        keywordSet.add("husc");
+        keywordSet.add("unidocs");
+        keywordSet.add("tài nguyễn");
+        keywordSet.add("nguyễn ngọc thành tài");
+        keywordSet.add("ntainguyenit");
+        keywordSet.add("HUSC Campus 3D");
+        keywordSet.add("Khám phá Trường 3D HUSC");
+        keywordSet.add("77 Nguyễn Huệ");
+        keywordSet.addAll(BRAND_CLUSTER_KEYWORDS);
+        String keywords = String.join(", ", keywordSet);
+
+        Map<String, Object> authorNode = buildCampusAuthorNode();
+        Map<String, Object> universityNode = buildHuscCollegeOrUniversityNode();
+
+        Map<String, Object> interactiveModel = new LinkedHashMap<>();
+        interactiveModel.put("@type", "InteractiveModel");
+        interactiveModel.put("@id", canonicalUrl + "#model");
+        interactiveModel.put("additionalType", "https://schema.org/3DModel");
+        interactiveModel.put("name", "Sơ đồ 3D Khuôn viên Trường Đại học Khoa học Huế (HUSC Campus 3D)");
+        interactiveModel.put("alternateName", List.of(
+                "HUSC Campus 3D",
+                "Sơ đồ 3D Trường Đại học Khoa học Huế",
+                "Bản đồ 3D ĐHKH Huế",
+                "Khám phá Khuôn viên 3D HUSC"
+        ));
+        interactiveModel.put("description", description);
+        interactiveModel.put("url", canonicalUrl);
+        interactiveModel.put("contentUrl", siteUrl + "/models/husc-campus.glb");
+        interactiveModel.put("encodingFormat", "model/gltf-binary");
+        interactiveModel.put("thumbnailUrl", siteUrl + "/images/campus-map.jpeg");
+        interactiveModel.put("inLanguage", "vi");
+        interactiveModel.put("isAccessibleForFree", true);
+        interactiveModel.put("keywords", keywords);
+        interactiveModel.put("about", Map.of("@id", siteUrl + "/#husc-university"));
+        interactiveModel.put("spatialCoverage", Map.of("@id", siteUrl + "/#husc-university"));
+        interactiveModel.put("author", authorNode);
+        interactiveModel.put("creator", Map.of("@id", siteUrl + "/#author"));
+        interactiveModel.put("publisher", buildPublisherNode());
+        interactiveModel.put("isPartOf", Map.of("@id", siteUrl + "/#website"));
+
+        List<Map<String, Object>> graph = new ArrayList<>();
+        graph.add(buildWebsiteNode(authorNode));
+        graph.add(universityNode);
+        graph.add(interactiveModel);
+        graph.add(buildBreadcrumbList(List.of(
+                new BreadcrumbItem("Trang chủ", siteUrl + "/"),
+                new BreadcrumbItem("Khám phá Trường 3D HUSC", canonicalUrl)
+        )));
+
+        String contextualIntro = "Sơ đồ mô hình 3D tương tác khuôn viên Trường Đại học Khoa học, Đại học Huế "
+                + "(HUSC, ĐHKH Huế) tại địa chỉ 77 Nguyễn Huệ, Thành phố Huế, phát triển bởi Tài Nguyễn "
+                + "(Nguyễn Ngọc Thành Tài - ntainguyenit) trên hệ thống UniDocs.";
+
+        return SeoMetadataDto.builder()
+                .title(title)
+                .description(description)
+                .keywords(keywords)
+                .author(author)
+                .canonicalUrl(canonicalUrl)
+                .ogType("website")
+                .ogImage(siteUrl + "/images/campus-map.jpeg")
+                .robots("index, follow")
+                .jsonLd(serializeGraph(graph))
+                .contextualIntro(contextualIntro)
+                .build();
+    }
+
     // Build shared WebSite Schema.org node inheriting historical UniDocs attribution
     private Map<String, Object> buildWebsiteNode() {
+        return buildWebsiteNode(buildAuthorNode());
+    }
+
+    // Build shared WebSite Schema.org node with explicit author node attribution
+    private Map<String, Object> buildWebsiteNode(Map<String, Object> authorNode) {
         Map<String, Object> website = new LinkedHashMap<>();
         website.put("@type", "WebSite");
         website.put("@id", siteUrl + "/#website");
@@ -490,10 +574,52 @@ public class SeoMetadataService {
         website.put("alternateName", List.of("uni doc", "unidoc", "uni docs", "unidocs", "UniDocs HUSC", "HUSC", "ĐHKH Huế"));
         website.put("url", siteUrl);
         website.put("description", "Nền tảng chia sẻ tài liệu học tập, đề thi đại học dành cho sinh viên Trường Đại học Khoa học Huế (HUSC, ĐHKH Huế)");
-        website.put("author", buildAuthorNode());
+        website.put("author", authorNode);
         website.put("creator", buildPersonSummaryNode());
         website.put("publisher", buildPublisherNode());
         return website;
+    }
+
+    // Build CollegeOrUniversity Schema.org node highlighting HUSC physical campus address for GEO AI
+    private Map<String, Object> buildHuscCollegeOrUniversityNode() {
+        Map<String, Object> university = new LinkedHashMap<>();
+        university.put("@type", "CollegeOrUniversity");
+        university.put("@id", siteUrl + "/#husc-university");
+        university.put("name", HUSC_OFFICIAL_NAME);
+        university.put("alternateName", List.of(
+                "HUSC",
+                "ĐHKH Huế",
+                "Trường Đại học Khoa học Huế",
+                "Trường Khoa học Huế",
+                "Khoa học Huế",
+                "ĐHKH"
+        ));
+        university.put("url", siteUrl);
+        university.put("sameAs", "https://husc.edu.vn/");
+
+        Map<String, Object> address = new LinkedHashMap<>();
+        address.put("@type", "PostalAddress");
+        address.put("streetAddress", "77 Nguyễn Huệ");
+        address.put("addressLocality", "Thành phố Huế");
+        address.put("addressCountry", "VN");
+        university.put("address", address);
+        return university;
+    }
+
+    // Build detailed Person Schema.org node identifying author name, aliases, email, and profile URLs
+    private Map<String, Object> buildCampusAuthorNode() {
+        Map<String, Object> author = new LinkedHashMap<>();
+        author.put("@type", "Person");
+        author.put("@id", siteUrl + "/#author");
+        author.put("name", "Tài Nguyễn");
+        author.put("alternateName", List.of("Nguyễn Ngọc Thành Tài", "Tai Nguyen", "ntainguyenit"));
+        author.put("email", "ntainguyen.it@gmail.com");
+        author.put("url", "https://github.com/ntainguyenit");
+        author.put("sameAs", List.of(
+                "https://github.com/ntainguyenit",
+                "https://www.facebook.com/ntainguyenit"
+        ));
+        return author;
     }
 
     // Build EducationalOrganization Schema.org node for HUSC with optional affiliated faculty departments

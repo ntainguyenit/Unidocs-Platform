@@ -5,7 +5,8 @@
   "scripts": {
     "build": "npm run build:css",
     "build:css": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/output.css --minify",
-    "watch:css": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/output.css --watch"
+    "watch:css": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/output.css --watch",
+    "build:campus-3d": "node scripts/build-campus-glb.mjs"
   },
   "keywords": [
     "education",
@@ -18,8 +19,13 @@
   "license": "MIT",
   "type": "commonjs",
   "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
     "autoprefixer": "^10.5.0",
+    "meshoptimizer": "^1.3.0",
     "postcss": "^8.5.15",
-    "tailwindcss": "^3.4.19"
+    "tailwindcss": "^3.4.19",
+    "three": "^0.187.0"
   }
 }

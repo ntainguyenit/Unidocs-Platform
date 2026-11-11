@@ -198,4 +198,28 @@ class HomeControllerTest {
         assertTrue(seo.getContextualIntro().contains("Khoa học Huế"));
         assertTrue(seo.getJsonLd().contains("\"@type\":\"Course\""));
     }
+
+    @Test
+    void huscCampus_PopulatesCampusSeoAndGeoMetadata() {
+        HomeController controller = new HomeController(
+                mock(com.unidocs.repository.UniversityRepository.class),
+                mock(com.unidocs.repository.FacultyRepository.class),
+                mock(com.unidocs.repository.CourseRepository.class),
+                mock(com.unidocs.repository.DocumentRepository.class),
+                mock(com.unidocs.service.DocumentService.class),
+                mock(com.unidocs.service.NotificationService.class)
+        );
+
+        Model model = new ConcurrentModel();
+        String view = controller.huscCampus(model);
+        assertEquals("husc-campus", view);
+
+        SeoMetadataDto seo = (SeoMetadataDto) model.getAttribute("seo");
+        assertNotNull(seo);
+        assertTrue(seo.getTitle().contains("Trường Đại học Khoa học Huế"));
+        assertTrue(seo.getTitle().contains("HUSC"));
+        assertEquals("Tài Nguyễn (Nguyễn Ngọc Thành Tài - ntainguyen.it@gmail.com)", seo.getAuthor());
+        assertTrue(seo.getJsonLd().contains("\"@type\":\"InteractiveModel\""));
+        assertTrue(seo.getJsonLd().contains("\"@type\":\"CollegeOrUniversity\""));
+    }
 }
