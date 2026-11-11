@@ -1685,11 +1685,17 @@ function createAtmosphereAndProps(scene) {
         lampCoords.length
     );
     const headGeom = new THREE.SphereGeometry(0.28, 10, 8);
-    const headInst = new THREE.InstancedMesh(
-        headGeom,
-        new THREE.MeshBasicMaterial({ color: 0xfef9c3 }),
-        lampCoords.length
-    );
+    const lampHeadMat = new THREE.MeshBasicMaterial({ color: 0xfef9c3 });
+    const headInst = new THREE.InstancedMesh(headGeom, lampHeadMat, lampCoords.length);
+    const haloGeom = new THREE.SphereGeometry(0.75, 10, 8);
+    const lampHaloMat = new THREE.MeshBasicMaterial({
+        color: 0xfde047,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false
+    });
+    const haloInst = new THREE.InstancedMesh(haloGeom, lampHaloMat, lampCoords.length);
+    haloInst.visible = false;
     lampCoords.forEach(([lx, lz], idx) => {
         dummy.position.set(lx, 0, lz);
         dummy.scale.setScalar(1);
@@ -1698,13 +1704,16 @@ function createAtmosphereAndProps(scene) {
         dummy.position.set(lx, 5.25, lz);
         dummy.updateMatrix();
         headInst.setMatrixAt(idx, dummy.matrix);
+        haloInst.setMatrixAt(idx, dummy.matrix);
     });
     postInst.instanceMatrix.needsUpdate = true;
     headInst.instanceMatrix.needsUpdate = true;
+    haloInst.instanceMatrix.needsUpdate = true;
     scene.add(postInst);
     scene.add(headInst);
+    scene.add(haloInst);
 
-    return { skyUniforms, syncCloudInstances };
+    return { skyUniforms, syncCloudInstances, cloudMat, lampHeadMat, lampHaloMat, haloInst };
 }
 
 // Initialize lighting, sky, gardens, signage, animated foliage, and adaptive hardware quality presets
@@ -1758,7 +1767,14 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     const intersectionSignals = createSmartIntersectionSystem(scene, hardwareProfile);
     const updateTraffic = createRoadTrafficSystem(scene, hardwareProfile);
     const teleportBeacons = createTeleportBeacons(scene, hardwareProfile);
-    const { skyUniforms, syncCloudInstances } = createAtmosphereAndProps(scene);
+    const {
+        skyUniforms,
+        syncCloudInstances,
+        cloudMat,
+        lampHeadMat,
+        lampHaloMat,
+        haloInst
+    } = createAtmosphereAndProps(scene);
 
     let shadowUpdateStride = initialTier === 'low' ? 4 : (initialTier === 'medium' ? 2 : 1);
     let shadowFrameCount = 0;
@@ -1779,7 +1795,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     };
     syncSolidFlags(0);
 
-    // Apply Noon or Sunset atmosphere preset dynamically
+    // Apply Noon, Hue Sunset, or Night atmosphere preset dynamically with zero shader recompiles
     const setLightingPreset = (mode) => {
         if (mode === 'sunset') {
             sunLight.position.set(-96, 48, 76);
@@ -1791,7 +1807,32 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             skyUniforms.uTopColor.value.setHex(0x3a4a7a);
             skyUniforms.uBottomColor.value.setHex(0xfdba8c);
             fog.color.setHex(0xf3cba8);
+            fog.density = 0.0021;
             scene.background.setHex(0xf3cba8);
+            cloudMat.color.setHex(0xfde2cc);
+            cloudMat.opacity = 0.86;
+            lampHeadMat.color.setHex(0xfef08a);
+            lampHaloMat.opacity = 0.22;
+            haloInst.visible = true;
+            renderer.toneMappingExposure = 1.04;
+        } else if (mode === 'night') {
+            sunLight.position.set(-70, 95, -55);
+            sunLight.color.setHex(0x93c5fd);
+            sunLight.intensity = 0.82;
+            hemiLight.color.setHex(0x4b74b8);
+            hemiLight.groundColor.setHex(0x1e293b);
+            hemiLight.intensity = 0.68;
+            skyUniforms.uTopColor.value.setHex(0x050a18);
+            skyUniforms.uBottomColor.value.setHex(0x17254a);
+            fog.color.setHex(0x111c36);
+            fog.density = 0.0023;
+            scene.background.setHex(0x111c36);
+            cloudMat.color.setHex(0x283652);
+            cloudMat.opacity = 0.55;
+            lampHeadMat.color.setHex(0xfde047);
+            lampHaloMat.opacity = 0.58;
+            haloInst.visible = true;
+            renderer.toneMappingExposure = 1.12;
         } else {
             sunLight.position.set(78, 118, 72);
             sunLight.color.setHex(0xfff5e4);
@@ -1802,7 +1843,14 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             skyUniforms.uTopColor.value.setHex(0x2d7bd6);
             skyUniforms.uBottomColor.value.setHex(0xd5ecff);
             fog.color.setHex(0xd5ecff);
+            fog.density = 0.0021;
             scene.background.setHex(0xd5ecff);
+            cloudMat.color.setHex(0xffffff);
+            cloudMat.opacity = 0.88;
+            lampHeadMat.color.setHex(0xfef9c3);
+            lampHaloMat.opacity = 0;
+            haloInst.visible = false;
+            renderer.toneMappingExposure = 1.06;
         }
         renderer.shadowMap.needsUpdate = true;
     };

@@ -788,6 +788,16 @@
             cursor: pointer;
         }
         .dlg-close-btn:hover { background: rgba(255, 255, 255, 0.28); }
+        .dlg-close-btn.is-red-close {
+            background: #dc2626;
+            color: #ffffff;
+            min-inline-size: 36px;
+            min-block-size: 36px;
+            padding: 0.3rem 0.72rem;
+            font-weight: 800;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        .dlg-close-btn.is-red-close:hover { background: #b91c1c; }
         .dlg-body {
             padding: 1rem 1.2rem;
             overflow-y: auto;
@@ -941,6 +951,251 @@
             border-color: #1e3a8a;
         }
         .menu-choice-btn.is-danger { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+        .menu-choice-btn.is-danger:hover { background: #fecaca; }
+        .menu-section-inline {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+        .menu-switch-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+        }
+        .menu-switch-state {
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 0.16rem 0.52rem;
+            border-radius: 999px;
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        /* 3-step native range slider styling separated per WebKit and Firefox engines */
+        .quality-slider-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .quality-range {
+            --slider-track-size: 0.5rem;
+            --slider-thumb-size: 1.375rem;
+            --slider-track-radius: 999px;
+            --slider-thumb-radius: 50%;
+            --slider-track-color: #cbd5e1;
+            --slider-fill-color: #1e3a8a;
+            --slider-thumb-color: #1e3a8a;
+            --slider-direction: to right;
+            --attr-min: 0;
+            --attr-max: 2;
+            --control-value: 2;
+            --slider-progress: calc(progress(var(--control-value), var(--attr-min), var(--attr-max)) * 100%);
+            appearance: none;
+            inline-size: 100%;
+            block-size: 2.75rem;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+        @supports not (opacity: progress(1, 0, 100)) {
+            .quality-range {
+                --slider-progress: calc((var(--control-value) - var(--attr-min)) / (var(--attr-max) - var(--attr-min)) * 100%);
+            }
+        }
+        .quality-range:focus-visible {
+            outline: 2px solid #1e3a8a;
+            outline-offset: 4px;
+            border-radius: 0.45rem;
+        }
+        .quality-range::-webkit-slider-runnable-track {
+            block-size: var(--slider-track-size);
+            border: 0;
+            border-radius: var(--slider-track-radius);
+            background: linear-gradient(var(--slider-direction), var(--slider-fill-color) var(--slider-progress), var(--slider-track-color) var(--slider-progress));
+        }
+        .quality-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            inline-size: var(--slider-thumb-size);
+            block-size: var(--slider-thumb-size);
+            margin-block-start: calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2);
+            border: 2.5px solid #ffffff;
+            border-radius: var(--slider-thumb-radius);
+            background: var(--slider-thumb-color);
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.35);
+        }
+        .quality-range::-moz-range-track {
+            block-size: var(--slider-track-size);
+            border: 0;
+            border-radius: var(--slider-track-radius);
+            background: var(--slider-track-color);
+        }
+        .quality-range::-moz-range-progress {
+            block-size: var(--slider-track-size);
+            border-radius: var(--slider-track-radius);
+            background: var(--slider-fill-color);
+        }
+        .quality-range::-moz-range-thumb {
+            inline-size: var(--slider-thumb-size);
+            block-size: var(--slider-thumb-size);
+            border: 2.5px solid #ffffff;
+            border-radius: var(--slider-thumb-radius);
+            background: var(--slider-thumb-color);
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.35);
+        }
+        .quality-ticks {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-inline: calc(1.375rem / 2 - 3px);
+            margin-top: -0.4rem;
+            pointer-events: none;
+        }
+        .quality-ticks span {
+            inline-size: 6px;
+            block-size: 6px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+        .quality-step-labels {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .quality-step-btn {
+            border: 0;
+            background: transparent;
+            padding: 0.25rem 0.2rem;
+            min-inline-size: var(--target-size);
+            min-block-size: var(--target-size);
+            font: inherit;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            border-radius: 0.45rem;
+        }
+        .quality-step-btn[data-quality-step="0"] { text-align: left; }
+        .quality-step-btn[data-quality-step="1"] { text-align: center; }
+        .quality-step-btn[data-quality-step="2"] { text-align: right; }
+        .quality-step-btn.is-active { color: #1e3a8a; font-weight: 800; }
+
+        /* Accessible native switch styling with fallback toggle pill and Windows High Contrast support */
+        .menu-switch-input {
+            accent-color: #1e3a8a;
+            margin: 0;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .menu-switch-input:focus-visible {
+            outline: 3px solid #1e3a8a;
+            outline-offset: 4px;
+        }
+        .menu-switch-input.is-switch-fallback {
+            appearance: none;
+            position: relative;
+            inline-size: 52px;
+            block-size: 30px;
+            min-inline-size: 52px;
+            min-block-size: 30px;
+            border-radius: 999px;
+            background: #cbd5e1;
+            border: 2px solid #475569;
+            transition: background-color 160ms ease, border-color 160ms ease;
+        }
+        .menu-switch-input.is-switch-fallback::after {
+            content: "";
+            position: absolute;
+            inset: -9px -6px;
+        }
+        .menu-switch-input.is-switch-fallback::before {
+            content: "";
+            position: absolute;
+            inset-block-start: 50%;
+            inset-inline-start: 3px;
+            inline-size: 20px;
+            block-size: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1.5px solid #475569;
+            transform: translateY(-50%);
+            transition: transform 160ms ease, border-color 160ms ease;
+        }
+        .menu-switch-input.is-switch-fallback:checked {
+            background: #1e3a8a;
+            border-color: #1e3a8a;
+        }
+        .menu-switch-input.is-switch-fallback:checked::before {
+            border-color: #ffffff;
+            transform: translate(22px, -50%);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .menu-switch-input.is-switch-fallback,
+            .menu-switch-input.is-switch-fallback::before {
+                transition: none;
+            }
+        }
+        @media (forced-colors: active) {
+            .menu-switch-input.is-switch-fallback { background: Canvas; border-color: ButtonText; }
+            .menu-switch-input.is-switch-fallback::before { background: ButtonText; border-color: ButtonText; }
+            .menu-switch-input.is-switch-fallback:checked { background: Highlight; border-color: Highlight; }
+            .menu-switch-input.is-switch-fallback:checked::before { background: HighlightText; border-color: HighlightText; }
+        }
+
+        .menu-footer-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.55rem;
+            padding-top: 0.1rem;
+        }
+        #settingsForm.dlg-body {
+            padding: 0.8rem 1rem;
+            gap: 0.62rem;
+        }
+        #menuDialog .menu-section {
+            padding: 0.68rem 0.85rem;
+            gap: 0.42rem;
+        }
+        @media (max-width: 720px) {
+            #menuDialog .menu-choice-btn {
+                padding: 0.42rem 0.7rem;
+                font-size: 0.78rem;
+            }
+        }
+        .menu-save-btn {
+            inline-size: 100%;
+            padding: 0.65rem 1.2rem;
+            min-block-size: 44px;
+            border: 0;
+            border-radius: 0.65rem;
+            background: #1e3a8a;
+            color: #ffffff;
+            font: inherit;
+            font-size: 0.92rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background-color 150ms ease;
+        }
+        .menu-save-btn:hover { background: #1d4ed8; }
+        .settings-status-msg {
+            margin: 0;
+            padding: 0.42rem 0.75rem;
+            border-radius: 0.55rem;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        .settings-status-msg:empty { display: none; }
+        .menu-exit-link { color: #1e3a8a; font-weight: 700; font-size: 0.84rem; text-align: center; }
         .handbook-list { display: flex; flex-direction: column; gap: 0.55rem; padding-left: 1rem; margin: 0; font-size: 0.84rem; }
         .handbook-list li strong { display: block; color: #0f172a; }
         .handbook-list li.is-done strong { color: #15803d; }
@@ -1025,7 +1280,7 @@
                     </button>
                     <button id="openGalleryBtn" type="button" class="hud-btn">Bộ sưu tập</button>
                     <button id="openMapBtn" type="button" class="hud-btn">Bản đồ</button>
-                    <button id="openMenuBtn" type="button" class="hud-btn">Menu</button>
+                    <button id="openMenuBtn" type="button" class="hud-btn">Cài đặt</button>
                 </div>
             </div>
 
@@ -1158,46 +1413,57 @@
         </div>
     </dialog>
 
-    <dialog id="menuDialog" class="game-dialog" closedby="any" aria-labelledby="menuDialogTitle" style="inline-size:min(520px, 92dvw);">
+    <dialog id="menuDialog" class="game-dialog" closedby="any" aria-labelledby="menuDialogTitle" style="inline-size:min(500px, 92dvw);">
         <div class="dlg-head">
-            <h2 id="menuDialogTitle">⚙️ Menu Cài đặt Khuôn viên 3D</h2>
+            <h2 id="menuDialogTitle">Cài đặt</h2>
             <form method="dialog">
-                <button type="submit" value="close" class="dlg-close-btn" autofocus>Đóng</button>
+                <button type="submit" value="close" class="dlg-close-btn is-red-close" aria-label="Đóng" autofocus>X</button>
             </form>
         </div>
-        <div class="dlg-body">
+        <form id="settingsForm" method="dialog" class="dlg-body" aria-labelledby="menuDialogTitle">
+            <div class="menu-section menu-section-inline">
+                <h3>Toàn cảnh</h3>
+                <button id="replayIntroBtn" type="button" class="menu-choice-btn is-primary">Xem</button>
+            </div>
             <div class="menu-section">
-                <h3>Trình diễn Camera</h3>
-                <div class="menu-btn-row">
-                    <button id="replayIntroBtn" type="button" class="menu-choice-btn is-primary">Xem lại Intro Flycam</button>
+                <h3>Thời gian</h3>
+                <div class="menu-btn-row" role="group" aria-label="Thời gian">
+                    <button type="button" class="menu-choice-btn" data-light-preset="noon">Ban ngày</button>
+                    <button type="button" class="menu-choice-btn" data-light-preset="sunset">Hoàng hôn xứ Huế</button>
+                    <button type="button" class="menu-choice-btn" data-light-preset="night">Buổi tối</button>
                 </div>
             </div>
             <div class="menu-section">
-                <h3>Ánh sáng &amp; Thời gian</h3>
-                <div class="menu-btn-row">
-                    <button type="button" class="menu-choice-btn" data-light-preset="noon">Ban ngày rực nắng</button>
-                    <button type="button" class="menu-choice-btn" data-light-preset="sunset">Chiều tà xứ Huế</button>
+                <h3><label for="qualitySlider">Đồ họa</label></h3>
+                <div class="quality-slider-wrap">
+                    <input id="qualitySlider" name="qualityTier" type="range" min="0" max="2" step="1" value="2" class="quality-range" aria-valuetext="Cao">
+                    <div class="quality-ticks" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="quality-step-labels">
+                        <button type="button" class="quality-step-btn" data-quality-step="0">Thấp</button>
+                        <button type="button" class="quality-step-btn" data-quality-step="1">Vừa</button>
+                        <button type="button" class="quality-step-btn" data-quality-step="2">Cao</button>
+                    </div>
                 </div>
             </div>
-            <div class="menu-section">
-                <h3>Chất lượng Đồ họa (60 FPS)</h3>
-                <div class="menu-btn-row">
-                    <button type="button" class="menu-choice-btn" data-quality-preset="low">Thấp (Tiết kiệm pin)</button>
-                    <button type="button" class="menu-choice-btn" data-quality-preset="medium">Trung bình</button>
-                    <button type="button" class="menu-choice-btn" data-quality-preset="high">Cao (Sắc nét)</button>
+            <div class="menu-section menu-section-inline">
+                <div class="menu-switch-meta">
+                    <h3><label for="soundToggleInput">Âm thanh</label></h3>
+                    <span id="soundStateLabel" class="menu-switch-state">Đang bật</span>
                 </div>
+                <input id="soundToggleInput" name="soundEnabled" type="checkbox" switch class="menu-switch-input" aria-describedby="soundStateLabel">
             </div>
-            <div class="menu-section">
-                <h3>Âm thanh &amp; Dữ liệu</h3>
-                <div class="menu-btn-row">
-                    <button id="soundToggleBtn" type="button" class="menu-choice-btn">Âm thanh: Đang BẬT</button>
-                    <button id="resetProgressBtn" type="button" class="menu-choice-btn is-danger">Đặt lại tiến độ</button>
-                </div>
+            <div class="menu-section menu-section-inline">
+                <h3>Đặt lại</h3>
+                <button id="resetSettingsBtn" type="button" class="menu-choice-btn is-danger">Đặt lại</button>
             </div>
-            <div style="text-align:center;">
-                <a th:href="@{/}" style="color:#1e3a8a;font-weight:700;font-size:0.84rem;">&larr; Thoát game về Trang chủ UniDocs</a>
+            <div class="menu-footer-actions">
+                <button id="saveSettingsBtn" type="submit" value="save" class="menu-save-btn">Lưu</button>
+                <p id="settingsStatusMsg" class="settings-status-msg" role="status" aria-live="polite"></p>
+                <a th:href="@{/}" class="menu-exit-link">&larr; Thoát game về Trang chủ UniDocs</a>
             </div>
-        </div>
+        </form>
     </dialog>
 </main>
 

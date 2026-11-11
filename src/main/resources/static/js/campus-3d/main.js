@@ -11,11 +11,12 @@ const STORAGE_KEY = 'unidocs_husc_campus_3d_v1';
 
 // Read user-overridden graphics preset safely before initializing WebGL context
 function readManualQualityOverride() {
+    const validTiers = new Set(['low', 'medium', 'high']);
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return { qualityManual: false, quality: null };
         const parsed = JSON.parse(raw);
-        if (parsed && parsed.qualityManual && parsed.quality) {
+        if (parsed && parsed.qualityManual && validTiers.has(parsed.quality)) {
             return { qualityManual: true, quality: parsed.quality };
         }
     } catch (_) {
@@ -182,7 +183,7 @@ async function bootstrapCampus3D() {
     const hardwareProfile = detectHardwareProfile();
     const { qualityManual, quality: manualQuality } = readManualQualityOverride();
     let effectiveTier = qualityManual ? manualQuality : hardwareProfile.tier;
-    const activeProfile = { ...hardwareProfile, tier: effectiveTier };
+    const activeProfile = { ...hardwareProfile, tier: effectiveTier, defaultTier: hardwareProfile.tier };
 
     // Initialize WebGLRenderer with hardware-appropriate AA and high-performance power hint
     let renderer;
@@ -265,6 +266,13 @@ async function bootstrapCampus3D() {
             govStage = 0;
             avgFrameMs = 16.7;
             govCooldownUntil = performance.now() + 5000;
+        },
+        onResetQualityToAuto: (defaultTier) => {
+            isManualLocked = false;
+            effectiveTier = defaultTier;
+            govStage = 0;
+            avgFrameMs = 16.7;
+            govCooldownUntil = performance.now() + 2600;
         }
     });
 

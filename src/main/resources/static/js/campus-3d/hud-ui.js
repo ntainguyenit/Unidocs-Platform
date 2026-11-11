@@ -8,6 +8,9 @@ import {
 } from './world-data.js';
 
 const STORAGE_KEY = 'unidocs_husc_campus_3d_v1';
+const VALID_LIGHTING = new Set(['noon', 'sunset', 'night']);
+const QUALITY_STEPS = ['low', 'medium', 'high'];
+const QUALITY_LABELS = { low: 'Thấp', medium: 'Vừa', high: 'Cao' };
 
 // Load persisted player discovery progress safely from localStorage
 function loadSavedState() {
@@ -123,19 +126,24 @@ export function setupCampusHud({
     envController,
     hardwareProfile = { tier: 'high' },
     onCaptureFrame,
-    onManualQualityChange
+    onManualQualityChange,
+    onResetQualityToAuto
 }) {
     installDialogSafeguards();
     const saved = loadSavedState();
-    const hasManualQuality = Boolean(saved?.qualityManual && saved?.quality);
+    let initialDefaultQuality = QUALITY_STEPS.includes(hardwareProfile?.defaultTier)
+        ? hardwareProfile.defaultTier
+        : (QUALITY_STEPS.includes(hardwareProfile?.tier) ? hardwareProfile.tier : 'high');
+    const initialLighting = VALID_LIGHTING.has(saved?.lighting) ? saved.lighting : 'noon';
+    const hasManualQuality = Boolean(saved?.qualityManual && QUALITY_STEPS.includes(saved?.quality));
 
     const state = {
         checkedIn: new Set(saved?.checkedIn || ['cong-chinh']),
         quizSolved: new Set(saved?.quizSolved || []),
         detailsFound: new Set(saved?.detailsFound || []),
         photos: Array.isArray(saved?.photos) ? saved.photos : [],
-        lighting: saved?.lighting || 'noon',
-        quality: hasManualQuality ? saved.quality : (hardwareProfile?.tier || 'high'),
+        lighting: initialLighting,
+        quality: hasManualQuality ? saved.quality : (QUALITY_STEPS.includes(hardwareProfile?.tier) ? hardwareProfile.tier : initialDefaultQuality),
         qualityManual: hasManualQuality,
         soundEnabled: saved?.soundEnabled !== false,
         nearestLocation: CAMPUS_LOCATIONS[0],
@@ -193,7 +201,12 @@ export function setupCampusHud({
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, '0');
         const mm = String(now.getMinutes()).padStart(2, '0');
-        const icon = state.lighting === 'sunset' ? '🌅 Chiều tà' : '☀️ Nắng đẹp 29°C';
+        let icon = '☀️ Nắng đẹp 29°C';
+        if (state.lighting === 'sunset') {
+            icon = '🌅 Hoàng hôn xứ Huế 26°C';
+        } else if (state.lighting === 'night') {
+            icon = '🌙 Buổi tối dịu mát 23°C';
+        }
         weatherClockLabel.textContent = `${hh}:${mm} · ${icon}`;
     };
     refreshClockLabel();
@@ -653,9 +666,6 @@ export function setupCampusHud({
         renderHandbook();
         handbookDialog.showModal();
     });
-    document.getElementById('openMenuBtn').addEventListener('click', () => {
-        menuDialog.showModal();
-    });
 
     // Quest Row Click Handlers
     document.getElementById('questRowCheckin').addEventListener('click', () => {
@@ -690,7 +700,83 @@ export function setupCampusHud({
         sprintBtn.classList.toggle('is-active', next);
     });
 
-    // Menu Controls (Replay Intro, Lighting, Quality, Sound, Reset)
+    // Settings draft state, 3-step slider sync, progressive switch enhancement, deferred Save, and Reset
+    const draftSettings = {
+        lighting: state.lighting,
+        quality: state.quality,
+        qualityTouched: false,
+        soundEnabled: state.soundEnabled
+    };
+
+    const lightPresetBtns = Array.from(document.querySelectorAll('[data-light-preset]'));
+    const qualitySlider = document.getElementById('qualitySlider');
+    const qualityStepBtns = Array.from(document.querySelectorAll('[data-quality-step]'));
+    const soundToggleInput = document.getElementById('soundToggleInput');
+    const soundStateLabel = document.getElementById('soundStateLabel');
+    const settingsForm = document.getElementById('settingsForm');
+    const settingsStatusMsg = document.getElementById('settingsStatusMsg');
+
+    if (soundToggleInput && !('switch' in HTMLInputElement.prototype)) {
+        // Apply ARIA switch role and custom toggle styling where HTML switch attribute is unsupported
+        soundToggleInput.setAttribute('role', 'switch');
+        soundToggleInput.classList.add('is-switch-fallback');
+    }
+
+    const syncQualitySliderUI = (tier) => {
+        const idx = Math.max(0, QUALITY_STEPS.indexOf(tier));
+        if (qualitySlider) {
+            qualitySlider.value = String(idx);
+            // Sync CSS bounds and live slider value for browsers without typed attr() or progress()
+            qualitySlider.style.setProperty('--attr-min', qualitySlider.min || '0');
+            qualitySlider.style.setProperty('--attr-max', qualitySlider.max || '2');
+            qualitySlider.style.setProperty('--control-value', String(idx));
+            qualitySlider.setAttribute('aria-valuetext', QUALITY_LABELS[tier] || 'Cao');
+        }
+        qualityStepBtns.forEach((btn) => {
+            const active = Number(btn.dataset.qualityStep) === idx;
+            btn.classList.toggle('is-active', active);
+            btn.setAttribute('aria-pressed', String(active));
+        });
+    };
+
+    const syncMenuDraftControls = () => {
+        lightPresetBtns.forEach((b) => {
+            const selected = b.dataset.lightPreset === draftSettings.lighting;
+            b.classList.toggle('is-selected', selected);
+            b.setAttribute('aria-pressed', String(selected));
+        });
+        syncQualitySliderUI(draftSettings.quality);
+        if (soundToggleInput) {
+            soundToggleInput.checked = draftSettings.soundEnabled;
+        }
+        if (soundStateLabel) {
+            soundStateLabel.textContent = draftSettings.soundEnabled ? 'Đang bật' : 'Đang tắt';
+        }
+    };
+    syncMenuDraftControls();
+
+    // Update menu quality highlight when warm-up calibration steps down for low-end devices
+    const setCalibratedQuality = (tier) => {
+        if (!QUALITY_STEPS.includes(tier)) return;
+        state.quality = tier;
+        initialDefaultQuality = tier;
+        if (!menuDialog.open) {
+            draftSettings.quality = tier;
+            syncMenuDraftControls();
+        }
+    };
+
+    document.getElementById('openMenuBtn').addEventListener('click', () => {
+        draftSettings.lighting = state.lighting;
+        draftSettings.quality = state.quality;
+        draftSettings.qualityTouched = false;
+        draftSettings.soundEnabled = state.soundEnabled;
+        if (settingsStatusMsg) settingsStatusMsg.textContent = '';
+        syncMenuDraftControls();
+        menuDialog.showModal();
+    });
+
+    // Menu Controls (Overview Flycam Replay, Draft Time/Quality/Sound Selection, Deferred Save, and Reset)
     document.getElementById('replayIntroBtn').addEventListener('click', () => {
         menuDialog.close();
         syncIntroVisibility(true);
@@ -700,56 +786,96 @@ export function setupCampusHud({
         playerController.startIntroFlycam();
     });
 
-    document.querySelectorAll('[data-light-preset]').forEach((btn) => {
+    lightPresetBtns.forEach((btn) => {
         btn.addEventListener('click', () => {
-            state.lighting = btn.dataset.lightPreset;
-            envController.setLightingPreset(state.lighting);
-            refreshClockLabel();
-            persistState(state);
-            document.querySelectorAll('[data-light-preset]').forEach((b) => b.classList.toggle('is-selected', b === btn));
+            const preset = btn.dataset.lightPreset;
+            if (!VALID_LIGHTING.has(preset)) return;
+            draftSettings.lighting = preset;
+            if (settingsStatusMsg) settingsStatusMsg.textContent = '';
+            syncMenuDraftControls();
         });
     });
 
-    document.querySelectorAll('[data-quality-preset]').forEach((btn) => {
+    if (qualitySlider) {
+        const handleSliderChange = () => {
+            const idx = Math.max(0, Math.min(2, Number(qualitySlider.value) || 0));
+            draftSettings.quality = QUALITY_STEPS[idx];
+            draftSettings.qualityTouched = true;
+            if (settingsStatusMsg) settingsStatusMsg.textContent = '';
+            syncMenuDraftControls();
+        };
+        qualitySlider.addEventListener('input', handleSliderChange);
+        qualitySlider.addEventListener('change', handleSliderChange);
+    }
+
+    qualityStepBtns.forEach((btn) => {
         btn.addEventListener('click', () => {
-            state.quality = btn.dataset.qualityPreset;
-            state.qualityManual = true;
-            envController.setQualityLevel(state.quality, true);
-            if (onManualQualityChange) onManualQualityChange(state.quality);
-            persistState(state);
-            document.querySelectorAll('[data-quality-preset]').forEach((b) => b.classList.toggle('is-selected', b === btn));
+            const idx = Math.max(0, Math.min(2, Number(btn.dataset.qualityStep) || 0));
+            draftSettings.quality = QUALITY_STEPS[idx];
+            draftSettings.qualityTouched = true;
+            if (settingsStatusMsg) settingsStatusMsg.textContent = '';
+            syncMenuDraftControls();
         });
     });
 
-    const soundToggleBtn = document.getElementById('soundToggleBtn');
-    const syncMenuActiveStates = () => {
-        soundToggleBtn.textContent = state.soundEnabled ? 'Âm thanh: Đang BẬT' : 'Âm thanh: Đang TẮT';
-        document.querySelectorAll('[data-light-preset]').forEach((b) => b.classList.toggle('is-selected', b.dataset.lightPreset === state.lighting));
-        document.querySelectorAll('[data-quality-preset]').forEach((b) => b.classList.toggle('is-selected', b.dataset.qualityPreset === state.quality));
-    };
-    syncMenuActiveStates();
+    if (soundToggleInput) {
+        soundToggleInput.addEventListener('change', () => {
+            draftSettings.soundEnabled = Boolean(soundToggleInput.checked);
+            if (settingsStatusMsg) settingsStatusMsg.textContent = '';
+            syncMenuDraftControls();
+        });
+    }
 
-    // Update menu quality highlight when warm-up calibration steps down for low-end devices
-    const setCalibratedQuality = (tier) => {
-        state.quality = tier;
-        syncMenuActiveStates();
-    };
+    document.getElementById('resetSettingsBtn').addEventListener('click', () => {
+        state.lighting = 'noon';
+        state.quality = initialDefaultQuality;
+        state.qualityManual = false;
+        state.soundEnabled = true;
 
-    soundToggleBtn.addEventListener('click', () => {
-        state.soundEnabled = !state.soundEnabled;
-        syncMenuActiveStates();
+        draftSettings.lighting = state.lighting;
+        draftSettings.quality = state.quality;
+        draftSettings.qualityTouched = false;
+        draftSettings.soundEnabled = state.soundEnabled;
+
+        envController.setLightingPreset(state.lighting);
+        refreshClockLabel();
+        envController.setQualityLevel(state.quality, true);
+        if (onResetQualityToAuto) onResetQualityToAuto(state.quality);
         persistState(state);
+        syncMenuDraftControls();
+
+        if (settingsStatusMsg) {
+            settingsStatusMsg.textContent = 'Đã đặt lại tất cả cài đặt về mặc định ban đầu.';
+        }
     });
 
-    document.getElementById('resetProgressBtn').addEventListener('click', () => {
-        state.checkedIn = new Set(['cong-chinh']);
-        state.quizSolved = new Set();
-        state.detailsFound = new Set();
-        state.photos = [];
-        refreshProgressUI();
-        menuDialog.close();
-        showToast('Đã đặt lại tiến độ khám phá!');
-    });
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', () => {
+            const prevLighting = state.lighting;
+            const prevQuality = state.quality;
+
+            state.lighting = draftSettings.lighting;
+            state.quality = draftSettings.quality;
+            if (draftSettings.qualityTouched) {
+                state.qualityManual = true;
+            }
+            state.soundEnabled = draftSettings.soundEnabled;
+
+            if (state.lighting !== prevLighting) {
+                envController.setLightingPreset(state.lighting);
+                refreshClockLabel();
+            }
+            if (state.quality !== prevQuality) {
+                envController.setQualityLevel(state.quality, true);
+            }
+            if (draftSettings.qualityTouched && onManualQualityChange) {
+                onManualQualityChange(state.quality);
+            }
+
+            persistState(state);
+            showToast('Đã lưu và áp dụng cài đặt!', 'success');
+        });
+    }
 
     // Multi-touch Mobile / Mouse Virtual Joystick with 4-way directional chevrons & active state highlights
     const joyBase = document.getElementById('joystickBase');
