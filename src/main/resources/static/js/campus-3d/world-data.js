@@ -24,7 +24,7 @@ export const CAMPUS_BOUNDS_POLY = [
     [-26.0, 71.8]
 ];
 
-// Oriented Bounding Box (OBB) colliders synchronized 1:1 with scripts/build-campus-glb.mjs geometry
+// Oriented Bounding Box (OBB) colliders synchronized 1:1 with husc-campus.glb geometry
 export const CAMPUS_COLLIDERS = [
     { id: 'col_A', cx: -13.0, cz: 10.0, halfW: 24.5, halfD: 6.0, angle: 0 },
     { id: 'col_A_portico', cx: -13.0, cz: 17.8, halfW: 6.8, halfD: 2.5, angle: 0 },
