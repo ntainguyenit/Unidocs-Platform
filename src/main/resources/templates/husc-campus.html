@@ -174,12 +174,39 @@
             align-items: center;
             justify-content: center;
             gap: 1rem;
-            padding: 1.5rem;
+            padding: max(1.5rem, env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px)) max(1.5rem, env(safe-area-inset-bottom, 0px)) max(1.25rem, env(safe-area-inset-left, 0px));
             background: radial-gradient(circle at top, #1e3a8a 0%, #0f172a 100%);
             transition: opacity 0.22s ease;
         }
         .loading-screen.is-faded { opacity: 0; pointer-events: none; }
         .loading-screen[hidden] { display: none; }
+        /* Responsive fluid typography for loading screen brand header */
+        .loading-header {
+            text-align: center;
+            max-inline-size: min(640px, 100%);
+        }
+        .loading-eyebrow {
+            margin: 0 0 0.4rem;
+            font-size: clamp(0.75rem, 0.7rem + 0.25vw, 0.88rem);
+            font-weight: 800;
+            line-height: 1.3;
+            letter-spacing: 0.14em;
+            color: #facc15;
+            text-transform: uppercase;
+        }
+        .loading-title {
+            font-size: clamp(1.08rem, 0.9rem + 1.1vw, 1.5rem);
+            line-height: 1.3;
+            color: #ffffff;
+            text-wrap: balance;
+        }
+        .loading-status {
+            margin: 0;
+            font-size: clamp(0.8rem, 0.76rem + 0.2vw, 0.88rem);
+            line-height: 1.4;
+            color: #cbd5e1;
+            text-align: center;
+        }
         .loading-bar-wrap {
             inline-size: min(340px, 85dvw);
             block-size: 10px;
@@ -195,7 +222,7 @@
             transition: width 0.2s ease;
         }
 
-        /* Cinematic Flycam Intro overlay */
+        /* Compact responsive flycam intro overlay */
         .intro-banner {
             position: absolute;
             inset: 0;
@@ -209,22 +236,27 @@
         .intro-banner[hidden] { display: none; }
         .intro-title-card {
             align-self: center;
-            margin-top: 1.5rem;
-            padding: 0.75rem 1.35rem;
+            margin-top: 1.25rem;
+            max-inline-size: min(640px, 100%);
+            padding: 0.72rem 1.35rem;
             border-radius: 1rem;
             background: rgba(15, 23, 42, 0.88);
             border: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
             text-align: center;
         }
         .intro-title-card h1 {
-            font-size: clamp(1.05rem, 0.85rem + 1.1vw, 1.55rem);
+            font-size: clamp(0.95rem, 0.78rem + 1vw, 1.48rem);
+            line-height: 1.25;
             color: #fef08a;
             letter-spacing: 0.02em;
         }
         .intro-title-card p {
-            margin: 0.25rem 0 0;
-            font-size: 0.82rem;
-            color: #e2e8f0;
+            margin: 0.28rem 0 0;
+            font-size: clamp(0.74rem, 0.7rem + 0.24vw, 0.86rem);
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            color: #f1f5f9;
         }
         .skip-intro-btn {
             pointer-events: auto;
@@ -232,20 +264,28 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.6rem 1.25rem;
+            min-inline-size: 92px;
             min-block-size: 44px;
+            padding: 0.52rem 1.2rem;
             border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.38);
             background: rgba(15, 23, 42, 0.9);
             color: #ffffff;
             font-weight: 700;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
+            line-height: 1.15;
             text-align: center;
             white-space: nowrap;
             flex-shrink: 0;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.36);
             cursor: pointer;
+            transition: background-color 150ms ease-out, border-color 150ms ease-out;
         }
-        .skip-intro-btn:hover { background: rgba(30, 58, 138, 0.92); }
+        .skip-intro-btn:hover { background: rgba(30, 58, 138, 0.92); border-color: rgba(255, 255, 255, 0.65); }
+        @media (prefers-reduced-motion: no-preference) {
+            .skip-intro-btn { transition: scale 120ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out; }
+            .skip-intro-btn:active { scale: 0.96; }
+        }
 
         /* HUD root safely pre-composited behind loading curtain so reveal uses zero-jank GPU opacity */
         .hud-layer {
@@ -460,6 +500,33 @@
             .hud-btn:active { scale: 0.96; }
         }
         .hud-btn.is-active { background: #eab308; color: #0f172a; border-color: #fef08a; }
+
+        /* Circular icon toolbar button with high-contrast white fill and black outline gear */
+        .hud-icon-btn {
+            inline-size: max(36px, var(--target-size));
+            block-size: max(36px, var(--target-size));
+            padding: 0;
+            border-radius: 999px;
+        }
+        .hud-gear-icon {
+            display: block;
+            inline-size: 21px;
+            block-size: 21px;
+            flex: none;
+            pointer-events: none;
+            fill: #ffffff;
+            stroke: #000000;
+            stroke-width: 2.2;
+            stroke-linejoin: round;
+            paint-order: stroke fill;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.72));
+        }
+        @media (forced-colors: active) {
+            .hud-gear-icon {
+                fill: ButtonText;
+                stroke: ButtonFace;
+            }
+        }
 
         .fps-pill {
             padding: 0.32rem 0.55rem;
@@ -725,8 +792,10 @@
             text-align: center;
         }
 
-        /* Responsive compact layout preserving readable centered text labels on mobile */
+        /* Responsive compact layout preserving readable labels and usable hit targets on mobile */
         @media (max-width: 720px) {
+            .intro-title-card { margin-top: 0.7rem; padding: 0.6rem 0.95rem; }
+            .skip-intro-btn { min-inline-size: 84px; padding: 0.5rem 1.05rem; font-size: 0.82rem; }
             .minimap-wrap { inline-size: 88px; block-size: 88px; border-radius: 0.85rem; }
             .minimap-wrap canvas { border-radius: 0.62rem; }
             .minimap-dir { font-size: 7.5px; padding: 1px 4px; letter-spacing: 0.02em; }
@@ -734,6 +803,9 @@
             .desktop-hint { display: none; }
             .hud-top-right { gap: 0.35rem; }
             .hud-btn { padding: 0.36rem 0.68rem; font-size: 0.72rem; }
+            .hud-icon-btn { padding: 0; inline-size: max(34px, var(--target-size)); block-size: max(34px, var(--target-size)); }
+            .hud-gear-icon { inline-size: 20px; block-size: 20px; }
+            .hud-toast { bottom: max(8.8rem, env(safe-area-inset-bottom, 0px) + 8.4rem); }
             .action-fab { min-inline-size: 58px; min-block-size: 44px; padding: 0.45rem 0.95rem; font-size: 0.75rem; }
             .joystick-base { inline-size: 116px; block-size: 116px; }
             .joystick-thumb { inline-size: 36px; block-size: 36px; }
@@ -1209,24 +1281,24 @@
 
     <!-- Initial Model Loading Curtain -->
     <div id="loadingScreen" class="loading-screen">
-        <div style="text-align:center;">
-            <p style="font-size:0.78rem;font-weight:800;letter-spacing:0.12em;color:#facc15;text-transform:uppercase;margin:0 0 0.35rem;">UniDocs Campus 3D Explorer</p>
-            <h1 style="font-size:1.35rem;color:#ffffff;">Trường Đại học Khoa học · ĐH Huế</h1>
+        <div class="loading-header">
+            <p class="loading-eyebrow">HUSC CAMPUS</p>
+            <h1 class="loading-title">Trường Đại học Khoa học - Đại học Huế</h1>
         </div>
         <div class="loading-bar-wrap" role="progressbar" aria-label="Tiến độ tải mô hình 3D">
             <div id="loadingProgressBar" class="loading-bar"></div>
         </div>
-        <p id="loadingProgressText" style="font-size:0.84rem;color:#cbd5e1;margin:0;">Đang chuẩn bị không gian WebGL 3D...</p>
+        <p id="loadingProgressText" class="loading-status">Đang chuẩn bị không gian WebGL 3D...</p>
     </div>
 
     <!-- Overhead-to-Ground Flycam Intro Banner -->
     <div id="introBanner" class="intro-banner" hidden>
         <div class="intro-title-card">
             <h1>TRƯỜNG ĐẠI HỌC KHOA HỌC - ĐH HUẾ</h1>
-            <p>77 Nguyễn Huệ · Góc quay Flycam Toàn cảnh Khuôn viên</p>
+            <p>GÓC NHÌN TOÀN CẢNH</p>
         </div>
-        <button id="skipIntroBtn" type="button" class="skip-intro-btn" aria-label="Bỏ qua Intro (Space)">
-            <span>Bỏ qua Intro (Space)</span>
+        <button id="skipIntroBtn" type="button" class="skip-intro-btn" aria-label="Bỏ qua">
+            <span>Bỏ qua</span>
         </button>
     </div>
 
@@ -1269,7 +1341,7 @@
                     </div>
                 </div>
 
-                <!-- Top-Right: Text-Only Centered Action & Status Controls -->
+                <!-- Top-Right: Action controls and gear icon settings button -->
                 <div class="hud-top-right">
                     <button id="openHandbookBtn" type="button" class="hud-btn">Sổ tay</button>
                     <div class="hud-pill hud-btn" style="cursor:default;">
@@ -1280,7 +1352,11 @@
                     </button>
                     <button id="openGalleryBtn" type="button" class="hud-btn">Bộ sưu tập</button>
                     <button id="openMapBtn" type="button" class="hud-btn">Bản đồ</button>
-                    <button id="openMenuBtn" type="button" class="hud-btn">Cài đặt</button>
+                    <button id="openMenuBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Cài đặt" title="Cài đặt">
+                        <svg class="hud-gear-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path fill-rule="evenodd" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58ZM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2Z"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
