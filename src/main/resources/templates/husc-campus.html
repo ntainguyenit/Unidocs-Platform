@@ -216,14 +216,16 @@
             inline-size: min(340px, 85dvw);
             block-size: 10px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.28);
             overflow: hidden;
         }
         .loading-bar {
             inline-size: 8%;
             block-size: 100%;
             border-radius: 999px;
-            background: linear-gradient(90deg, #38bdf8, #facc15);
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.85);
             transition: width 0.2s ease;
         }
 
@@ -920,6 +922,7 @@
             mask-image: radial-gradient(ellipse at center, transparent 38%, black 72%);
             -webkit-mask-image: radial-gradient(ellipse at center, transparent 38%, black 72%);
             pointer-events: none;
+            transition: opacity 300ms ease;
         }
         .snapshot-frame-box {
             position: relative;
@@ -930,11 +933,32 @@
             border-radius: 1rem;
             border: 2px dashed rgba(255, 255, 255, 0.7);
             box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.35), 0 12px 36px rgba(0, 0, 0, 0.5);
-            transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1), opacity 250ms ease;
             transform: scale(0.96);
+            transform-origin: center center;
+            will-change: transform, opacity;
         }
         .snapshot-frame-overlay.is-active .snapshot-frame-box {
             transform: scale(1);
+        }
+        .snapshot-frame-overlay.is-swooping .snapshot-blur-curtain,
+        .snapshot-frame-overlay.is-swooping .viewfinder-tag {
+            opacity: 0;
+            transition: opacity 250ms ease;
+        }
+        .snapshot-frame-overlay.is-swooping .snapshot-frame-box {
+            transform: translate(var(--swoop-x, 260px), var(--swoop-y, 260px)) scale(0.06);
+            opacity: 0;
+            transition: transform 550ms cubic-bezier(0.2, 0.8, 0.25, 1), opacity 450ms ease;
+        }
+        @keyframes galleryBouncePop {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.28); }
+            75% { transform: scale(0.92); }
+            100% { transform: scale(1); }
+        }
+        .hud-btn.is-popping {
+            animation: galleryBouncePop 420ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .viewfinder-corner {
             position: absolute;
@@ -1536,7 +1560,7 @@
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-header">
             <p class="loading-eyebrow">HUSC CAMPUS</p>
-            <h1 class="loading-title">Trường Đại học Khoa học - Đại học Huế</h1>
+            <h1 class="loading-title">Trường Đại học Khoa học</h1>
         </div>
         <div class="loading-bar-wrap" role="progressbar" aria-label="Tiến độ tải mô hình 3D">
             <div id="loadingProgressBar" class="loading-bar"></div>
@@ -1547,7 +1571,7 @@
     <!-- Overhead-to-Ground Flycam Intro Banner -->
     <div id="introBanner" class="intro-banner" hidden>
         <div class="intro-title-card">
-            <h1>TRƯỜNG ĐẠI HỌC KHOA HỌC - ĐH HUẾ</h1>
+            <h1>TRƯỜNG ĐẠI HỌC KHOA HỌC</h1>
             <p>GÓC NHÌN TOÀN CẢNH</p>
         </div>
         <button id="skipIntroBtn" type="button" class="skip-intro-btn" aria-label="Bỏ qua">
@@ -1607,6 +1631,14 @@
                 <div class="hud-top-right">
                     <button id="camToggleBtn" type="button" class="hud-btn">
                         <span id="camToggleLabel">Toàn cảnh</span>
+                    </button>
+                    <button id="timeToggleBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Chuyển chế độ Ban ngày / Buổi tối" title="Chuyển chế độ Ban ngày / Buổi tối">
+                        <svg id="timeIconSun" class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path fill-rule="evenodd" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1Zm10-7a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1ZM5 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1Zm14.07-7.07a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 1 1-1.42-1.41l1.42-1.41a1 1 0 0 1 1.41 0ZM7.76 16.24a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 1 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0Zm11.31 11.31a1 1 0 0 1-1.41 0l-1.42-1.41a1 1 0 0 1 1.42-1.42l1.41 1.42a1 1 0 0 1 0 1.41ZM6.34 6.34a1 1 0 0 1-1.41 0L3.52 4.93a1 1 0 1 1 1.41-1.41l1.41 1.41a1 1 0 0 1 0 1.41Z"/>
+                        </svg>
+                        <svg id="timeIconMoon" class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
+                            <path fill-rule="evenodd" d="M12.3 2a10 10 0 0 0-.19 14 10 10 0 0 0 9.89 4 1 1 0 0 0 .78-1.52A10 10 0 0 1 10.5 4.02a1 1 0 0 0-.2-2Z"/>
+                        </svg>
                     </button>
                     <button id="openMenuBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Cài đặt" title="Cài đặt">
                         <svg class="hud-gear-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -1734,13 +1766,6 @@
             <div class="menu-section menu-section-inline">
                 <h3>Giới thiệu</h3>
                 <button id="replayIntroBtn" type="button" class="menu-choice-btn is-primary">Xem</button>
-            </div>
-            <div class="menu-section">
-                <h3>Thời gian</h3>
-                <div class="menu-btn-row" role="group" aria-label="Thời gian">
-                    <button type="button" class="menu-choice-btn" data-light-preset="noon">Ban ngày</button>
-                    <button type="button" class="menu-choice-btn" data-light-preset="night">Buổi tối</button>
-                </div>
             </div>
             <div class="menu-section">
                 <h3><label for="qualitySlider">Đồ họa</label></h3>

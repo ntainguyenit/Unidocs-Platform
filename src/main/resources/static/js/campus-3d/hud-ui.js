@@ -576,7 +576,7 @@ export function setupCampusHud({
             section.className = 'gallery-date-section';
             section.innerHTML = `
                 <div class="gallery-date-header">
-                    <span>📅 Ngày ${dateKey}</span>
+                    <span>Ngày ${dateKey}</span>
                     <span class="gallery-date-badge">${items.length} ảnh</span>
                 </div>
                 <div class="gallery-grid"></div>
@@ -603,13 +603,37 @@ export function setupCampusHud({
     };
 
     let snapshotFrameTimer = null;
+    let swoopTimer = null;
     const showSnapshotFrame = () => {
         if (!snapshotFrameOverlay) return;
-        snapshotFrameOverlay.classList.add('is-active');
         clearTimeout(snapshotFrameTimer);
+        clearTimeout(swoopTimer);
+        snapshotFrameOverlay.classList.remove('is-swooping');
+        snapshotFrameOverlay.classList.add('is-active');
+
+        // Display framed preview, then swoop into gallery button
         snapshotFrameTimer = setTimeout(() => {
-            snapshotFrameOverlay.classList.remove('is-active');
-        }, 3000);
+            const galleryBtn = document.getElementById('openGalleryBtn');
+            const frameBox = snapshotFrameOverlay.querySelector('.snapshot-frame-box');
+            if (galleryBtn && frameBox) {
+                const bRect = galleryBtn.getBoundingClientRect();
+                const fRect = frameBox.getBoundingClientRect();
+                const dx = (bRect.left + bRect.width * 0.5) - (fRect.left + fRect.width * 0.5);
+                const dy = (bRect.top + bRect.height * 0.5) - (fRect.top + fRect.height * 0.5);
+                frameBox.style.setProperty('--swoop-x', `${dx}px`);
+                frameBox.style.setProperty('--swoop-y', `${dy}px`);
+                snapshotFrameOverlay.classList.add('is-swooping');
+                swoopTimer = setTimeout(() => {
+                    snapshotFrameOverlay.classList.remove('is-active', 'is-swooping');
+                    frameBox.style.removeProperty('--swoop-x');
+                    frameBox.style.removeProperty('--swoop-y');
+                    galleryBtn.classList.add('is-popping');
+                    setTimeout(() => galleryBtn.classList.remove('is-popping'), 450);
+                }, 550);
+            } else {
+                snapshotFrameOverlay.classList.remove('is-active');
+            }
+        }, 1800);
     };
 
     // Capture Snapshot from WebGLRenderer and stamp commemorative HUSC frame overlay
@@ -744,15 +768,42 @@ export function setupCampusHud({
     };
     camToggleBtn.addEventListener('click', toggleCameraMode);
 
+    // Day and Night environmental lighting toggle button
+    const timeToggleBtn = document.getElementById('timeToggleBtn');
+    const timeIconSun = document.getElementById('timeIconSun');
+    const timeIconMoon = document.getElementById('timeIconMoon');
+
+    const updateTimeToggleBtnUI = (lighting) => {
+        const isNight = lighting === 'night';
+        if (timeIconSun) timeIconSun.hidden = isNight;
+        if (timeIconMoon) timeIconMoon.hidden = !isNight;
+        if (timeToggleBtn) {
+            timeToggleBtn.setAttribute('aria-label', isNight ? 'Chuyển sang Ban ngày' : 'Chuyển sang Buổi tối');
+            timeToggleBtn.title = isNight ? 'Đang là Buổi tối · Bấm để đổi sang Ban ngày' : 'Đang là Ban ngày · Bấm để đổi sang Buổi tối';
+            timeToggleBtn.classList.toggle('is-active', isNight);
+        }
+    };
+
+    if (timeToggleBtn) {
+        timeToggleBtn.addEventListener('click', () => {
+            const next = state.lighting === 'noon' ? 'night' : 'noon';
+            state.lighting = next;
+            envController.setLightingPreset(next);
+            refreshClockLabel();
+            updateTimeToggleBtnUI(next);
+            persistState(state);
+            showToast(next === 'night' ? 'Đã bật chế độ Buổi tối (Bầu trời đêm & sao băng)' : 'Đã bật chế độ Ban ngày (Nắng đẹp)', 'success');
+        });
+    }
+    updateTimeToggleBtnUI(state.lighting);
+
     // Settings draft state, 3-step slider sync, progressive switch enhancement, deferred Save, and Reset
     const draftSettings = {
-        lighting: state.lighting,
         quality: state.quality,
         qualityTouched: false,
         soundEnabled: state.soundEnabled
     };
 
-    const lightPresetBtns = Array.from(document.querySelectorAll('[data-light-preset]'));
     const qualitySlider = document.getElementById('qualitySlider');
     const qualityStepBtns = Array.from(document.querySelectorAll('[data-quality-step]'));
     const soundToggleInput = document.getElementById('soundToggleInput');
@@ -784,11 +835,6 @@ export function setupCampusHud({
     };
 
     const syncMenuDraftControls = () => {
-        lightPresetBtns.forEach((b) => {
-            const selected = b.dataset.lightPreset === draftSettings.lighting;
-            b.classList.toggle('is-selected', selected);
-            b.setAttribute('aria-pressed', String(selected));
-        });
         syncQualitySliderUI(draftSettings.quality);
         if (soundToggleInput) {
             soundToggleInput.checked = draftSettings.soundEnabled;
@@ -811,7 +857,6 @@ export function setupCampusHud({
     };
 
     document.getElementById('openMenuBtn').addEventListener('click', () => {
-        draftSettings.lighting = state.lighting;
         draftSettings.quality = state.quality;
         draftSettings.qualityTouched = false;
         draftSettings.soundEnabled = state.soundEnabled;
@@ -828,16 +873,6 @@ export function setupCampusHud({
         playerController.setCameraMode('third-person');
         if (camToggleLabel) camToggleLabel.textContent = 'Toàn cảnh';
         playerController.startIntroFlycam();
-    });
-
-    lightPresetBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const preset = btn.dataset.lightPreset;
-            if (!VALID_LIGHTING.has(preset)) return;
-            draftSettings.lighting = preset;
-            if (settingsStatusMsg) settingsStatusMsg.textContent = '';
-            syncMenuDraftControls();
-        });
     });
 
     if (qualitySlider) {
@@ -876,12 +911,12 @@ export function setupCampusHud({
         state.qualityManual = false;
         state.soundEnabled = true;
 
-        draftSettings.lighting = state.lighting;
         draftSettings.quality = state.quality;
         draftSettings.qualityTouched = false;
         draftSettings.soundEnabled = state.soundEnabled;
 
         envController.setLightingPreset(state.lighting);
+        updateTimeToggleBtnUI(state.lighting);
         refreshClockLabel();
         envController.setQualityLevel(state.quality, true);
         if (onResetQualityToAuto) onResetQualityToAuto(state.quality);
@@ -895,20 +930,14 @@ export function setupCampusHud({
 
     if (settingsForm) {
         settingsForm.addEventListener('submit', () => {
-            const prevLighting = state.lighting;
             const prevQuality = state.quality;
 
-            state.lighting = draftSettings.lighting;
             state.quality = draftSettings.quality;
             if (draftSettings.qualityTouched) {
                 state.qualityManual = true;
             }
             state.soundEnabled = draftSettings.soundEnabled;
 
-            if (state.lighting !== prevLighting) {
-                envController.setLightingPreset(state.lighting);
-                refreshClockLabel();
-            }
             if (state.quality !== prevQuality) {
                 envController.setQualityLevel(state.quality, true);
             }
