@@ -541,7 +541,19 @@ export function setupCampusHud({
         });
     };
 
-    // Populate Photo Souvenir Gallery inside #galleryDialog
+    // Extract formatted date string for a photo record with fallback
+    const resolvePhotoDateKey = (p) => {
+        if (p.date) return p.date;
+        if (p.time) {
+            const parts = p.time.trim().split(/\s+/);
+            if (parts.length > 1) {
+                return parts[1].replace(/-/g, '/');
+            }
+        }
+        return 'Gần đây';
+    };
+
+    // Populate Photo Souvenir Gallery grouped by date inside #galleryDialog
     const galleryGrid = document.getElementById('galleryGrid');
     const renderGallery = () => {
         galleryGrid.innerHTML = '';
@@ -549,20 +561,44 @@ export function setupCampusHud({
             galleryGrid.innerHTML = '<p class="empty-msg">Chưa có ảnh lưu niệm nào. Bấm nút Chụp ảnh hoặc phím C trong lúc dạo trường để lưu ảnh vào Kho ảnh!</p>';
             return;
         }
-        state.photos.forEach((p, idx) => {
-            const card = document.createElement('div');
-            card.className = 'gallery-card';
-            card.innerHTML = `
-                <img src="${p.dataUrl}" alt="Ảnh lưu niệm tại ${p.location}" class="gallery-img" width="640" height="360">
-                <div class="gallery-meta">
-                    <div>
-                        <strong>${p.location}</strong>
-                        <span>${p.time}</span>
-                    </div>
-                    <a href="${p.dataUrl}" download="husc-3d-${idx + 1}.png" class="btn-download-img">Tải PNG</a>
+        // Group photos chronologically by capture date
+        const groups = new Map();
+        state.photos.forEach((photo, idx) => {
+            const dateKey = resolvePhotoDateKey(photo);
+            if (!groups.has(dateKey)) {
+                groups.set(dateKey, []);
+            }
+            groups.get(dateKey).push({ photo, isNewest: idx === 0, idx });
+        });
+
+        groups.forEach((items, dateKey) => {
+            const section = document.createElement('div');
+            section.className = 'gallery-date-section';
+            section.innerHTML = `
+                <div class="gallery-date-header">
+                    <span>📅 Ngày ${dateKey}</span>
+                    <span class="gallery-date-badge">${items.length} ảnh</span>
                 </div>
+                <div class="gallery-grid"></div>
             `;
-            galleryGrid.appendChild(card);
+            const subGrid = section.querySelector('.gallery-grid');
+            items.forEach(({ photo: p, isNewest, idx }) => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+                card.innerHTML = `
+                    ${isNewest ? '<span class="gallery-badge-new">MỚI</span>' : ''}
+                    <img src="${p.dataUrl}" alt="Ảnh lưu niệm tại ${p.location}" class="gallery-img" width="640" height="360" loading="lazy">
+                    <div class="gallery-meta">
+                        <div>
+                            <strong>${p.location}</strong>
+                            <span>${p.time}</span>
+                        </div>
+                        <a href="${p.dataUrl}" download="husc-3d-${idx + 1}.png" class="btn-download-img">Tải PNG</a>
+                    </div>
+                `;
+                subGrid.appendChild(card);
+            });
+            galleryGrid.appendChild(section);
         });
     };
 
@@ -600,11 +636,15 @@ export function setupCampusHud({
             ctx.font = '500 16px Inter, sans-serif';
             ctx.fillText(new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' · UniDocs', out.width - 24, out.height - 22);
 
+            const now = new Date();
+            const dateKey = now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeKey = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             const stampedUrl = out.toDataURL('image/png');
             state.photos.unshift({
                 dataUrl: stampedUrl,
                 location: state.nearestLocation.shortName,
-                time: new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+                date: dateKey,
+                time: `${timeKey} ${dateKey}`
             });
             if (state.photos.length > 10) state.photos.length = 10;
             sfx.shutter();
@@ -635,6 +675,15 @@ export function setupCampusHud({
     };
 
     contextPromptBtn.addEventListener('click', executeContextAction);
+
+    // Immediate return navigation on clicking the top-left home banner
+    const backHomeLink = document.getElementById('backHomeLink');
+    if (backHomeLink) {
+        backHomeLink.addEventListener('click', () => {
+            const dest = backHomeLink.getAttribute('href') || '/';
+            window.location.href = dest;
+        });
+    }
 
     // Top HUD Button Listeners
     const openMapBtn = document.getElementById('openMapBtn');
@@ -689,9 +738,9 @@ export function setupCampusHud({
         const current = playerController.getState().cameraMode;
         const next = playerController.setCameraMode(current === 'third-person' ? 'fly' : 'third-person');
         if (camToggleLabel) {
-            camToggleLabel.textContent = next === 'fly' ? 'Góc nhìn thứ 3' : 'Flycam toàn cảnh';
+            camToggleLabel.textContent = next === 'fly' ? 'Góc nhìn thứ 3' : 'Toàn cảnh';
         }
-        showToast(next === 'fly' ? 'Chế độ Flycam tự do (kéo để xoay toàn trường)' : 'Chế độ Nhân vật góc nhìn thứ 3');
+        showToast(next === 'fly' ? 'Chế độ Toàn cảnh tự do (kéo để xoay toàn trường)' : 'Chế độ Nhân vật góc nhìn thứ 3');
     };
     camToggleBtn.addEventListener('click', toggleCameraMode);
 
@@ -777,7 +826,7 @@ export function setupCampusHud({
         syncIntroVisibility(true);
         playerController.snapPlayerTo(CAMPUS_START_POSE.x, CAMPUS_START_POSE.z, CAMPUS_START_POSE.yaw);
         playerController.setCameraMode('third-person');
-        if (camToggleLabel) camToggleLabel.textContent = 'Flycam toàn cảnh';
+        if (camToggleLabel) camToggleLabel.textContent = 'Toàn cảnh';
         playerController.startIntroFlycam();
     });
 

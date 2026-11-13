@@ -415,48 +415,43 @@
             position: absolute;
             z-index: 5;
             pointer-events: none;
-            padding: 1px 5px;
-            border-radius: 4px;
+            inline-size: 19px;
+            block-size: 19px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: rgba(15, 23, 42, 0.94);
-            border: 1px solid rgba(255, 255, 255, 0.28);
+            border: 1.5px solid rgba(255, 255, 255, 0.48);
             color: #f8fafc;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            font-size: 8.5px;
-            font-weight: 700;
-            line-height: 1.2;
-            letter-spacing: 0.02em;
-            white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+            font-size: 9.5px;
+            font-weight: 800;
+            line-height: 1;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
         }
         .minimap-dir-n {
-            top: 0;
+            top: 10px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             color: #fde047;
-            border-color: rgba(250, 204, 21, 0.6);
+            border-color: rgba(250, 204, 21, 0.85);
         }
         .minimap-dir-s {
-            bottom: 0;
+            bottom: 10px;
             left: 50%;
-            transform: translateX(-50%);
-        }
-        .minimap-dir-e,
-        .minimap-dir-w {
-            writing-mode: vertical-rl;
-            text-orientation: upright;
-            padding: 3px 2px;
-            letter-spacing: 0.04em;
-            line-height: 1.05;
+            transform: translate(-50%, 50%);
         }
         .minimap-dir-e {
-            right: 0;
+            right: 10px;
             top: 50%;
-            transform: translateY(-50%);
+            transform: translate(50%, -50%);
         }
         .minimap-dir-w {
-            left: 0;
+            left: 10px;
             top: 50%;
-            transform: translateY(-50%);
+            transform: translate(-50%, -50%);
         }
 
         .minimap-column {
@@ -465,6 +460,7 @@
             align-items: center;
             gap: 0.35rem;
             flex-shrink: 0;
+            pointer-events: auto;
         }
         .minimap-zone-label {
             display: inline-block;
@@ -483,47 +479,48 @@
             pointer-events: auto;
         }
 
-        .location-stack {
-            display: flex;
-            align-items: flex-start;
-            min-inline-size: 0;
-        }
         .back-home-link {
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
-            padding: 0.35rem 0.75rem 0.35rem 0.45rem;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.65rem 0.35rem 0.45rem;
             min-block-size: var(--target-size);
             border-radius: 0.75rem;
-            background: rgba(15, 23, 42, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.24);
+            background: rgba(15, 23, 42, 0.90);
+            border: 1px solid rgba(255, 255, 255, 0.28);
             color: #ffffff;
             text-decoration: none;
-            font-size: 0.80rem;
+            font-size: 0.78rem;
             font-weight: 700;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.38);
             transition: background 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
             white-space: nowrap;
+            pointer-events: auto;
+            cursor: pointer;
+            z-index: 25;
         }
         .back-home-link:hover {
-            background: rgba(30, 58, 138, 0.65);
-            border-color: rgba(255, 255, 255, 0.42);
+            background: rgba(30, 58, 138, 0.92);
+            border-color: rgba(250, 204, 21, 0.65);
             transform: translateY(-1px);
         }
         .back-home-icon {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            inline-size: 26px;
-            block-size: 26px;
-            border-radius: 0.45rem;
+            inline-size: 24px;
+            block-size: 24px;
+            border-radius: 0.4rem;
             background: rgba(255, 255, 255, 0.18);
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             line-height: 1;
+            pointer-events: none;
         }
         .back-home-label {
             color: #ffffff;
             letter-spacing: -0.01em;
+            pointer-events: none;
         }
         .clock-pill {
             display: inline-flex;
@@ -905,7 +902,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: max(1.2rem, env(safe-area-inset-top, 0px) + 0.8rem) max(1.2rem, env(safe-area-inset-right, 0px) + 0.8rem) max(1.2rem, env(safe-area-inset-bottom, 0px) + 0.8rem) max(1.2rem, env(safe-area-inset-left, 0px) + 0.8rem);
+            padding: 1.5rem;
             opacity: 0;
             visibility: hidden;
             transition: opacity 280ms ease, visibility 280ms ease;
@@ -914,23 +911,35 @@
             opacity: 1;
             visibility: visible;
         }
+        .snapshot-blur-curtain {
+            position: absolute;
+            inset: 0;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.45);
+            mask-image: radial-gradient(ellipse at center, transparent 38%, black 72%);
+            -webkit-mask-image: radial-gradient(ellipse at center, transparent 38%, black 72%);
+            pointer-events: none;
+        }
         .snapshot-frame-box {
             position: relative;
-            inline-size: 100%;
-            block-size: 100%;
-            border-radius: 1.2rem;
-            border: 2px dashed rgba(255, 255, 255, 0.45);
-            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18), 0 0 0 9999px rgba(0, 0, 0, 0.12);
+            z-index: 2;
+            inline-size: min(560px, 80dvw);
+            aspect-ratio: 16 / 9;
+            max-block-size: 54dvh;
+            border-radius: 1rem;
+            border: 2px dashed rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.35), 0 12px 36px rgba(0, 0, 0, 0.5);
             transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
-            transform: scale(0.98);
+            transform: scale(0.96);
         }
         .snapshot-frame-overlay.is-active .snapshot-frame-box {
             transform: scale(1);
         }
         .viewfinder-corner {
             position: absolute;
-            inline-size: 26px;
-            block-size: 26px;
+            inline-size: 24px;
+            block-size: 24px;
             border-color: #facc15;
             border-style: solid;
             pointer-events: none;
@@ -939,33 +948,33 @@
             top: -2px;
             left: -2px;
             border-width: 4px 0 0 4px;
-            border-top-left-radius: 1.2rem;
+            border-top-left-radius: 1rem;
         }
         .viewfinder-corner.corner-tr {
             top: -2px;
             right: -2px;
             border-width: 4px 4px 0 0;
-            border-top-right-radius: 1.2rem;
+            border-top-right-radius: 1rem;
         }
         .viewfinder-corner.corner-bl {
             bottom: -2px;
             left: -2px;
             border-width: 0 0 4px 4px;
-            border-bottom-left-radius: 1.2rem;
+            border-bottom-left-radius: 1rem;
         }
         .viewfinder-corner.corner-br {
             bottom: -2px;
             right: -2px;
             border-width: 0 4px 4px 0;
-            border-bottom-right-radius: 1.2rem;
+            border-bottom-right-radius: 1rem;
         }
         .viewfinder-tag {
             position: absolute;
-            top: 1rem;
+            top: -16px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.90);
-            border: 1px solid rgba(250, 204, 21, 0.6);
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid rgba(250, 204, 21, 0.7);
             color: #fde047;
             font-size: 0.76rem;
             font-weight: 800;
@@ -983,8 +992,11 @@
             .minimap-container { padding: 7px; }
             .minimap-wrap { inline-size: 88px; block-size: 88px; border-radius: 0.85rem; }
             .minimap-wrap canvas { border-radius: 0.62rem; }
-            .minimap-dir { font-size: 7.5px; padding: 1px 4px; letter-spacing: 0.02em; }
-            .minimap-dir-e, .minimap-dir-w { padding: 2px 1px; }
+            .minimap-dir { inline-size: 16px; block-size: 16px; font-size: 8px; }
+            .minimap-dir-n { top: 8px; }
+            .minimap-dir-s { bottom: 8px; }
+            .minimap-dir-e { right: 8px; }
+            .minimap-dir-w { left: 8px; }
             .minimap-zone-label { max-inline-size: 104px; font-size: 0.62rem; padding: 0.18rem 0.35rem; }
             .hud-top-center { top: 0; }
             .clock-pill { padding: 0.26rem 0.65rem; gap: 0.4rem; }
@@ -1122,17 +1134,69 @@
         }
         .btn-teleport:hover { background: #1d4ed8; }
 
-        /* Gallery Cards preserving 16:9 aspect-ratio */
+        /* Gallery Sections & Cards preserving 16:9 aspect-ratio */
+        .gallery-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .gallery-date-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+        .gallery-date-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1.5px solid #e2e8f0;
+            font-size: 0.86rem;
+            font-weight: 800;
+            color: #1e3a8a;
+        }
+        .gallery-date-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.18rem 0.55rem;
+            border-radius: 999px;
+            background: #e0e7ff;
+            color: #1e3a8a;
+            font-size: 0.74rem;
+            font-weight: 700;
+        }
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 0.85rem;
         }
         .gallery-card {
+            position: relative;
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 0.75rem;
             overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 150ms ease, box-shadow 150ms ease;
+        }
+        .gallery-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+        .gallery-badge-new {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 3;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            background: #dc2626;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
         }
         .gallery-img {
             display: block;
@@ -1493,12 +1557,13 @@
 
     <!-- Viewfinder Camera Snapshot Frame Overlay -->
     <div id="snapshotFrameOverlay" class="snapshot-frame-overlay" aria-hidden="true">
+        <div class="snapshot-blur-curtain"></div>
         <div class="snapshot-frame-box">
             <span class="viewfinder-corner corner-tl"></span>
             <span class="viewfinder-corner corner-tr"></span>
             <span class="viewfinder-corner corner-bl"></span>
             <span class="viewfinder-corner corner-br"></span>
-            <div class="viewfinder-tag">📸 ĐÃ CHỤP ẢNH LƯU NIỆM</div>
+            <div class="viewfinder-tag">ĐÃ CHỤP ẢNH LƯU NIỆM THÀNH CÔNG!</div>
         </div>
     </div>
 
@@ -1512,23 +1577,20 @@
                 <!-- Top-Left: Square Tactical Radar Minimap + Return Home Link -->
                 <div class="hud-top-left">
                     <div class="minimap-column">
+                        <a th:href="@{/}" href="/" id="backHomeLink" class="back-home-link" aria-label="Quay về trang chủ UniDocs" title="Quay về trang chủ UniDocs">
+                            <span class="back-home-icon" aria-hidden="true">&lsaquo;</span>
+                            <span class="back-home-label">Quay về trang chủ UniDocs</span>
+                        </a>
                         <div class="minimap-container">
                             <button id="minimapBtn" type="button" class="minimap-wrap" aria-label="Mở bản đồ khuôn viên 2D">
                                 <canvas id="minimapCanvas" width="144" height="144"></canvas>
                             </button>
-                            <span class="minimap-dir minimap-dir-n" aria-hidden="true">BẮC</span>
-                            <span class="minimap-dir minimap-dir-e" aria-hidden="true">ĐÔNG</span>
-                            <span class="minimap-dir minimap-dir-s" aria-hidden="true">NAM</span>
-                            <span class="minimap-dir minimap-dir-w" aria-hidden="true">TÂY</span>
+                            <span class="minimap-dir minimap-dir-n" aria-hidden="true">B</span>
+                            <span class="minimap-dir minimap-dir-e" aria-hidden="true">Đ</span>
+                            <span class="minimap-dir minimap-dir-s" aria-hidden="true">N</span>
+                            <span class="minimap-dir minimap-dir-w" aria-hidden="true">T</span>
                         </div>
                         <div id="currentZoneLabel" class="minimap-zone-label">77 Nguyễn Huệ · Gần Cổng Chính</div>
-                    </div>
-
-                    <div class="location-stack">
-                        <a th:href="@{/}" href="/" class="back-home-link" aria-label="Quay về trang chủ UniDocs" title="Quay về trang chủ UniDocs">
-                            <span class="back-home-icon" aria-hidden="true">&lsaquo;</span>
-                            <span class="back-home-label">Quay về trang chủ UniDocs</span>
-                        </a>
                     </div>
                 </div>
 
@@ -1544,7 +1606,7 @@
                 <!-- Top-Right: Core navigation controls and gear icon settings button -->
                 <div class="hud-top-right">
                     <button id="camToggleBtn" type="button" class="hud-btn">
-                        <span id="camToggleLabel">Flycam toàn cảnh</span>
+                        <span id="camToggleLabel">Toàn cảnh</span>
                     </button>
                     <button id="openMenuBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Cài đặt" title="Cài đặt">
                         <svg class="hud-gear-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -1643,11 +1705,11 @@
         <div class="dlg-head">
             <h2 id="galleryDialogTitle">Kho ảnh</h2>
             <form method="dialog">
-                <button type="submit" value="close" class="dlg-close-btn" autofocus>Đóng</button>
+                <button type="submit" value="close" class="dlg-close-btn is-red-close" aria-label="Đóng" autofocus>X</button>
             </form>
         </div>
         <div class="dlg-body">
-            <div id="galleryGrid" class="gallery-grid"></div>
+            <div id="galleryGrid" class="gallery-sections"></div>
         </div>
     </dialog>
 
@@ -1670,7 +1732,7 @@
         </div>
         <form id="settingsForm" method="dialog" class="dlg-body" aria-labelledby="menuDialogTitle">
             <div class="menu-section menu-section-inline">
-                <h3>Toàn cảnh</h3>
+                <h3>Giới thiệu</h3>
                 <button id="replayIntroBtn" type="button" class="menu-choice-btn is-primary">Xem</button>
             </div>
             <div class="menu-section">
