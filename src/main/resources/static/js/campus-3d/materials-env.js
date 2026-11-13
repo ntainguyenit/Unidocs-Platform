@@ -1713,7 +1713,203 @@ function createAtmosphereAndProps(scene) {
     scene.add(headInst);
     scene.add(haloInst);
 
-    return { skyUniforms, syncCloudInstances, cloudMat, lampHeadMat, lampHaloMat, haloInst };
+    // Twinkling celestial starfield for night atmosphere
+    const STAR_COUNT = 650;
+    const starPositions = new Float32Array(STAR_COUNT * 3);
+    const starPhases = new Float32Array(STAR_COUNT);
+    const starSizes = new Float32Array(STAR_COUNT);
+    for (let i = 0; i < STAR_COUNT; i++) {
+        // Distribute stars randomly across the celestial dome
+        const phi = Math.acos(0.12 + Math.random() * 0.88);
+        const theta = Math.random() * Math.PI * 2;
+        const r = 405 + Math.random() * 10;
+        starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        starPositions[i * 3 + 1] = r * Math.cos(phi);
+        starPositions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+        starPhases[i] = Math.random();
+        starSizes[i] = 1.8 + Math.random() * 2.2;
+    }
+    const starGeom = new THREE.BufferGeometry();
+    starGeom.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    starGeom.setAttribute('aPhase', new THREE.BufferAttribute(starPhases, 1));
+    starGeom.setAttribute('aSize', new THREE.BufferAttribute(starSizes, 1));
+
+    const starUniforms = {
+        uTime: { value: 0 },
+        uOpacity: { value: 0.0 }
+    };
+    const starMat = new THREE.ShaderMaterial({
+        uniforms: starUniforms,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexShader: `
+            attribute float aPhase;
+            attribute float aSize;
+            uniform float uTime;
+            varying float vTwinkle;
+            void main() {
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_Position = projectionMatrix * mvPosition;
+                float twinkle = 0.5 + 0.5 * sin(uTime * 3.2 + aPhase * 18.8495);
+                vTwinkle = 0.35 + 0.65 * twinkle;
+                gl_PointSize = aSize * (0.8 + 0.35 * twinkle) * (260.0 / -mvPosition.z);
+            }
+        `,
+        fragmentShader: `
+            uniform float uOpacity;
+            varying float vTwinkle;
+            void main() {
+                vec2 coord = gl_PointCoord - vec2(0.5);
+                float dist = length(coord);
+                if (dist > 0.5) discard;
+                float core = 1.0 - smoothstep(0.0, 0.5, dist);
+                gl_FragColor = vec4(vec3(0.96, 0.98, 1.0), core * vTwinkle * uOpacity);
+            }
+        `
+    });
+    const starPoints = new THREE.Points(starGeom, starMat);
+    starPoints.frustumCulled = false;
+    starPoints.visible = false;
+    scene.add(starPoints);
+
+    // Dynamic shooting star meteor streak across the night sky
+    const meteorGroup = new THREE.Group();
+    const meteorHeadGeom = new THREE.SphereGeometry(0.55, 6, 6);
+    const meteorHeadMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+    const meteorHeadMesh = new THREE.Mesh(meteorHeadGeom, meteorHeadMat);
+    meteorGroup.add(meteorHeadMesh);
+
+    // Meteor glowing trail ribbon
+    const meteorTrailGeom = new THREE.BufferGeometry();
+    const trailPositions = new Float32Array(12);
+    const trailAlphas = new Float32Array([0.0, 0.0, 1.0, 1.0]);
+    const trailIndices = new Uint16Array([0, 1, 2, 2, 1, 3]);
+    meteorTrailGeom.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+    meteorTrailGeom.setAttribute('aAlpha', new THREE.BufferAttribute(trailAlphas, 1));
+    meteorTrailGeom.setIndex(new THREE.BufferAttribute(trailIndices, 1));
+
+    const meteorTrailUniforms = { uOpacity: { value: 0.0 } };
+    const meteorTrailMat = new THREE.ShaderMaterial({
+        uniforms: meteorTrailUniforms,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+        vertexShader: `
+            attribute float aAlpha;
+            varying float vAlpha;
+            void main() {
+                vAlpha = aAlpha;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform float uOpacity;
+            varying float vAlpha;
+            void main() {
+                gl_FragColor = vec4(vec3(0.85, 0.94, 1.0), vAlpha * uOpacity);
+            }
+        `
+    });
+    const meteorTrailMesh = new THREE.Mesh(meteorTrailGeom, meteorTrailMat);
+    meteorTrailMesh.frustumCulled = false;
+    meteorGroup.add(meteorTrailMesh);
+    meteorGroup.visible = false;
+    scene.add(meteorGroup);
+
+    let isNightActive = false;
+    let meteorActive = false;
+    let meteorTimer = 2.0;
+    let meteorProgress = 0.0;
+    const meteorDuration = 0.72;
+    const meteorStart = new THREE.Vector3();
+    const meteorEnd = new THREE.Vector3();
+    const meteorDir = new THREE.Vector3();
+    const currentHead = new THREE.Vector3();
+    const currentTail = new THREE.Vector3();
+    const sideVec = new THREE.Vector3();
+    const upVec = new THREE.Vector3(0, 1, 0);
+
+    // Toggle active night sky state
+    const setNightSkyActive = (active) => {
+        isNightActive = active;
+        if (!active) {
+            meteorActive = false;
+            meteorGroup.visible = false;
+            meteorTimer = 2.0;
+        }
+    };
+
+    // Animate twinkling starfield opacity and shooting star streak trajectory
+    const updateNightSky = (elapsedSec, dt) => {
+        const targetOpacity = isNightActive ? 1.0 : 0.0;
+        const currentOpacity = starUniforms.uOpacity.value;
+        const speed = isNightActive ? 2.5 : 3.5;
+        const newOpacity = THREE.MathUtils.lerp(currentOpacity, targetOpacity, Math.min(1.0, dt * speed));
+        starUniforms.uOpacity.value = newOpacity;
+        starUniforms.uTime.value = elapsedSec;
+        starPoints.visible = newOpacity > 0.01;
+
+        if (!isNightActive && newOpacity <= 0.01) {
+            meteorGroup.visible = false;
+            return;
+        }
+
+        if (!meteorActive) {
+            meteorTimer -= dt;
+            if (meteorTimer <= 0) {
+                const angle = Math.random() * Math.PI * 2;
+                const r = 240 + Math.random() * 80;
+                meteorStart.set(Math.cos(angle) * r, 160 + Math.random() * 45, Math.sin(angle) * r);
+                meteorDir.set(-meteorStart.x * 0.45 + (Math.random() - 0.5) * 80, -32 - Math.random() * 20, -meteorStart.z * 0.45 + (Math.random() - 0.5) * 80).normalize();
+                meteorEnd.copy(meteorStart).addScaledVector(meteorDir, 140 + Math.random() * 50);
+                meteorActive = true;
+                meteorProgress = 0.0;
+                meteorGroup.visible = true;
+            }
+        } else {
+            meteorProgress += dt / meteorDuration;
+            if (meteorProgress >= 1.0) {
+                meteorActive = false;
+                meteorGroup.visible = false;
+                meteorTimer = 3.2 + Math.random() * 3.5;
+            } else {
+                currentHead.lerpVectors(meteorStart, meteorEnd, meteorProgress);
+                const streakEnvelope = Math.sin(meteorProgress * Math.PI);
+                const tailLen = Math.min(32, 65 * streakEnvelope);
+                currentTail.copy(currentHead).addScaledVector(meteorDir, -tailLen);
+
+                meteorHeadMesh.position.copy(currentHead);
+                meteorHeadMat.opacity = streakEnvelope * 0.95;
+                meteorTrailUniforms.uOpacity.value = streakEnvelope * 0.9;
+
+                sideVec.crossVectors(meteorDir, upVec).normalize().multiplyScalar(1.0);
+                const posArr = meteorTrailGeom.attributes.position.array;
+                posArr[0] = currentTail.x - sideVec.x * 0.2;
+                posArr[1] = currentTail.y - sideVec.y * 0.2;
+                posArr[2] = currentTail.z - sideVec.z * 0.2;
+                posArr[3] = currentTail.x + sideVec.x * 0.2;
+                posArr[4] = currentTail.y + sideVec.y * 0.2;
+                posArr[5] = currentTail.z + sideVec.z * 0.2;
+                posArr[6] = currentHead.x - sideVec.x;
+                posArr[7] = currentHead.y - sideVec.y;
+                posArr[8] = currentHead.z - sideVec.z;
+                posArr[9] = currentHead.x + sideVec.x;
+                posArr[10] = currentHead.y + sideVec.y;
+                posArr[11] = currentHead.z + sideVec.z;
+                meteorTrailGeom.attributes.position.needsUpdate = true;
+            }
+        }
+    };
+
+    return { skyUniforms, syncCloudInstances, cloudMat, lampHeadMat, lampHaloMat, haloInst, setNightSkyActive, updateNightSky };
 }
 
 // Initialize lighting, sky, gardens, signage, animated foliage, and adaptive hardware quality presets
@@ -1773,7 +1969,9 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         cloudMat,
         lampHeadMat,
         lampHaloMat,
-        haloInst
+        haloInst,
+        setNightSkyActive,
+        updateNightSky
     } = createAtmosphereAndProps(scene);
 
     let shadowUpdateStride = initialTier === 'low' ? 4 : (initialTier === 'medium' ? 2 : 1);
@@ -1815,6 +2013,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             lampHaloMat.opacity = 0.22;
             haloInst.visible = true;
             renderer.toneMappingExposure = 1.04;
+            setNightSkyActive(false);
         } else if (mode === 'night') {
             sunLight.position.set(-70, 95, -55);
             sunLight.color.setHex(0x93c5fd);
@@ -1833,6 +2032,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             lampHaloMat.opacity = 0.58;
             haloInst.visible = true;
             renderer.toneMappingExposure = 1.12;
+            setNightSkyActive(true);
         } else {
             sunLight.position.set(78, 118, 72);
             sunLight.color.setHex(0xfff5e4);
@@ -1851,6 +2051,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             lampHaloMat.opacity = 0;
             haloInst.visible = false;
             renderer.toneMappingExposure = 1.06;
+            setNightSkyActive(false);
         }
         renderer.shadowMap.needsUpdate = true;
     };
@@ -1925,6 +2126,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     // Advance wind uniform, drifting clouds, flag ripple, smart traffic signals, vehicle flow, and beacon pulse
     const updateEnvironment = (elapsedSec, dt, playerState = null) => {
         windUniform.value = elapsedSec;
+        updateNightSky(elapsedSec, dt);
         const signalState = intersectionSignals.updateSignals(dt);
         updateTraffic(dt, playerState, signalState);
 

@@ -20,6 +20,11 @@
     <meta name="robots" th:content="${resolvedRobots}">
     <link rel="canonical" th:href="${resolvedUrl}">
 
+    <!-- Preconnect and load Google Fonts Inter with full Vietnamese glyph support -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <!-- Open Graph metadata for social platforms and visual campus map preview -->
     <meta property="og:title" th:content="${resolvedTitle}">
     <meta property="og:description" th:content="${resolvedDesc}">
@@ -123,7 +128,7 @@
             padding: 0;
             inline-size: 100%;
             block-size: 100%;
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             overflow-wrap: anywhere;
             background: #13284b;
             color: #f8fafc;
@@ -306,11 +311,12 @@
         .hud-layer.hud-prewarm { opacity: 0.01; pointer-events: none; transition: none; }
 
         .hud-top-row {
+            position: relative;
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
             gap: 0.65rem;
-            flex-wrap: wrap;
+            inline-size: 100%;
         }
 
         .hud-top-left {
@@ -319,6 +325,7 @@
             gap: 0.65rem;
             flex: 1 1 auto;
             min-inline-size: 0;
+            z-index: 10;
         }
 
         .hud-top-right {
@@ -328,8 +335,24 @@
             gap: 0.45rem;
             flex-wrap: wrap;
             pointer-events: none;
+            z-index: 10;
         }
         .hud-top-right > * {
+            pointer-events: auto;
+        }
+
+        /* Top-Center: Refined Hue Clock, Weather, and FPS Performance Badge */
+        .hud-top-center {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 25;
+        }
+        .hud-top-center > * {
             pointer-events: auto;
         }
 
@@ -342,7 +365,16 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
         }
 
-        /* Square tactical radar minimap with 4-direction cardinal edge labels */
+        /* Square tactical radar minimap with 4-direction cardinal edge labels outside the radar canvas */
+        .minimap-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 9px;
+            pointer-events: auto;
+        }
         .minimap-wrap {
             position: relative;
             flex-shrink: 0;
@@ -351,11 +383,12 @@
             border-radius: 1rem;
             padding: 3px;
             background: #0f172a;
-            border: 2.5px solid rgba(255, 255, 255, 0.86);
+            border: 2px solid rgba(255, 255, 255, 0.88);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
             overflow: hidden;
             cursor: pointer;
             pointer-events: auto;
+            display: block;
             transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
         }
         @media (prefers-reduced-motion: no-preference) {
@@ -380,41 +413,42 @@
         }
         .minimap-dir {
             position: absolute;
-            z-index: 2;
+            z-index: 5;
             pointer-events: none;
             padding: 1px 5px;
-            border-radius: 5px;
-            background: rgba(15, 23, 42, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.24);
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.28);
             color: #f8fafc;
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            line-height: 1.25;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 8.5px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: 0.02em;
             white-space: nowrap;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
         }
         .minimap-dir-n {
-            top: 5px;
+            top: 0;
             left: 50%;
-            translate: -50% 0;
+            transform: translateX(-50%);
             color: #fde047;
-            border-color: rgba(250, 204, 21, 0.45);
+            border-color: rgba(250, 204, 21, 0.6);
         }
         .minimap-dir-s {
-            bottom: 5px;
+            bottom: 0;
             left: 50%;
-            translate: -50% 0;
+            transform: translateX(-50%);
         }
         .minimap-dir-e {
-            right: 5px;
+            right: 0;
             top: 50%;
-            translate: 0 -50%;
+            transform: translateY(-50%);
         }
         .minimap-dir-w {
-            left: 5px;
+            left: 0;
             top: 50%;
-            translate: 0 -50%;
+            transform: translateY(-50%);
         }
 
         .location-stack {
@@ -450,29 +484,26 @@
         .clock-pill {
             display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 0.6rem;
-            padding: 0.3rem 0.65rem;
-            font-size: 0.74rem;
-            font-weight: 600;
-            color: #e2e8f0;
+            gap: 0.55rem;
+            padding: 0.35rem 0.85rem;
+            background: rgba(15, 23, 42, 0.86);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.36);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
-        .signal-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.45rem;
-            padding: 0.24rem 0.62rem;
-            font-size: 0.72rem;
+        .clock-pill #weatherClockLabel {
+            font-size: 0.78rem;
             font-weight: 600;
-            color: #e2e8f0;
-            font-variant-numeric: tabular-nums;
+            color: #f1f5f9;
+            white-space: nowrap;
         }
-        .sig-axis { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
-        .sig-dot { inline-size: 8px; block-size: 8px; border-radius: 999px; flex-shrink: 0; }
-        .sig-dot.is-green { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.85); }
-        .sig-dot.is-yellow { background: #facc15; box-shadow: 0 0 8px rgba(250, 204, 21, 0.85); }
-        .sig-dot.is-red { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.85); }
+        .clock-divider {
+            color: rgba(255, 255, 255, 0.28);
+            font-size: 0.75rem;
+            user-select: none;
+        }
 
         /* Text-only pill toolbar buttons centered cleanly */
         .hud-btn {
@@ -545,10 +576,18 @@
         }
 
         .fps-pill {
-            padding: 0.32rem 0.55rem;
-            font-size: 0.7rem;
-            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.15rem 0.45rem;
+            font-size: 0.68rem;
+            font-weight: 800;
             color: #86efac;
+            background: rgba(34, 197, 94, 0.18);
+            border: 1px solid rgba(74, 222, 128, 0.32);
+            border-radius: 999px;
+            line-height: 1.2;
+            letter-spacing: 0.02em;
         }
 
         /* Left mid quest tracker panel */
@@ -817,9 +856,14 @@
         @media (max-width: 720px) {
             .intro-title-card { margin-top: 0.7rem; padding: 0.6rem 0.95rem; }
             .skip-intro-btn { min-inline-size: 84px; padding: 0.5rem 1.05rem; font-size: 0.82rem; }
+            .minimap-container { padding: 7px; }
             .minimap-wrap { inline-size: 88px; block-size: 88px; border-radius: 0.85rem; }
             .minimap-wrap canvas { border-radius: 0.62rem; }
             .minimap-dir { font-size: 7.5px; padding: 1px 4px; letter-spacing: 0.02em; }
+            .hud-top-center { top: 0; }
+            .clock-pill { padding: 0.26rem 0.65rem; gap: 0.4rem; }
+            .clock-pill #weatherClockLabel { font-size: 0.7rem; }
+            .fps-pill { font-size: 0.64rem; padding: 0.12rem 0.38rem; }
             .location-stack { max-inline-size: 225px; }
             .desktop-hint { display: none; }
             .hud-top-right { gap: 0.35rem; }
@@ -1331,19 +1375,21 @@
     <div id="hudLayer" class="hud-layer hud-hidden hud-prewarm">
         <div>
             <div class="hud-top-row">
-                <!-- Top-Left: Square Tactical Radar Minimap (North/South/East/West) + HUSC Location & Clock Pills -->
+                <!-- Top-Left: Square Tactical Radar Minimap + HUSC Location Card -->
                 <div class="hud-top-left">
-                    <button id="minimapBtn" type="button" class="minimap-wrap" aria-label="Mở bản đồ khuôn viên 2D với 4 hướng Bắc Nam Đông Tây">
-                        <canvas id="minimapCanvas" width="144" height="144"></canvas>
+                    <div class="minimap-container">
+                        <button id="minimapBtn" type="button" class="minimap-wrap" aria-label="Mở bản đồ khuôn viên 2D">
+                            <canvas id="minimapCanvas" width="144" height="144"></canvas>
+                        </button>
                         <span class="minimap-dir minimap-dir-n" aria-hidden="true">BẮC</span>
                         <span class="minimap-dir minimap-dir-e" aria-hidden="true">ĐÔNG</span>
                         <span class="minimap-dir minimap-dir-s" aria-hidden="true">NAM</span>
                         <span class="minimap-dir minimap-dir-w" aria-hidden="true">TÂY</span>
-                    </button>
+                    </div>
 
                     <div class="location-stack">
                         <div class="hud-pill location-card">
-                            <a th:href="@{/}" class="back-home-link" aria-label="Về trang chủ UniDocs" title="Về trang chủ UniDocs">
+                            <a th:href="@{/}" href="/" class="back-home-link" aria-label="Về trang chủ UniDocs" title="Về trang chủ UniDocs">
                                 <span aria-hidden="true">&lsaquo;</span>
                             </a>
                             <div style="min-inline-size:0;">
@@ -1351,15 +1397,15 @@
                                 <div id="currentZoneLabel" class="location-sub">77 Nguyễn Huệ · Cổng Chính</div>
                             </div>
                         </div>
-                        <div class="hud-pill clock-pill">
-                            <span id="weatherClockLabel">10:00 · ☀️ Nắng đẹp 29°C</span>
-                            <span id="fpsBadge" class="fps-pill">60 FPS</span>
-                        </div>
-                        <div id="trafficSignalPill" class="hud-pill signal-pill">
-                            <span class="sig-axis"><span id="sigEwDot" class="sig-dot is-green" aria-hidden="true"></span><span id="sigEwLabel">NH</span> <strong id="sigEwSec">09s</strong></span>
-                            <span aria-hidden="true" style="opacity:0.45;">·</span>
-                            <span class="sig-axis"><span id="sigNsDot" class="sig-dot is-red" aria-hidden="true"></span>LTK <strong id="sigNsSec">14s</strong></span>
-                        </div>
+                    </div>
+                </div>
+
+                <!-- Top-Center: Refined Hue Clock, Weather, and FPS Performance Badge -->
+                <div class="hud-top-center">
+                    <div class="hud-pill clock-pill">
+                        <span id="weatherClockLabel">10:00 · ☀️ Nắng đẹp 29°C</span>
+                        <span class="clock-divider" aria-hidden="true">|</span>
+                        <span id="fpsBadge" class="fps-pill">60 FPS</span>
                     </div>
                 </div>
 
@@ -1369,7 +1415,6 @@
                     <button id="camToggleBtn" type="button" class="hud-btn">
                         <span id="camToggleLabel">Flycam toàn cảnh</span>
                     </button>
-                    <button id="openGalleryBtn" type="button" class="hud-btn">Bộ sưu tập</button>
                     <button id="openMenuBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Cài đặt" title="Cài đặt">
                         <svg class="hud-gear-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                             <path fill-rule="evenodd" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58ZM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2Z"/>
@@ -1433,16 +1478,15 @@
             </div>
 
             <div class="action-cluster">
-                <button id="sprintBtn" type="button" class="hud-btn hud-icon-btn action-fab" aria-label="Bật chạy nhanh" title="Bật chạy nhanh (Shift)" aria-pressed="false">
-                    <svg class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <circle cx="13.5" cy="3.5" r="2"/>
-                        <path d="M9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7Z"/>
-                    </svg>
-                </button>
                 <button id="snapshotBtn" type="button" class="hud-btn hud-icon-btn action-fab" aria-label="Chụp ảnh" title="Chụp ảnh lưu niệm (Phím C)">
                     <svg class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path fill-rule="evenodd" d="M4 7h3.17L9 5h6l1.83 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
                         <circle cx="12" cy="13" r="1.8"/>
+                    </svg>
+                </button>
+                <button id="openGalleryBtn" type="button" class="hud-btn hud-icon-btn action-fab" aria-label="Kho ảnh" title="Kho ảnh">
+                    <svg class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path fill-rule="evenodd" d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5Zm2 0v14h14V5H5Zm2 12 3.5-4.5 2.5 3 3.5-4.5 4.5 6H7Zm2-9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/>
                     </svg>
                 </button>
             </div>
@@ -1470,7 +1514,7 @@
 
     <dialog id="galleryDialog" class="game-dialog" closedby="any" aria-labelledby="galleryDialogTitle">
         <div class="dlg-head">
-            <h2 id="galleryDialogTitle">🖼️ Bộ sưu tập Ảnh Lưu niệm ĐHKH Huế</h2>
+            <h2 id="galleryDialogTitle">🖼️ Kho ảnh Lưu niệm ĐHKH Huế</h2>
             <form method="dialog">
                 <button type="submit" value="close" class="dlg-close-btn" autofocus>Đóng</button>
             </form>
@@ -1533,7 +1577,6 @@
                 <h3>Thời gian</h3>
                 <div class="menu-btn-row" role="group" aria-label="Thời gian">
                     <button type="button" class="menu-choice-btn" data-light-preset="noon">Ban ngày</button>
-                    <button type="button" class="menu-choice-btn" data-light-preset="sunset">Hoàng hôn xứ Huế</button>
                     <button type="button" class="menu-choice-btn" data-light-preset="night">Buổi tối</button>
                 </div>
             </div>
@@ -1554,9 +1597,8 @@
             <div class="menu-section menu-section-inline">
                 <div class="menu-switch-meta">
                     <h3><label for="soundToggleInput">Âm thanh</label></h3>
-                    <span id="soundStateLabel" class="menu-switch-state">Đang bật</span>
                 </div>
-                <input id="soundToggleInput" name="soundEnabled" type="checkbox" switch class="menu-switch-input" aria-describedby="soundStateLabel">
+                <input id="soundToggleInput" name="soundEnabled" type="checkbox" switch class="menu-switch-input" aria-label="Âm thanh">
             </div>
             <div class="menu-section menu-section-inline">
                 <h3>Đặt lại</h3>
@@ -1565,7 +1607,7 @@
             <div class="menu-footer-actions">
                 <button id="saveSettingsBtn" type="submit" value="save" class="menu-save-btn">Lưu</button>
                 <p id="settingsStatusMsg" class="settings-status-msg" role="status" aria-live="polite"></p>
-                <a th:href="@{/}" class="menu-exit-link">&larr; Thoát game về Trang chủ UniDocs</a>
+                <a th:href="@{/}" href="/" class="menu-exit-link">&larr; Thoát game về Trang chủ UniDocs</a>
             </div>
         </form>
     </dialog>

@@ -8,7 +8,7 @@ import {
 } from './world-data.js';
 
 const STORAGE_KEY = 'unidocs_husc_campus_3d_v1';
-const VALID_LIGHTING = new Set(['noon', 'sunset', 'night']);
+const VALID_LIGHTING = new Set(['noon', 'night']);
 const QUALITY_STEPS = ['low', 'medium', 'high'];
 const QUALITY_LABELS = { low: 'Thấp', medium: 'Vừa', high: 'Cao' };
 
@@ -202,9 +202,7 @@ export function setupCampusHud({
         const hh = String(now.getHours()).padStart(2, '0');
         const mm = String(now.getMinutes()).padStart(2, '0');
         let icon = '☀️ Nắng đẹp 29°C';
-        if (state.lighting === 'sunset') {
-            icon = '🌅 Hoàng hôn xứ Huế 26°C';
-        } else if (state.lighting === 'night') {
+        if (state.lighting === 'night') {
             icon = '🌙 Buổi tối dịu mát 23°C';
         }
         weatherClockLabel.textContent = `${hh}:${mm} · ${icon}`;
@@ -555,7 +553,7 @@ export function setupCampusHud({
     const renderGallery = () => {
         galleryGrid.innerHTML = '';
         if (state.photos.length === 0) {
-            galleryGrid.innerHTML = '<p class="empty-msg">Chưa có ảnh lưu niệm nào. Bấm nút Chụp ảnh hoặc phím C trong lúc dạo trường để lưu ảnh!</p>';
+            galleryGrid.innerHTML = '<p class="empty-msg">Chưa có ảnh lưu niệm nào. Bấm nút Chụp ảnh hoặc phím C trong lúc dạo trường để lưu ảnh vào Kho ảnh!</p>';
             return;
         }
         state.photos.forEach((p, idx) => {
@@ -619,7 +617,7 @@ export function setupCampusHud({
             if (state.photos.length > 10) state.photos.length = 10;
             sfx.shutter();
             refreshProgressUI();
-            showToast(`Đã lưu ảnh tại ${state.nearestLocation.shortName} vào Bộ sưu tập!`, 'success');
+            showToast(`Đã lưu ảnh tại ${state.nearestLocation.shortName} vào Kho ảnh!`, 'success');
         };
         img.src = frameDataUrl;
     };
@@ -663,10 +661,20 @@ export function setupCampusHud({
         renderBigMap();
         mapDialog.showModal();
     });
-    document.getElementById('openGalleryBtn').addEventListener('click', () => {
-        renderGallery();
-        galleryDialog.showModal();
-    });
+    const openGalleryBtn = document.getElementById('openGalleryBtn');
+    if (openGalleryBtn) {
+        let lastGalleryTapMs = 0;
+        const handleOpenGallery = (e) => {
+            if (e && e.type === 'pointerdown' && e.pointerType === 'mouse' && e.button !== 0) return;
+            const now = performance.now();
+            if (now - lastGalleryTapMs < 200) return;
+            lastGalleryTapMs = now;
+            renderGallery();
+            galleryDialog.showModal();
+        };
+        openGalleryBtn.addEventListener('pointerdown', handleOpenGallery);
+        openGalleryBtn.addEventListener('click', handleOpenGallery);
+    }
     document.getElementById('openHandbookBtn').addEventListener('click', () => {
         renderHandbook();
         handbookDialog.showModal();
@@ -715,10 +723,12 @@ export function setupCampusHud({
     // Toggle sprint speed boost and sync visual active state and accessible attributes
     const syncSprintState = (active) => {
         playerController.setSprintToggle(active);
-        sprintBtn.classList.toggle('is-active', active);
-        sprintBtn.setAttribute('aria-pressed', String(active));
-        sprintBtn.setAttribute('aria-label', active ? 'Tắt chạy nhanh' : 'Bật chạy nhanh');
-        sprintBtn.setAttribute('title', active ? 'Tắt chạy nhanh (Shift)' : 'Bật chạy nhanh (Shift)');
+        if (sprintBtn) {
+            sprintBtn.classList.toggle('is-active', active);
+            sprintBtn.setAttribute('aria-pressed', String(active));
+            sprintBtn.setAttribute('aria-label', active ? 'Tắt chạy nhanh' : 'Bật chạy nhanh');
+            sprintBtn.setAttribute('title', active ? 'Tắt chạy nhanh (Shift)' : 'Bật chạy nhanh (Shift)');
+        }
         showToast(active ? '⚡ Đã bật chạy bứt tốc' : '🚶 Đã chuyển sang đi bộ');
     };
 
