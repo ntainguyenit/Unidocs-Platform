@@ -170,6 +170,7 @@ export function setupCampusHud({
     const questPhotoText = document.getElementById('questPhotoText');
     const contextPromptBtn = document.getElementById('contextPromptBtn');
     const toastBanner = document.getElementById('hudToast');
+    const snapshotFrameOverlay = document.getElementById('snapshotFrameOverlay');
     const fpsBadge = document.getElementById('fpsBadge');
     const camToggleBtn = document.getElementById('camToggleBtn');
     const camToggleLabel = document.getElementById('camToggleLabel');
@@ -565,8 +566,19 @@ export function setupCampusHud({
         });
     };
 
+    let snapshotFrameTimer = null;
+    const showSnapshotFrame = () => {
+        if (!snapshotFrameOverlay) return;
+        snapshotFrameOverlay.classList.add('is-active');
+        clearTimeout(snapshotFrameTimer);
+        snapshotFrameTimer = setTimeout(() => {
+            snapshotFrameOverlay.classList.remove('is-active');
+        }, 3000);
+    };
+
     // Capture Snapshot from WebGLRenderer and stamp commemorative HUSC frame overlay
     const triggerSnapshot = () => {
+        showSnapshotFrame();
         const frameDataUrl = onCaptureFrame();
         if (!frameDataUrl) return;
         const img = new Image();

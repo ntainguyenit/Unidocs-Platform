@@ -45,54 +45,59 @@ function clampToPolygon(px, pz, poly) {
     return { x: bestX, z: bestZ };
 }
 
-// Resolve circle vs oriented bounding box (OBB) collision in XZ plane with smooth sliding
+// Resolve circle vs oriented bounding box (OBB) collision in XZ plane with multi-pass sliding
 function resolveOBBCollisions(pos, radius) {
-    let x = pos.x;
-    let z = pos.z;
+    for (let iter = 0; iter < 3; iter++) {
+        let collided = false;
+        let x = pos.x;
+        let z = pos.z;
 
-    for (const c of CAMPUS_COLLIDERS) {
-        const cos = Math.cos(c.angle);
-        const sin = Math.sin(c.angle);
-        const dx = x - c.cx;
-        const dz = z - c.cz;
+        for (const c of CAMPUS_COLLIDERS) {
+            const cos = Math.cos(c.angle);
+            const sin = Math.sin(c.angle);
+            const dx = x - c.cx;
+            const dz = z - c.cz;
 
-        // World -> Collider local space inverse Y-rotation
-        const lx = dx * cos - dz * sin;
-        const lz = dx * sin + dz * cos;
+            // World -> Collider local space inverse Y-rotation
+            const lx = dx * cos - dz * sin;
+            const lz = dx * sin + dz * cos;
 
-        const clampedX = Math.max(-c.halfW, Math.min(c.halfW, lx));
-        const clampedZ = Math.max(-c.halfD, Math.min(c.halfD, lz));
-        const offX = lx - clampedX;
-        const offZ = lz - clampedZ;
-        const distSq = offX * offX + offZ * offZ;
+            const clampedX = Math.max(-c.halfW, Math.min(c.halfW, lx));
+            const clampedZ = Math.max(-c.halfD, Math.min(c.halfD, lz));
+            const offX = lx - clampedX;
+            const offZ = lz - clampedZ;
+            const distSq = offX * offX + offZ * offZ;
 
-        if (distSq < radius * radius) {
-            let pushLx = lx;
-            let pushLz = lz;
-            if (distSq > 1e-6) {
-                const dist = Math.sqrt(distSq);
-                const overlap = radius - dist;
-                pushLx += (offX / dist) * overlap;
-                pushLz += (offZ / dist) * overlap;
-            } else {
-                // Player center inside box: push out toward shallowest edge
-                const penX = c.halfW - Math.abs(lx);
-                const penZ = c.halfD - Math.abs(lz);
-                if (penX < penZ) {
-                    pushLx = (lx >= 0 ? 1 : -1) * (c.halfW + radius);
+            if (distSq < radius * radius) {
+                collided = true;
+                let pushLx = lx;
+                let pushLz = lz;
+                if (distSq > 1e-6) {
+                    const dist = Math.sqrt(distSq);
+                    const overlap = radius - dist;
+                    pushLx += (offX / dist) * overlap;
+                    pushLz += (offZ / dist) * overlap;
                 } else {
-                    pushLz = (lz >= 0 ? 1 : -1) * (c.halfD + radius);
+                    // Player center inside box: push out toward shallowest edge
+                    const penX = c.halfW - Math.abs(lx);
+                    const penZ = c.halfD - Math.abs(lz);
+                    if (penX < penZ) {
+                        pushLx = (lx >= 0 ? 1 : -1) * (c.halfW + radius);
+                    } else {
+                        pushLz = (lz >= 0 ? 1 : -1) * (c.halfD + radius);
+                    }
                 }
+                // Local -> World space Y-rotation
+                x = c.cx + pushLx * cos + pushLz * sin;
+                z = c.cz - pushLx * sin + pushLz * cos;
             }
-            // Local -> World space Y-rotation
-            x = c.cx + pushLx * cos + pushLz * sin;
-            z = c.cz - pushLx * sin + pushLz * cos;
         }
-    }
 
-    const clampedPoly = clampToPolygon(x, z, CAMPUS_BOUNDS_POLY);
-    pos.x = clampedPoly.x;
-    pos.z = clampedPoly.z;
+        const clampedPoly = clampToPolygon(x, z, CAMPUS_BOUNDS_POLY);
+        pos.x = clampedPoly.x;
+        pos.z = clampedPoly.z;
+        if (!collided) break;
+    }
 }
 
 // Clamp camera segment from lookTarget so it never sits inside solid walls
@@ -269,7 +274,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             skipIntroFlycam();
         }
         const pos = { x, z };
-        resolveOBBCollisions(pos, 0.68);
+        resolveOBBCollisions(pos, 0.48);
         avatar.root.position.set(pos.x, 0, pos.z);
         avatar.root.rotation.y = yaw;
         state.camYaw = yaw;
@@ -281,34 +286,51 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         }
     };
 
+    // Robust key matchers supporting physical layout (e.code), standard keys, and Vietnamese Telex/VNI IME
+    const isForward = (e) => e.code === 'KeyW' || e.code === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === 'ư' || e.key === 'Ư' || e.key === 'ArrowUp';
+    const isBackward = (e) => e.code === 'KeyS' || e.code === 'ArrowDown' || e.key === 's' || e.key === 'S' || e.key === 'ArrowDown';
+    const isLeft = (e) => e.code === 'KeyA' || e.code === 'ArrowLeft' || e.key === 'a' || e.key === 'A' || e.key === 'â' || e.key === 'Â' || e.key === 'ArrowLeft';
+    const isRight = (e) => e.code === 'KeyD' || e.code === 'ArrowRight' || e.key === 'd' || e.key === 'D' || e.key === 'đ' || e.key === 'Đ' || e.key === 'ArrowRight';
+
     // Keyboard listeners for desktop WASD/Arrow movement and shortcuts
     const onKeyDown = (e) => {
-        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-        const k = e.key.toLowerCase();
-        if (k === 'w' || e.key === 'ArrowUp') keys.w = true;
-        if (k === 's' || e.key === 'ArrowDown') keys.s = true;
-        if (k === 'a' || e.key === 'ArrowLeft') keys.a = true;
-        if (k === 'd' || e.key === 'ArrowRight') keys.d = true;
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) return;
+        if (isForward(e)) keys.w = true;
+        if (isBackward(e)) keys.s = true;
+        if (isLeft(e)) keys.a = true;
+        if (isRight(e)) keys.d = true;
+
         if (state.introPlaying && (e.code === 'Space' || e.key === 'Escape')) {
             e.preventDefault();
             skipIntroFlycam();
             return;
         }
-        if (!state.introPlaying && k === 'v' && onCallbacks.onToggleCamera) onCallbacks.onToggleCamera();
-        if (!state.introPlaying && k === 'e' && onCallbacks.onInteract) onCallbacks.onInteract();
-        if (!state.introPlaying && k === 'c' && onCallbacks.onSnapshot) onCallbacks.onSnapshot();
+        const k = e.key ? e.key.toLowerCase() : '';
+        if (!state.introPlaying && (k === 'v' || e.code === 'KeyV') && onCallbacks.onToggleCamera) onCallbacks.onToggleCamera();
+        if (!state.introPlaying && (k === 'e' || e.code === 'KeyE') && onCallbacks.onInteract) onCallbacks.onInteract();
+        if (!state.introPlaying && (k === 'c' || e.code === 'KeyC') && onCallbacks.onSnapshot) onCallbacks.onSnapshot();
     };
 
     const onKeyUp = (e) => {
-        const k = e.key.toLowerCase();
-        if (k === 'w' || e.key === 'ArrowUp') keys.w = false;
-        if (k === 's' || e.key === 'ArrowDown') keys.s = false;
-        if (k === 'a' || e.key === 'ArrowLeft') keys.a = false;
-        if (k === 'd' || e.key === 'ArrowRight') keys.d = false;
+        if (isForward(e)) keys.w = false;
+        if (isBackward(e)) keys.s = false;
+        if (isLeft(e)) keys.a = false;
+        if (isRight(e)) keys.d = false;
+    };
+
+    const resetMovementKeys = () => {
+        keys.w = false;
+        keys.s = false;
+        keys.a = false;
+        keys.d = false;
     };
 
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', resetMovementKeys);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) resetMovementKeys();
+    });
 
     // Smooth pointer orbit drag on canvas in Third-Person mode (desktop mouse & touch drag)
     let activePointerId = null;
@@ -408,12 +430,36 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             const BASE_WALK_SPEED = 7.6;
             const speed = BASE_WALK_SPEED;
             const stepLen = Math.min(1.0, mag) * speed * clampedDt;
-            const nextPos = {
-                x: avatar.root.position.x + moveX * stepLen,
-                z: avatar.root.position.z + moveZ * stepLen
-            };
+            const startX = avatar.root.position.x;
+            const startZ = avatar.root.position.z;
 
-            resolveOBBCollisions(nextPos, 0.68);
+            // Attempt full movement first with human-scale collision radius
+            const nextPos = {
+                x: startX + moveX * stepLen,
+                z: startZ + moveZ * stepLen
+            };
+            resolveOBBCollisions(nextPos, 0.48);
+
+            // If full diagonal move is obstructed, attempt sliding along free component axes
+            const movedDistSq = (nextPos.x - startX) ** 2 + (nextPos.z - startZ) ** 2;
+            if (movedDistSq < 1e-5 && stepLen > 0.001) {
+                const tryX = { x: startX + moveX * stepLen, z: startZ };
+                resolveOBBCollisions(tryX, 0.48);
+                const distXSq = (tryX.x - startX) ** 2 + (tryX.z - startZ) ** 2;
+
+                const tryZ = { x: startX, z: startZ + moveZ * stepLen };
+                resolveOBBCollisions(tryZ, 0.48);
+                const distZSq = (tryZ.x - startX) ** 2 + (tryZ.z - startZ) ** 2;
+
+                if (distXSq >= distZSq && distXSq > 1e-5) {
+                    nextPos.x = tryX.x;
+                    nextPos.z = tryX.z;
+                } else if (distZSq > 1e-5) {
+                    nextPos.x = tryZ.x;
+                    nextPos.z = tryZ.z;
+                }
+            }
+
             avatar.root.position.set(nextPos.x, 0, nextPos.z);
 
             // Smooth shortest-arc avatar yaw interpolation toward heading

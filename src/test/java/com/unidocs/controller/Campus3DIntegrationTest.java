@@ -68,6 +68,8 @@ class Campus3DIntegrationTest {
                 .andExpect(content().string(not(containsString("ĐHKH HUẾ · HUSC"))))
                 .andExpect(content().string(not(containsString("Tìm chi tiết đặc trưng"))))
                 .andExpect(content().string(not(containsString("questDetailText"))))
+                .andExpect(content().string(containsString("<h2>Khám phá:</h2>")))
+                .andExpect(content().string(containsString("id=\"snapshotFrameOverlay\"")))
                 .andExpect(content().string(containsString("class=\"hud-top-center\"")))
                 .andExpect(content().string(containsString("id=\"weatherClockLabel\"")))
                 .andExpect(content().string(containsString("id=\"fpsBadge\"")))

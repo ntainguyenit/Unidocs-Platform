@@ -896,6 +896,86 @@
             block-size: 23px;
         }
 
+        /* Camera Viewfinder Snapshot Frame Overlay */
+        .snapshot-frame-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 95;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: max(1.2rem, env(safe-area-inset-top, 0px) + 0.8rem) max(1.2rem, env(safe-area-inset-right, 0px) + 0.8rem) max(1.2rem, env(safe-area-inset-bottom, 0px) + 0.8rem) max(1.2rem, env(safe-area-inset-left, 0px) + 0.8rem);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 280ms ease, visibility 280ms ease;
+        }
+        .snapshot-frame-overlay.is-active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .snapshot-frame-box {
+            position: relative;
+            inline-size: 100%;
+            block-size: 100%;
+            border-radius: 1.2rem;
+            border: 2px dashed rgba(255, 255, 255, 0.45);
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18), 0 0 0 9999px rgba(0, 0, 0, 0.12);
+            transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(0.98);
+        }
+        .snapshot-frame-overlay.is-active .snapshot-frame-box {
+            transform: scale(1);
+        }
+        .viewfinder-corner {
+            position: absolute;
+            inline-size: 26px;
+            block-size: 26px;
+            border-color: #facc15;
+            border-style: solid;
+            pointer-events: none;
+        }
+        .viewfinder-corner.corner-tl {
+            top: -2px;
+            left: -2px;
+            border-width: 4px 0 0 4px;
+            border-top-left-radius: 1.2rem;
+        }
+        .viewfinder-corner.corner-tr {
+            top: -2px;
+            right: -2px;
+            border-width: 4px 4px 0 0;
+            border-top-right-radius: 1.2rem;
+        }
+        .viewfinder-corner.corner-bl {
+            bottom: -2px;
+            left: -2px;
+            border-width: 0 0 4px 4px;
+            border-bottom-left-radius: 1.2rem;
+        }
+        .viewfinder-corner.corner-br {
+            bottom: -2px;
+            right: -2px;
+            border-width: 0 4px 4px 0;
+            border-bottom-right-radius: 1.2rem;
+        }
+        .viewfinder-tag {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.90);
+            border: 1px solid rgba(250, 204, 21, 0.6);
+            color: #fde047;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+            white-space: nowrap;
+        }
+
         /* Responsive compact layout preserving readable labels and usable hit targets on mobile */
         @media (max-width: 720px) {
             .intro-title-card { margin-top: 0.7rem; padding: 0.6rem 0.95rem; }
@@ -1411,6 +1491,17 @@
         </button>
     </div>
 
+    <!-- Viewfinder Camera Snapshot Frame Overlay -->
+    <div id="snapshotFrameOverlay" class="snapshot-frame-overlay" aria-hidden="true">
+        <div class="snapshot-frame-box">
+            <span class="viewfinder-corner corner-tl"></span>
+            <span class="viewfinder-corner corner-tr"></span>
+            <span class="viewfinder-corner corner-bl"></span>
+            <span class="viewfinder-corner corner-br"></span>
+            <div class="viewfinder-tag">📸 ĐÃ CHỤP ẢNH LƯU NIỆM</div>
+        </div>
+    </div>
+
     <!-- Toast Notification Banner -->
     <div id="hudToast" class="hud-toast" aria-live="polite"></div>
 
@@ -1467,7 +1558,7 @@
             <div class="hud-middle-left">
                 <section id="questCard" class="hud-pill quest-card" aria-label="Bảng nhiệm vụ khám phá trường">
                     <div class="quest-header">
-                        <h2>Nhiệm vụ: Khám phá HUSC</h2>
+                        <h2>Khám phá:</h2>
                         <button id="questToggleBtn" type="button" class="quest-toggle-btn" aria-expanded="true">Thu gọn</button>
                     </div>
                     <div class="quest-list">
