@@ -3,7 +3,6 @@ import {
     CAMPUS_START_POSE,
     CAMPUS_LOCATIONS,
     CAMPUS_TRIVIA,
-    CAMPUS_DETAILS,
     TELEPORT_PADS
 } from './world-data.js';
 
@@ -168,7 +167,6 @@ export function setupCampusHud({
     const checkinCountBadge = document.getElementById('checkinCountBadge');
     const questCheckinText = document.getElementById('questCheckinText');
     const questQuizText = document.getElementById('questQuizText');
-    const questDetailText = document.getElementById('questDetailText');
     const questPhotoText = document.getElementById('questPhotoText');
     const contextPromptBtn = document.getElementById('contextPromptBtn');
     const toastBanner = document.getElementById('hudToast');
@@ -180,7 +178,6 @@ export function setupCampusHud({
     const mapDialog = document.getElementById('mapDialog');
     const galleryDialog = document.getElementById('galleryDialog');
     const quizDialog = document.getElementById('quizDialog');
-    const handbookDialog = document.getElementById('handbookDialog');
     const menuDialog = document.getElementById('menuDialog');
 
     let toastTimer = null;
@@ -214,7 +211,6 @@ export function setupCampusHud({
         const totalLoc = CAMPUS_LOCATIONS.length;
         const cCount = state.checkedIn.size;
         const qCount = state.quizSolved.size;
-        const dCount = state.detailsFound.size;
         const pCount = Math.min(1, state.photos.length);
 
         if (checkinCountBadge) {
@@ -225,9 +221,6 @@ export function setupCampusHud({
 
         questQuizText.textContent = `Trả lời câu hỏi HUSC (${qCount}/${CAMPUS_TRIVIA.length})`;
         questQuizText.parentElement.classList.toggle('is-done', qCount >= CAMPUS_TRIVIA.length);
-
-        questDetailText.textContent = `Tìm chi tiết đặc trưng (${dCount}/${CAMPUS_DETAILS.length})`;
-        questDetailText.parentElement.classList.toggle('is-done', dCount >= CAMPUS_DETAILS.length);
 
         questPhotoText.textContent = `Chụp ảnh lưu niệm (${pCount}/1)`;
         questPhotoText.parentElement.classList.toggle('is-done', pCount >= 1);
@@ -572,18 +565,6 @@ export function setupCampusHud({
         });
     };
 
-    // Populate Campus Handbook & Hidden Detail Hints inside #handbookDialog
-    const handbookDetails = document.getElementById('handbookDetails');
-    const renderHandbook = () => {
-        handbookDetails.innerHTML = CAMPUS_DETAILS.map((d) => {
-            const found = state.detailsFound.has(d.id);
-            return `<li class="${found ? 'is-done' : ''}">
-                <strong>${found ? '✅' : '🔎'} ${d.name}</strong>
-                <span>${found ? d.fact : 'Gợi ý: ' + d.hint}</span>
-            </li>`;
-        }).join('');
-    };
-
     // Capture Snapshot from WebGLRenderer and stamp commemorative HUSC frame overlay
     const triggerSnapshot = () => {
         const frameDataUrl = onCaptureFrame();
@@ -630,11 +611,6 @@ export function setupCampusHud({
             sfx.checkin();
             refreshProgressUI();
             showToast(`🎉 Đã Check-in ${p.target.name}!`, 'success');
-        } else if (p.type === 'detail') {
-            state.detailsFound.add(p.target.id);
-            sfx.checkin();
-            refreshProgressUI();
-            showToast(`🔎 Khám phá chi tiết: ${p.target.name}`, 'success');
         } else if (p.type === 'teleport') {
             const dest = CAMPUS_LOCATIONS.find((l) => l.id === p.target.destId);
             if (dest) {
@@ -660,24 +636,16 @@ export function setupCampusHud({
         renderBigMap();
         mapDialog.showModal();
     });
+
+    // Open Photo Souvenir Gallery with clean single click
     const openGalleryBtn = document.getElementById('openGalleryBtn');
     if (openGalleryBtn) {
-        let lastGalleryTapMs = 0;
-        const handleOpenGallery = (e) => {
-            if (e && e.type === 'pointerdown' && e.pointerType === 'mouse' && e.button !== 0) return;
-            const now = performance.now();
-            if (now - lastGalleryTapMs < 200) return;
-            lastGalleryTapMs = now;
+        openGalleryBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             renderGallery();
             galleryDialog.showModal();
-        };
-        openGalleryBtn.addEventListener('pointerdown', handleOpenGallery);
-        openGalleryBtn.addEventListener('click', handleOpenGallery);
+        });
     }
-    document.getElementById('openHandbookBtn').addEventListener('click', () => {
-        renderHandbook();
-        handbookDialog.showModal();
-    });
 
     // Quest Row Click Handlers
     document.getElementById('questRowCheckin').addEventListener('click', () => {
@@ -687,10 +655,6 @@ export function setupCampusHud({
     document.getElementById('questRowQuiz').addEventListener('click', () => {
         renderQuizList();
         quizDialog.showModal();
-    });
-    document.getElementById('questRowDetail').addEventListener('click', () => {
-        renderHandbook();
-        handbookDialog.showModal();
     });
     document.getElementById('questRowPhoto').addEventListener('click', triggerSnapshot);
 
@@ -1099,7 +1063,7 @@ export function setupCampusHud({
             currentZoneLabel.textContent = zoneText;
         }
 
-        // Detect interactive proximity prompt (Teleport pad -> Hidden Detail -> Unchecked Building)
+        // Detect interactive proximity prompt (Teleport pad -> Unchecked Building)
         let prompt = null;
         for (const pad of TELEPORT_PADS) {
             const d = Math.hypot(ps.x - pad.x, ps.z - pad.z);
@@ -1107,14 +1071,6 @@ export function setupCampusHud({
                 const dest = CAMPUS_LOCATIONS.find((l) => l.id === pad.destId);
                 prompt = { type: 'teleport', target: pad, label: `Dịch chuyển tới ${dest ? dest.shortName : 'Khu khác'} [E]` };
                 break;
-            }
-        }
-        if (!prompt) {
-            for (const det of CAMPUS_DETAILS) {
-                if (!state.detailsFound.has(det.id) && Math.hypot(ps.x - det.x, ps.z - det.z) < det.radius) {
-                    prompt = { type: 'detail', target: det, label: `Khám phá: ${det.name} [E]` };
-                    break;
-                }
             }
         }
         if (!prompt && !state.checkedIn.has(nearest.id) && minDist <= nearest.checkinRadius) {
