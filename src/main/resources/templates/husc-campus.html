@@ -499,7 +499,12 @@
             .hud-btn { transition: scale 120ms ease-out, background-color 150ms ease-out; }
             .hud-btn:active { scale: 0.96; }
         }
-        .hud-btn.is-active { background: #eab308; color: #0f172a; border-color: #fef08a; }
+        .hud-btn.is-active {
+            background: #eab308;
+            color: #0f172a;
+            border-color: #fef08a;
+            box-shadow: 0 0 14px rgba(250, 204, 21, 0.75);
+        }
 
         /* Circular icon toolbar button with high-contrast white fill and black outline gear */
         .hud-icon-btn {
@@ -508,7 +513,8 @@
             padding: 0;
             border-radius: 999px;
         }
-        .hud-gear-icon {
+        .hud-gear-icon,
+        .hud-action-icon {
             display: block;
             inline-size: 21px;
             block-size: 21px;
@@ -520,11 +526,21 @@
             stroke-linejoin: round;
             paint-order: stroke fill;
             filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.72));
+            transition: fill 150ms ease, stroke 150ms ease;
+        }
+        .hud-btn.is-active .hud-action-icon {
+            fill: #0f172a;
+            stroke: #000000;
         }
         @media (forced-colors: active) {
-            .hud-gear-icon {
+            .hud-gear-icon,
+            .hud-action-icon {
                 fill: ButtonText;
                 stroke: ButtonFace;
+            }
+            .hud-btn.is-active .hud-action-icon {
+                fill: HighlightText;
+                stroke: Highlight;
             }
         }
 
@@ -782,14 +798,19 @@
         .action-cluster > * {
             pointer-events: auto;
         }
+        /* Circular floating action buttons for Sprint and Snapshot matching settings icon styling */
         .action-fab {
-            min-inline-size: 64px;
-            min-block-size: 46px;
-            padding: 0.56rem 1.25rem;
+            inline-size: max(46px, var(--target-size));
+            block-size: max(46px, var(--target-size));
+            min-inline-size: var(--target-size);
+            min-block-size: var(--target-size);
+            padding: 0;
             border-radius: 999px;
-            font-size: 0.8rem;
-            justify-content: center;
-            text-align: center;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.42);
+        }
+        .action-fab .hud-action-icon {
+            inline-size: 23px;
+            block-size: 23px;
         }
 
         /* Responsive compact layout preserving readable labels and usable hit targets on mobile */
@@ -806,7 +827,8 @@
             .hud-icon-btn { padding: 0; inline-size: max(34px, var(--target-size)); block-size: max(34px, var(--target-size)); }
             .hud-gear-icon { inline-size: 20px; block-size: 20px; }
             .hud-toast { bottom: max(8.8rem, env(safe-area-inset-bottom, 0px) + 8.4rem); }
-            .action-fab { min-inline-size: 58px; min-block-size: 44px; padding: 0.45rem 0.95rem; font-size: 0.75rem; }
+            .action-fab { inline-size: max(44px, var(--target-size)); block-size: max(44px, var(--target-size)); min-inline-size: var(--target-size); min-block-size: var(--target-size); }
+            .action-fab .hud-action-icon { inline-size: 21px; block-size: 21px; }
             .joystick-base { inline-size: 116px; block-size: 116px; }
             .joystick-thumb { inline-size: 36px; block-size: 36px; }
             .joy-dir { inline-size: 22px; block-size: 22px; }
@@ -1341,17 +1363,13 @@
                     </div>
                 </div>
 
-                <!-- Top-Right: Action controls and gear icon settings button -->
+                <!-- Top-Right: Core navigation controls and gear icon settings button -->
                 <div class="hud-top-right">
                     <button id="openHandbookBtn" type="button" class="hud-btn">Sổ tay</button>
-                    <div class="hud-pill hud-btn" style="cursor:default;">
-                        <span id="checkinCountBadge">1/17</span>
-                    </div>
                     <button id="camToggleBtn" type="button" class="hud-btn">
                         <span id="camToggleLabel">Flycam toàn cảnh</span>
                     </button>
                     <button id="openGalleryBtn" type="button" class="hud-btn">Bộ sưu tập</button>
-                    <button id="openMapBtn" type="button" class="hud-btn">Bản đồ</button>
                     <button id="openMenuBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Cài đặt" title="Cài đặt">
                         <svg class="hud-gear-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                             <path fill-rule="evenodd" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58ZM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2Z"/>
@@ -1415,8 +1433,18 @@
             </div>
 
             <div class="action-cluster">
-                <button id="sprintBtn" type="button" class="hud-btn action-fab">Chạy</button>
-                <button id="snapshotBtn" type="button" class="hud-btn action-fab">Chụp ảnh</button>
+                <button id="sprintBtn" type="button" class="hud-btn hud-icon-btn action-fab" aria-label="Bật chạy nhanh" title="Bật chạy nhanh (Shift)" aria-pressed="false">
+                    <svg class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="13.5" cy="3.5" r="2"/>
+                        <path d="M9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7Z"/>
+                    </svg>
+                </button>
+                <button id="snapshotBtn" type="button" class="hud-btn hud-icon-btn action-fab" aria-label="Chụp ảnh" title="Chụp ảnh lưu niệm (Phím C)">
+                    <svg class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path fill-rule="evenodd" d="M4 7h3.17L9 5h6l1.83 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+                        <circle cx="12" cy="13" r="1.8"/>
+                    </svg>
+                </button>
             </div>
         </div>
     </div>

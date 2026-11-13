@@ -406,7 +406,10 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
                 moveZ = camDirForwardZ * inForward + camDirRightZ * inRight;
             }
 
-            const speed = (keys.shift || state.sprintToggle) ? 13.8 : 7.6;
+            // Compute sprint multiplier speed (1.85x normal walk speed for dynamic running)
+            const BASE_WALK_SPEED = 7.6;
+            const SPRINT_MULTIPLIER = 1.85;
+            const speed = (keys.shift || state.sprintToggle) ? (BASE_WALK_SPEED * SPRINT_MULTIPLIER) : BASE_WALK_SPEED;
             const stepLen = Math.min(1.0, mag) * speed * clampedDt;
             const nextPos = {
                 x: avatar.root.position.x + moveX * stepLen,
@@ -528,7 +531,8 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             camYaw: state.camYaw,
             cameraMode: state.cameraMode,
             introPlaying: state.introPlaying,
-            sprintToggle: state.sprintToggle
+            sprintToggle: state.sprintToggle,
+            isSprinting: keys.shift || state.sprintToggle
         })
     };
 }

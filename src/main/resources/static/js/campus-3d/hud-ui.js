@@ -220,7 +220,9 @@ export function setupCampusHud({
         const dCount = state.detailsFound.size;
         const pCount = Math.min(1, state.photos.length);
 
-        checkinCountBadge.textContent = `${cCount}/${totalLoc}`;
+        if (checkinCountBadge) {
+            checkinCountBadge.textContent = `${cCount}/${totalLoc}`;
+        }
         questCheckinText.textContent = `Check-in địa điểm (${cCount}/${totalLoc})`;
         questCheckinText.parentElement.classList.toggle('is-done', cCount >= totalLoc);
 
@@ -650,10 +652,13 @@ export function setupCampusHud({
     contextPromptBtn.addEventListener('click', executeContextAction);
 
     // Top HUD Button Listeners
-    document.getElementById('openMapBtn').addEventListener('click', () => {
-        renderBigMap();
-        mapDialog.showModal();
-    });
+    const openMapBtn = document.getElementById('openMapBtn');
+    if (openMapBtn) {
+        openMapBtn.addEventListener('click', () => {
+            renderBigMap();
+            mapDialog.showModal();
+        });
+    }
     document.getElementById('minimapBtn').addEventListener('click', () => {
         renderBigMap();
         mapDialog.showModal();
@@ -682,8 +687,21 @@ export function setupCampusHud({
     });
     document.getElementById('questRowPhoto').addEventListener('click', triggerSnapshot);
 
-    // Action Bar Listeners
-    document.getElementById('snapshotBtn').addEventListener('click', triggerSnapshot);
+    // Action Bar Listeners: Sprint toggle and Snapshot photo capture
+    const snapshotBtn = document.getElementById('snapshotBtn');
+    let lastSnapshotMs = 0;
+    const handleSnapshotTrigger = (e) => {
+        if (e && e.type === 'pointerdown' && e.pointerType === 'mouse' && e.button !== 0) return;
+        const now = performance.now();
+        if (now - lastSnapshotMs < 200) return;
+        lastSnapshotMs = now;
+        triggerSnapshot();
+    };
+    if (snapshotBtn) {
+        snapshotBtn.addEventListener('pointerdown', handleSnapshotTrigger);
+        snapshotBtn.addEventListener('click', handleSnapshotTrigger);
+    }
+
     const toggleCameraMode = () => {
         const current = playerController.getState().cameraMode;
         const next = playerController.setCameraMode(current === 'third-person' ? 'fly' : 'third-person');
@@ -694,11 +712,30 @@ export function setupCampusHud({
     };
     camToggleBtn.addEventListener('click', toggleCameraMode);
 
-    sprintBtn.addEventListener('click', () => {
-        const next = !playerController.getState().sprintToggle;
-        playerController.setSprintToggle(next);
-        sprintBtn.classList.toggle('is-active', next);
-    });
+    // Toggle sprint speed boost and sync visual active state and accessible attributes
+    const syncSprintState = (active) => {
+        playerController.setSprintToggle(active);
+        sprintBtn.classList.toggle('is-active', active);
+        sprintBtn.setAttribute('aria-pressed', String(active));
+        sprintBtn.setAttribute('aria-label', active ? 'Tắt chạy nhanh' : 'Bật chạy nhanh');
+        sprintBtn.setAttribute('title', active ? 'Tắt chạy nhanh (Shift)' : 'Bật chạy nhanh (Shift)');
+        showToast(active ? '⚡ Đã bật chạy bứt tốc' : '🚶 Đã chuyển sang đi bộ');
+    };
+
+    let lastSprintToggleMs = 0;
+    const handleSprintTrigger = (e) => {
+        if (e && e.type === 'pointerdown' && e.pointerType === 'mouse' && e.button !== 0) return;
+        const now = performance.now();
+        if (now - lastSprintToggleMs < 150) return;
+        lastSprintToggleMs = now;
+        const current = playerController.getState().sprintToggle;
+        syncSprintState(!current);
+    };
+
+    if (sprintBtn) {
+        sprintBtn.addEventListener('pointerdown', handleSprintTrigger);
+        sprintBtn.addEventListener('click', handleSprintTrigger);
+    }
 
     // Settings draft state, 3-step slider sync, progressive switch enhancement, deferred Save, and Reset
     const draftSettings = {
@@ -1058,6 +1095,17 @@ export function setupCampusHud({
         }
 
         if (ps.introPlaying) return;
+
+        // Synchronize sprint button active highlight when Shift key is pressed on physical keyboard
+        if (sprintBtn) {
+            const currentlySprinting = Boolean(ps.isSprinting);
+            if (currentlySprinting !== sprintBtn.classList.contains('is-active')) {
+                sprintBtn.classList.toggle('is-active', currentlySprinting);
+                sprintBtn.setAttribute('aria-pressed', String(currentlySprinting));
+                sprintBtn.setAttribute('aria-label', currentlySprinting ? 'Tắt chạy nhanh' : 'Bật chạy nhanh');
+                sprintBtn.setAttribute('title', currentlySprinting ? 'Tắt chạy nhanh (Shift)' : 'Bật chạy nhanh (Shift)');
+            }
+        }
 
         // Briefly stagger initial prompt reveal past the Intro-to-HUD compositor transition frame
         const allowPromptShow = (performance.now() - introEndedAtMs) >= 180;
