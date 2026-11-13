@@ -157,7 +157,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
     };
 
     const EXPLORER_LOOK_Y = 2.15;
-    const keys = { w: false, a: false, s: false, d: false, shift: false };
+    const keys = { w: false, a: false, s: false, d: false };
     const joyVector = { x: 0, y: 0 };
 
     // Precomputed monotonic panoramic flycam intro splines gliding continuously into third-person gate arrival
@@ -289,7 +289,6 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (k === 's' || e.key === 'ArrowDown') keys.s = true;
         if (k === 'a' || e.key === 'ArrowLeft') keys.a = true;
         if (k === 'd' || e.key === 'ArrowRight') keys.d = true;
-        if (e.key === 'Shift') keys.shift = true;
         if (state.introPlaying && (e.code === 'Space' || e.key === 'Escape')) {
             e.preventDefault();
             skipIntroFlycam();
@@ -306,7 +305,6 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (k === 's' || e.key === 'ArrowDown') keys.s = false;
         if (k === 'a' || e.key === 'ArrowLeft') keys.a = false;
         if (k === 'd' || e.key === 'ArrowRight') keys.d = false;
-        if (e.key === 'Shift') keys.shift = false;
     };
 
     window.addEventListener('keydown', onKeyDown);
@@ -406,10 +404,9 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
                 moveZ = camDirForwardZ * inForward + camDirRightZ * inRight;
             }
 
-            // Compute sprint multiplier speed (1.85x normal walk speed for dynamic running)
+            // Standard smooth movement speed
             const BASE_WALK_SPEED = 7.6;
-            const SPRINT_MULTIPLIER = 1.85;
-            const speed = (keys.shift || state.sprintToggle) ? (BASE_WALK_SPEED * SPRINT_MULTIPLIER) : BASE_WALK_SPEED;
+            const speed = BASE_WALK_SPEED;
             const stepLen = Math.min(1.0, mag) * speed * clampedDt;
             const nextPos = {
                 x: avatar.root.position.x + moveX * stepLen,
@@ -428,15 +425,14 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
 
             // Smooth articulated walk stride with natural knee bend, elbow swing, and lanyard badge bounce
             state.moveBlend = Math.min(1.0, state.moveBlend + clampedDt * 8.0);
-            const isSprinting = keys.shift || state.sprintToggle;
-            state.walkCycle += clampedDt * (isSprinting ? 13.5 : 8.8);
-            const strideAmp = isSprinting ? 0.68 : 0.50;
+            state.walkCycle += clampedDt * 8.8;
+            const strideAmp = 0.50;
             const swing = Math.sin(state.walkCycle) * strideAmp * state.moveBlend;
 
             avatar.leftLeg.rotation.x = swing;
             avatar.rightLeg.rotation.x = -swing;
-            avatar.leftShin.rotation.x = -Math.max(0, -Math.sin(state.walkCycle + 0.35)) * (isSprinting ? 0.62 : 0.42) * state.moveBlend;
-            avatar.rightShin.rotation.x = -Math.max(0, Math.sin(state.walkCycle + 0.35)) * (isSprinting ? 0.62 : 0.42) * state.moveBlend;
+            avatar.leftShin.rotation.x = -Math.max(0, -Math.sin(state.walkCycle + 0.35)) * 0.42 * state.moveBlend;
+            avatar.rightShin.rotation.x = -Math.max(0, Math.sin(state.walkCycle + 0.35)) * 0.42 * state.moveBlend;
 
             avatar.leftArm.rotation.x = -swing * 0.72;
             avatar.rightArm.rotation.x = swing * 0.72;
@@ -507,9 +503,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         joyVector.y = ny;
     };
 
-    const setSprintToggle = (active) => {
-        state.sprintToggle = !!active;
-    };
+    const setSprintToggle = () => {};
 
     return {
         avatar,
@@ -531,8 +525,8 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             camYaw: state.camYaw,
             cameraMode: state.cameraMode,
             introPlaying: state.introPlaying,
-            sprintToggle: state.sprintToggle,
-            isSprinting: keys.shift || state.sprintToggle
+            sprintToggle: false,
+            isSprinting: false
         })
     };
 }

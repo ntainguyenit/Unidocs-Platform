@@ -1333,7 +1333,6 @@
             text-align: center;
         }
         .settings-status-msg:empty { display: none; }
-        .menu-exit-link { color: #1e3a8a; font-weight: 700; font-size: 0.84rem; text-align: center; }
         .handbook-list { display: flex; flex-direction: column; gap: 0.55rem; padding-left: 1rem; margin: 0; font-size: 0.84rem; }
         .handbook-list li strong { display: block; color: #0f172a; }
         .handbook-list li.is-done strong { color: #15803d; }
@@ -1470,7 +1469,7 @@
                     </span>
                     <div id="joystickThumb" class="joystick-thumb"></div>
                 </div>
-                <div class="hud-pill desktop-hint">WASD / Mũi tên: Di chuyển · Kéo chuột: Xoay · Shift: Chạy · V: Camera</div>
+                <div class="hud-pill desktop-hint">WASD / Mũi tên: Di chuyển · Kéo chuột: Xoay · V: Camera</div>
             </div>
 
             <div class="context-prompt-wrap">
@@ -1514,7 +1513,7 @@
 
     <dialog id="galleryDialog" class="game-dialog" closedby="any" aria-labelledby="galleryDialogTitle">
         <div class="dlg-head">
-            <h2 id="galleryDialogTitle">🖼️ Kho ảnh Lưu niệm ĐHKH Huế</h2>
+            <h2 id="galleryDialogTitle">Kho ảnh</h2>
             <form method="dialog">
                 <button type="submit" value="close" class="dlg-close-btn" autofocus>Đóng</button>
             </form>
@@ -1555,7 +1554,7 @@
             </div>
             <div class="menu-section">
                 <h3>Phím tắt &amp; Điều khiển</h3>
-                <p style="font-size:0.8rem;color:#334155;margin:0;"><strong>Máy tính:</strong> Phím W A S D hoặc mũi tên di chuyển · Giữ Shift chạy nhanh · Kéo chuột xoay camera · Cuộn chuột thu phóng · Phím E tương tác / check-in · Phím C chụp ảnh · Phím V đổi góc nhìn Flycam.</p>
+                <p style="font-size:0.8rem;color:#334155;margin:0;"><strong>Máy tính:</strong> Phím W A S D hoặc mũi tên di chuyển · Kéo chuột xoay camera · Cuộn chuột thu phóng · Phím E tương tác / check-in · Phím C chụp ảnh · Phím V đổi góc nhìn Flycam.</p>
                 <p style="font-size:0.8rem;color:#334155;margin:0.35rem 0 0;"><strong>Điện thoại / Máy tính bảng:</strong> Dùng cần gạt cảm ứng góc dưới trái để đi, vuốt màn hình để xoay góc camera và chạm các nút hành động.</p>
             </div>
         </div>
@@ -1607,7 +1606,6 @@
             <div class="menu-footer-actions">
                 <button id="saveSettingsBtn" type="submit" value="save" class="menu-save-btn">Lưu</button>
                 <p id="settingsStatusMsg" class="settings-status-msg" role="status" aria-live="polite"></p>
-                <a th:href="@{/}" href="/" class="menu-exit-link">&larr; Thoát game về Trang chủ UniDocs</a>
             </div>
         </form>
     </dialog>
