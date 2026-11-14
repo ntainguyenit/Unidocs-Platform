@@ -3030,9 +3030,18 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         cgGroup.add(bm);
     }
 
-    // Position Corner Gabled Building at the North-East intersection apex oriented towards the traffic light
-    cgGroup.position.set(-118.0, 0, -60.0);
-    cgGroup.rotation.y = -0.40;
+    // Paved pedestrian plaza and entry terrace beneath Corner Gabled Building
+    const cgPlazaGeom = new THREE.PlaneGeometry(28.0, 36.0);
+    const cgPlazaMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.78 });
+    const cgPlazaMesh = new THREE.Mesh(cgPlazaGeom, cgPlazaMat);
+    cgPlazaMesh.rotation.x = -Math.PI * 0.5;
+    cgPlazaMesh.position.set(0, 0.015, -4.0);
+    cgPlazaMesh.receiveShadow = true;
+    cgGroup.add(cgPlazaMesh);
+
+    // Position Corner Gabled Building set back at the center of the Ly Thuong Kiet x Dong Da intersection corner
+    cgGroup.position.set(-98.0, 0, -68.0);
+    cgGroup.rotation.y = -0.5424;
     ensembleGroup.add(cgGroup);
 
     // 3. VIETTEL OFFICE BUILDING (Photos 3, 4)
