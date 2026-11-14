@@ -923,37 +923,42 @@ export function setupCampusHud({
         snapshotBtn.addEventListener('click', handleSnapshotTrigger);
     }
 
-    // Cycle camera modes cleanly between Third-Person, First-Person, and Aerial Flycam
+    // Update camera mode toggle button aria-label and tooltip matching active mode
+    const updateCamToggleBtnUI = (mode) => {
+        if (!camToggleBtn) return;
+        let label = 'Đổi sang Góc nhìn thứ 3';
+        let title = 'Đang ở Góc nhìn toàn cảnh · Bấm để sang Góc nhìn thứ 3';
+        if (mode === 'third-person') {
+            label = 'Đổi sang Góc nhìn thứ nhất';
+            title = 'Đang ở Góc nhìn thứ 3 · Bấm để sang Góc nhìn thứ nhất';
+        } else if (mode === 'first-person') {
+            label = 'Đổi sang Góc nhìn toàn cảnh (Flycam)';
+            title = 'Đang ở Góc nhìn thứ nhất · Bấm để sang Góc nhìn toàn cảnh';
+        }
+        camToggleBtn.setAttribute('aria-label', label);
+        camToggleBtn.title = title;
+    };
+
+    // Cycle camera modes cleanly between Aerial Flycam, Third-Person, and First-Person
     const toggleCameraMode = () => {
         const current = playerController.getState().cameraMode;
-        let targetMode = 'first-person';
-        if (current === 'first-person') {
-            targetMode = 'fly';
-        } else if (current === 'fly') {
+        let targetMode = 'third-person';
+        if (current === 'fly') {
             targetMode = 'third-person';
-        } else {
+        } else if (current === 'third-person') {
             targetMode = 'first-person';
+        } else {
+            targetMode = 'fly';
         }
         const next = playerController.setCameraMode(targetMode);
-        if (camToggleBtn) {
-            let label = 'Đổi sang Góc nhìn thứ nhất';
-            let title = 'Đang ở Góc nhìn thứ 3 · Bấm để sang Góc nhìn thứ nhất';
-            if (next === 'first-person') {
-                label = 'Đổi sang Góc nhìn toàn cảnh (Flycam)';
-                title = 'Đang ở Góc nhìn thứ nhất · Bấm để sang Góc nhìn toàn cảnh';
-            } else if (next === 'fly') {
-                label = 'Đổi sang Góc nhìn thứ 3';
-                title = 'Đang ở Góc nhìn toàn cảnh · Bấm để về Góc nhìn thứ 3';
-            }
-            camToggleBtn.setAttribute('aria-label', label);
-            camToggleBtn.title = title;
-        }
-        let toastMsg = 'Đã chuyển sang Góc nhìn thứ 3';
-        if (next === 'first-person') toastMsg = 'Đã chuyển sang Góc nhìn thứ nhất';
-        else if (next === 'fly') toastMsg = 'Đã chuyển sang Góc nhìn toàn cảnh (Flycam)';
+        updateCamToggleBtnUI(next);
+        let toastMsg = 'Đã chuyển sang Góc nhìn toàn cảnh (Flycam)';
+        if (next === 'third-person') toastMsg = 'Đã chuyển sang Góc nhìn thứ 3';
+        else if (next === 'first-person') toastMsg = 'Đã chuyển sang Góc nhìn thứ nhất';
         showToast(toastMsg, 'info');
     };
     camToggleBtn.addEventListener('click', toggleCameraMode);
+    updateCamToggleBtnUI(playerController.getState().cameraMode);
 
     // Day and Night environmental lighting toggle button
     const timeToggleBtn = document.getElementById('timeToggleBtn');
@@ -1062,8 +1067,8 @@ export function setupCampusHud({
         menuDialog.close();
         syncIntroVisibility(true);
         playerController.snapPlayerTo(CAMPUS_START_POSE.x, CAMPUS_START_POSE.z, CAMPUS_START_POSE.yaw);
-        playerController.setCameraMode('third-person');
-        if (camToggleLabel) camToggleLabel.textContent = 'Toàn cảnh';
+        playerController.setCameraMode('fly');
+        updateCamToggleBtnUI('fly');
         playerController.startIntroFlycam();
     });
 

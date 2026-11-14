@@ -148,7 +148,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
     orbitControls.enabled = false;
 
     const state = {
-        cameraMode: 'third-person',
+        cameraMode: 'fly',
         camYaw: CAMPUS_START_POSE.yaw || 0,
         camPitch: 0.20,
         camDist: 9.2,
@@ -158,7 +158,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         moveBlend: 0,
         introPlaying: false,
         introTime: 0,
-        introDuration: 14.5
+        introDuration: 17.8
     };
 
     const EXPLORER_LOOK_Y = 2.15;
@@ -301,9 +301,8 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (reducedMotion) {
             state.introPlaying = false;
-            state.cameraMode = 'third-person';
             orbitControls.enabled = false;
-            snapCameraToExplorer();
+            setCameraMode('fly');
             if (onCallbacks.onIntroComplete) onCallbacks.onIntroComplete();
             return;
         }
@@ -330,8 +329,11 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (onCallbacks.onClearCinematicDip) {
             onCallbacks.onClearCinematicDip();
         }
-        orbitControls.enabled = state.cameraMode === 'fly';
-        if (state.cameraMode === 'third-person') {
+        if (state.cameraMode === 'fly') {
+            setCameraMode('fly');
+        } else if (state.cameraMode === 'first-person') {
+            setCameraMode('first-person');
+        } else {
             snapCameraToExplorer();
         }
         if (onCallbacks.onIntroComplete) onCallbacks.onIntroComplete();
@@ -345,8 +347,8 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (mode === 'fly') {
             state.cameraMode = 'fly';
             avatar.root.visible = true;
-            orbitControls.target.set(avatar.root.position.x, 1.5, avatar.root.position.z - 12);
-            camera.position.set(avatar.root.position.x - 16, 48, avatar.root.position.z + 44);
+            orbitControls.target.set(-13, 8, 10);
+            camera.position.set(-14, 82, 142);
             orbitControls.enabled = true;
             orbitControls.update();
         } else if (mode === 'first-person') {

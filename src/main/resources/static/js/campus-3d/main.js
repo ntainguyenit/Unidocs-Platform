@@ -239,7 +239,7 @@ async function bootstrapCampus3D() {
                 hudController.syncIntroVisibility(false);
                 setTimeout(() => {
                     if (!playerController.getState().introPlaying) {
-                        hudController.showToast('Chào mừng đến ĐHKH Huế 3D! Dùng WASD / Joystick để khám phá', 'info');
+                        hudController.showToast('Chào mừng đến ĐHKH Huế 3D! Đang ở Góc nhìn toàn cảnh', 'info');
                     }
                 }, 180);
             }
