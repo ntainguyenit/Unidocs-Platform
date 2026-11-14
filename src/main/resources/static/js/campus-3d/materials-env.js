@@ -5,6 +5,7 @@ import { TREE_PLACEMENTS, TELEPORT_PADS, CAMPUS_LOCATIONS } from './world-data.j
 import { drawHuscShield } from './student-avatar.js';
 import { createRoadTrafficSystem } from './traffic-system.js';
 import { createSmartIntersectionSystem } from './traffic-lights.js';
+import { createAirspaceSystem } from './airspace-system.js';
 
 // Create crisp white 2:1 horizontal rectangular ceramic tile color & bump maps matching real Gate Tower
 function createCeramicTileTextures(maxAnisotropy = 4) {
@@ -2252,6 +2253,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     const updateTraffic = createRoadTrafficSystem(scene, hardwareProfile);
     const teleportBeacons = createTeleportBeacons(scene, hardwareProfile);
     const rooftopFireworks = createRooftopFireworks(scene, hardwareProfile);
+    const airspaceSystem = createAirspaceSystem(scene, hardwareProfile);
     const {
         skyUniforms,
         syncCloudInstances,
@@ -2420,6 +2422,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         windUniform.value = elapsedSec;
         updateNightSky(elapsedSec, dt);
         rooftopFireworks.update(dt);
+        airspaceSystem.update(dt, elapsedSec);
         const signalState = intersectionSignals.updateSignals(dt);
         updateTraffic(dt, playerState, signalState);
 
