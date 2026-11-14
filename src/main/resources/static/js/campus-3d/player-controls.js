@@ -214,14 +214,14 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
                 new THREE.Vector3(-48.5, 9.2, -72.5),
                 new THREE.Vector3(-19.5, 7.6, -86.5),
                 new THREE.Vector3(0.5, 6.2, -95.5),
-                new THREE.Vector3(11.2, 4.8, -97.2)
+                new THREE.Vector3(12.5, 4.8, -98.0)
             ], false, 'centripetal', 0.5),
             lookCurve: new THREE.CatmullRomCurve3([
                 new THREE.Vector3(-46.0, 6.2, -63.5),
                 new THREE.Vector3(-18.0, 6.0, -65.5),
                 new THREE.Vector3(6.5, 5.2, -78.5),
-                new THREE.Vector3(16.5, 4.2, -87.8),
-                new THREE.Vector3(16.5, 3.8, -87.5)
+                new THREE.Vector3(18.0, 4.2, -88.2),
+                new THREE.Vector3(19.8, 3.8, -89.2)
             ], false, 'centripetal', 0.5)
         },
         {

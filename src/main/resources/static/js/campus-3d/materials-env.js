@@ -1221,10 +1221,10 @@ function createSlateBaseTexture(maxAnisotropy = 4) {
     return tex;
 }
 
-// Create authentic THPT Chuyên Khoa học Huế signboard texture matching Photo 1
+// Create authentic wide THPT Chuyên Khoa học Huế signboard texture matching Photo 1
 function createHuscHighSchoolSignTexture(maxAnisotropy = 4) {
-    const w = 1536;
-    const h = 1024;
+    const w = 2048;
+    const h = 920;
     const c = document.createElement('canvas');
     c.width = w;
     c.height = h;
@@ -1232,53 +1232,53 @@ function createHuscHighSchoolSignTexture(maxAnisotropy = 4) {
 
     // 1. Top Section with white background and official HUSC emblem
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, w, 330);
+    ctx.fillRect(0, 0, w, 280);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
-    ctx.fillRect(0, 326, w, 4);
+    ctx.fillRect(0, 276, w, 4);
 
-    drawHuscShield(ctx, 175, 165, 220);
+    drawHuscShield(ctx, 175, 140, 210);
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0f3c86';
-    ctx.font = '800 54px "Inter", "Segoe UI", sans-serif';
-    ctx.fillText('ĐẠI HỌC HUẾ', 320, 120);
-    ctx.font = '900 68px "Inter", "Segoe UI", sans-serif';
-    ctx.fillText('TRƯỜNG ĐẠI HỌC KHOA HỌC', 320, 215);
+    ctx.font = '800 52px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText('ĐẠI HỌC HUẾ', 320, 100);
+    ctx.font = '900 66px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText('TRƯỜNG ĐẠI HỌC KHOA HỌC', 320, 190);
 
     // 2. Bottom Section with deep royal navy blue background
     ctx.fillStyle = '#0f3c86';
-    ctx.fillRect(0, 330, w, h - 330);
+    ctx.fillRect(0, 280, w, h - 280);
 
-    const blueGrad = ctx.createLinearGradient(0, 330, 0, h);
+    const blueGrad = ctx.createLinearGradient(0, 280, 0, h);
     blueGrad.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
     blueGrad.addColorStop(1, 'rgba(0, 0, 0, 0.20)');
     ctx.fillStyle = blueGrad;
-    ctx.fillRect(0, 330, w, h - 330);
+    ctx.fillRect(0, 280, w, h - 280);
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
-    ctx.font = '900 78px "Inter", "Segoe UI", sans-serif';
-    ctx.fillText('TRƯỜNG THPT CHUYÊN KHOA HỌC HUẾ', w * 0.5, 485);
+    ctx.font = '900 84px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText('TRƯỜNG THPT CHUYÊN KHOA HỌC HUẾ', w * 0.5, 440);
 
-    ctx.font = '800 48px "Inter", "Segoe UI", sans-serif';
+    ctx.font = '800 52px "Inter", "Segoe UI", sans-serif';
     ctx.fillStyle = '#f1f5f9';
-    ctx.fillText('HUSC HIGH SCHOOL FOR GIFTED STUDENTS', w * 0.5, 595);
+    ctx.fillText('HUSC HIGH SCHOOL FOR GIFTED STUDENTS', w * 0.5, 545);
 
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.82)';
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(100, 680);
-    ctx.lineTo(w - 100, 680);
+    ctx.moveTo(80, 625);
+    ctx.lineTo(w - 80, 625);
     ctx.stroke();
 
     ctx.textAlign = 'left';
-    ctx.font = '700 32px "Inter", "Segoe UI", sans-serif';
+    ctx.font = '700 34px "Inter", "Segoe UI", sans-serif';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('Website: http://thpt-khhue.thuathienhue.edu.vn', 110, 775);
+    ctx.fillText('Website: http://thpt-khhue.thuathienhue.edu.vn', 90, 715);
 
     ctx.textAlign = 'right';
-    ctx.fillText('Điện thoại: 0234 3898936', w - 110, 775);
+    ctx.fillText('Điện thoại: 0234 3898936', w - 90, 715);
 
     ctx.strokeStyle = 'rgba(15, 60, 134, 0.40)';
     ctx.lineWidth = 6;
@@ -1290,7 +1290,7 @@ function createHuscHighSchoolSignTexture(maxAnisotropy = 4) {
     return tex;
 }
 
-// Build authentic left-wing gate pier, slate foundation, beam, spotlights, and Chuyên Khoa học signboard matching Photo 1
+// Build authentic wide left-wing gate pier, slate foundation, beam, spotlights, and Chuyên Khoa học signboard matching Photo 1
 function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
     const tileTex = createCeramicTileTextures(maxAniso);
     const tileMat = new THREE.MeshStandardMaterial({
@@ -1328,8 +1328,8 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
 
     const group = new THREE.Group();
 
-    // 1. Ashlar slate stone base under signboard
-    const baseW = 2.82;
+    // 1. Ashlar slate stone base under widened signboard
+    const baseW = 4.82;
     const baseH = 0.80;
     const baseD = 0.48;
     const baseGeom = new THREE.BoxGeometry(baseW, baseH, baseD);
@@ -1339,8 +1339,8 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
     baseMesh.receiveShadow = true;
     group.add(baseMesh);
 
-    // 2. High School Signboard Panel
-    const signW = 2.80;
+    // 2. High School Signboard Panel (widened for high visibility)
+    const signW = 4.80;
     const signH = 2.05;
     const signGeom = new THREE.PlaneGeometry(signW, signH);
     const signMesh = new THREE.Mesh(signGeom, signMat);
@@ -1361,12 +1361,12 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
     const pilGeom = new THREE.BoxGeometry(pilW, pilH, pilD);
 
     const leftPil = new THREE.Mesh(pilGeom, tileMat);
-    leftPil.position.set(baseW * 0.5 + pilW * 0.5, pilH * 0.5, 0.02);
+    leftPil.position.set(-(baseW * 0.5 + pilW * 0.5), pilH * 0.5, 0.02);
     leftPil.castShadow = true;
     leftPil.receiveShadow = true;
 
     const rightPil = new THREE.Mesh(pilGeom, tileMat);
-    rightPil.position.set(-(baseW * 0.5 + pilW * 0.5), pilH * 0.5, 0.02);
+    rightPil.position.set(baseW * 0.5 + pilW * 0.5, pilH * 0.5, 0.02);
     rightPil.castShadow = true;
     rightPil.receiveShadow = true;
     group.add(leftPil, rightPil);
@@ -1383,7 +1383,7 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
     group.add(beamMesh);
 
     // 5. Under-beam Spotlights illuminating signboard
-    for (const spotX of [-0.72, 0.72]) {
+    for (const spotX of [-1.40, 1.40]) {
         const spotGroup = new THREE.Group();
         spotGroup.position.set(spotX, baseH + signH - 0.04, baseD * 0.5 + 0.14);
 
@@ -1415,16 +1415,16 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
         group.add(barMesh);
     }
     const stanchGeom = new THREE.CylinderGeometry(0.018, 0.018, 0.44, 6);
-    for (const stX of [-1.8, -0.6, 0.6, 1.8]) {
+    for (const stX of [-2.6, -1.3, 0, 1.3, 2.6]) {
         const stMesh = new THREE.Mesh(stanchGeom, darkMetalMat);
         stMesh.position.set(stX, railY0 + 0.22, 0.06);
         group.add(stMesh);
     }
 
-    // Position group seamlessly on left wing of Gate 38 Dong Da
+    // Position group seamlessly on authentic left wing of Gate 38 Dong Da
     const gateAngle = 0.4461;
     group.rotation.y = gateAngle + Math.PI;
-    group.position.set(12.95, 0, -85.93);
+    group.position.set(23.35, 0, -90.88);
 
     scene.add(group);
 }
@@ -1593,21 +1593,15 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
         scene.add(baseMesh, faceMesh);
     }
 
-    // 4. Rear Gate 38 Dong Da banner & North roof marquee NHÀ TRƯỜNG
+    // 4. Rear Gate 38 Dong Da banner & THPT Chuyên Khoa học Huế left wing
     const ddGateTex = createSignTexture(['CỔNG 38 ĐỐNG ĐA · ĐHKH HUẾ'], {
         w: 768, h: 128, bg: '#1e293b', border: '#fbbf24', color: '#fef08a', fontSizes: [42], maxAnisotropy: maxAniso
     });
     // Double-sided banner facing outside (0.4461 + Math.PI) towards Dong Da and inside towards campus
     addBillboard(ddGateTex, 8.2, 0.95, 17.58, 5.45, -88.06, 0.4461 + Math.PI, 0, true);
 
-    // Realistic left-wing gate pier and THPT Chuyên Khoa học Huế signboard matching Photo 1
+    // Authentic wide left-wing gate pier and THPT Chuyên Khoa học Huế signboard matching Photo 1
     createDongDaLeftWingGateStructure(scene, maxAniso);
-
-    const mainRoofLabel = createSignTexture(['NHÀ TRƯỜNG'], {
-        w: 512, h: 128, bg: 'transparent', color: '#991b1b', fontSizes: [74], maxAnisotropy: maxAniso
-    });
-    // Double-sided roof marquee visible from Dong Da (north) and courtyard (south) without mirroring
-    addBillboard(mainRoofLabel, 13.5, 2.8, 24.0, 17.8, -63.0, -0.35 + Math.PI, 0, true);
 
     const myThuatTex = createSignTexture(['PHÒNG HỌC MỸ THUẬT'], {
         w: 640, h: 112, bg: '#1f2937', border: '#facc15', color: '#fde047', fontSizes: [42], maxAnisotropy: maxAniso
@@ -1778,7 +1772,15 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
         const spriteTex = new THREE.CanvasTexture(c);
         spriteTex.colorSpace = THREE.SRGBColorSpace;
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: spriteTex, depthTest: true }));
-        const badgeY = loc.category === 'sport' ? 5.2 : (loc.id === 'cong-dong-da' ? 8.2 : 22.5);
+        const badgeY = loc.category === 'sport'
+            ? 5.2
+            : (loc.id === 'cong-dong-da'
+                ? 8.2
+                : (loc.id === 'nha-khach'
+                    ? 12.5
+                    : (loc.id === 'nha-m'
+                        ? 8.2
+                        : 19.6)));
         sprite.position.set(loc.rect.cx, badgeY, loc.rect.cz);
         const spriteW = loc.code.length > 7 ? 7.6 : 6.4;
         sprite.scale.set(spriteW, 2.4, 1);
