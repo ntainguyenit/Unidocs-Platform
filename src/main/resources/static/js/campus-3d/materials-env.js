@@ -1912,7 +1912,7 @@ function createAtmosphereAndProps(scene) {
     return { skyUniforms, syncCloudInstances, cloudMat, lampHeadMat, lampHaloMat, haloInst, setNightSkyActive, updateNightSky };
 }
 
-// Rooftop celebratory fireworks and sparkling particle fountains along "TRƯỜNG ĐẠI HỌC KHOA HỌC"
+// Realistic festive dual-station rooftop fireworks with rocket ascent, trail sparks, and spherical starburst shells
 function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }) {
     const isLowTier = hardwareProfile.tier === 'low';
     const PARTICLE_COUNT = isLowTier ? 320 : 640;
@@ -1923,85 +1923,118 @@ function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }) {
     const sizes = new Float32Array(PARTICLE_COUNT);
 
     const particles = [];
-    const PALETTE = [
-        new THREE.Color(1.0, 0.85, 0.12),
-        new THREE.Color(1.0, 0.20, 0.28),
-        new THREE.Color(0.12, 1.0, 0.45),
-        new THREE.Color(0.08, 0.88, 1.0),
-        new THREE.Color(1.0, 0.28, 0.86),
-        new THREE.Color(1.0, 0.58, 0.08),
-        new THREE.Color(0.72, 0.38, 1.0),
-        new THREE.Color(0.98, 0.98, 1.0)
-    ];
-
-    // Coordinate span covering before letter 'T' to after letter 'C' of the rooftop sign
-    const X_MIN = -23.2;
-    const X_MAX = -2.8;
-    const Y_LAUNCH = 15.2;
-    const Z_LAUNCH = 15.9;
-
-    // Reset fountain spark launched upward from rooftop cornice nozzles
-    const resetFountainParticle = (p) => {
-        p.active = true;
-        p.type = 'fountain';
-        p.x = X_MIN + Math.random() * (X_MAX - X_MIN);
-        p.y = Y_LAUNCH + Math.random() * 0.3;
-        p.z = Z_LAUNCH + (Math.random() - 0.5) * 0.8;
-        p.vx = (Math.random() - 0.5) * 1.8;
-        p.vy = 12.0 + Math.random() * 10.0;
-        p.vz = (Math.random() - 0.5) * 1.6;
-        p.life = 0;
-        p.maxLife = 1.2 + Math.random() * 0.9;
-        const col = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-        p.r = col.r;
-        p.g = col.g;
-        p.b = col.b;
-        p.size = 3.6 + Math.random() * 2.8;
-    };
-
-    // Spawn an aerial shell detonation burst high above the building
-    const triggerBurst = (bx, by, bz, burstColor) => {
-        const burstCount = isLowTier ? 22 : 40;
-        let spawned = 0;
-        for (let i = 0; i < PARTICLE_COUNT && spawned < burstCount; i++) {
-            const p = particles[i];
-            if (!p.active || p.life / p.maxLife > 0.65) {
-                p.active = true;
-                p.type = 'burst';
-                p.x = bx;
-                p.y = by;
-                p.z = bz;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-                const speed = 3.5 + Math.random() * 7.5;
-                p.vx = Math.sin(phi) * Math.cos(theta) * speed;
-                p.vy = Math.cos(phi) * speed * 0.8 + 2.0;
-                p.vz = Math.sin(phi) * Math.sin(theta) * speed;
-                p.life = 0;
-                p.maxLife = 1.3 + Math.random() * 0.8;
-                p.r = burstColor.r;
-                p.g = burstColor.g;
-                p.b = burstColor.b;
-                p.size = 4.2 + Math.random() * 3.0;
-                spawned++;
-            }
-        }
-    };
-
     for (let i = 0; i < PARTICLE_COUNT; i++) {
-        const p = {
+        particles.push({
             active: false,
-            type: 'fountain',
+            type: 'dead',
+            padId: 0,
             x: 0, y: -100, z: 0,
             vx: 0, vy: 0, vz: 0,
             r: 1, g: 1, b: 1,
             life: 0, maxLife: 1,
-            size: 4
-        };
-        resetFountainParticle(p);
-        p.life = Math.random() * p.maxLife;
-        particles.push(p);
+            size: 4,
+            sparkleSpeed: 30,
+            seed: i * 0.17
+        });
+        const idx3 = i * 3;
+        positions[idx3] = 0;
+        positions[idx3 + 1] = -100;
+        positions[idx3 + 2] = 0;
+        alphas[i] = 0;
+        sizes[i] = 0;
     }
+
+    // Two independent launch pads placed exactly at both ends of the rooftop sign
+    const LAUNCH_PADS = [
+        { id: 0, name: 'left-T', x: -23.8, y: 14.8, z: 15.9, timer: 0.5, driftX: -0.6 },
+        { id: 1, name: 'right-C', x: -2.2, y: 14.8, z: 15.9, timer: 1.6, driftX: 0.6 }
+    ];
+
+    // Vibrant holiday festival shell color schemes
+    const SHELL_PALETTES = [
+        [new THREE.Color(1.0, 0.84, 0.15), new THREE.Color(1.0, 0.96, 0.65)],
+        [new THREE.Color(1.0, 0.18, 0.28), new THREE.Color(1.0, 0.65, 0.72)],
+        [new THREE.Color(0.12, 1.0, 0.45), new THREE.Color(0.65, 1.0, 0.82)],
+        [new THREE.Color(0.10, 0.82, 1.0), new THREE.Color(0.70, 0.95, 1.0)],
+        [new THREE.Color(0.92, 0.25, 1.0), new THREE.Color(1.0, 0.75, 1.0)],
+        [new THREE.Color(1.0, 0.52, 0.08), new THREE.Color(1.0, 0.85, 0.42)]
+    ];
+
+    // Find first available inactive or expiring particle from the pool
+    const obtainParticle = () => {
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            if (!particles[i].active) return particles[i];
+        }
+        let oldest = particles[0];
+        let maxProg = 0;
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const p = particles[i];
+            const prog = p.life / Math.max(0.01, p.maxLife);
+            if (prog > maxProg) {
+                maxProg = prog;
+                oldest = p;
+            }
+        }
+        return oldest;
+    };
+
+    // Detonate aerial shell into a 3D spherical starburst with cascading gravity
+    const triggerDetonation = (bx, by, bz, palette) => {
+        const starCount = isLowTier ? 28 : 52;
+        const mainCol = palette[0];
+        const secCol = palette[1];
+        const baseSpeed = 8.5 + Math.random() * 5.5;
+
+        for (let s = 0; s < starCount; s++) {
+            const p = obtainParticle();
+            p.active = true;
+            p.type = 'star';
+            p.x = bx;
+            p.y = by;
+            p.z = bz;
+
+            // Uniform 3D sphere shell distribution
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2.0 * Math.random() - 1.0);
+            const speed = baseSpeed * (0.82 + Math.random() * 0.36);
+
+            p.vx = Math.sin(phi) * Math.cos(theta) * speed;
+            p.vy = Math.cos(phi) * speed * 0.92 + 1.8;
+            p.vz = Math.sin(phi) * Math.sin(theta) * speed;
+
+            const useSec = Math.random() < 0.28;
+            const c = useSec ? secCol : mainCol;
+            p.r = c.r;
+            p.g = c.g;
+            p.b = c.b;
+
+            p.life = 0;
+            p.maxLife = 1.35 + Math.random() * 0.55;
+            p.size = 5.2 + Math.random() * 3.4;
+            p.sparkleSpeed = 28.0 + Math.random() * 16.0;
+        }
+    };
+
+    // Launch single high-speed rocket from designated rooftop end station
+    const launchRocket = (pad) => {
+        const rk = obtainParticle();
+        rk.active = true;
+        rk.type = 'rocket';
+        rk.padId = pad.id;
+        rk.x = pad.x + (Math.random() - 0.5) * 0.6;
+        rk.y = pad.y;
+        rk.z = pad.z + (Math.random() - 0.5) * 0.4;
+        rk.vx = pad.driftX + (Math.random() - 0.5) * 0.8;
+        rk.vy = 23.0 + Math.random() * 4.5;
+        rk.vz = (Math.random() - 0.5) * 0.8;
+        rk.r = 1.0;
+        rk.g = 0.95;
+        rk.b = 0.85;
+        rk.life = 0;
+        rk.maxLife = 0.92 + Math.random() * 0.22;
+        rk.size = 6.2;
+        rk.palette = SHELL_PALETTES[Math.floor(Math.random() * SHELL_PALETTES.length)];
+    };
 
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -2013,7 +2046,7 @@ function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }) {
         vertexColors: true,
         transparent: true,
         depthWrite: false,
-        blending: THREE.NormalBlending,
+        blending: THREE.AdditiveBlending,
         vertexShader: `
             attribute float aAlpha;
             attribute float aSize;
@@ -2024,7 +2057,7 @@ function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }) {
                 vAlpha = aAlpha;
                 vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
                 gl_Position = projectionMatrix * mvPosition;
-                gl_PointSize = clamp(aSize * (220.0 / -mvPosition.z), 3.0, 36.0);
+                gl_PointSize = clamp(aSize * (260.0 / -mvPosition.z), 3.0, 48.0);
             }
         `,
         fragmentShader: `
@@ -2034,10 +2067,12 @@ function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }) {
                 vec2 coord = gl_PointCoord - vec2(0.5);
                 float dist = length(coord);
                 if (dist > 0.5) discard;
-                float core = 1.0 - smoothstep(0.0, 0.22, dist);
-                float glow = 1.0 - smoothstep(0.12, 0.5, dist);
-                vec3 col = mix(vColor, vec3(1.0, 1.0, 1.0), core * 0.85);
-                gl_FragColor = vec4(col, glow * vAlpha);
+                float star = max(0.0, 1.0 - 3.4 * abs(coord.x)) * max(0.0, 1.0 - 3.4 * abs(coord.y));
+                float core = max(0.0, 1.0 - dist * 3.2);
+                float glow = max(0.0, 1.0 - dist * 2.0);
+                float brightness = core * 1.5 + star * 1.0 + glow * 0.45;
+                vec3 col = mix(vColor, vec3(1.0, 1.0, 1.0), core * 0.92);
+                gl_FragColor = vec4(col * brightness, vAlpha * min(1.0, brightness));
             }
         `
     });
@@ -2046,56 +2081,114 @@ function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }) {
     points.frustumCulled = false;
     scene.add(points);
 
-    let burstTimer = 0.8;
-
-    // Advance particle physics, gravity, and shell explosion bursts
+    // Update rocket ascents, starburst physics, and pad launch timers
     const update = (dt) => {
         const safeDt = Math.min(dt, 0.05);
 
-        burstTimer -= safeDt;
-        if (burstTimer <= 0) {
-            burstTimer = 0.7 + Math.random() * 0.9;
-            const bx = X_MIN + Math.random() * (X_MAX - X_MIN);
-            const by = 26.0 + Math.random() * 8.0;
-            const bz = Z_LAUNCH + (Math.random() - 0.5) * 4.0;
-            const burstColor = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-            triggerBurst(bx, by, bz, burstColor);
+        // Advance launch timers on the two independent end stations
+        for (let i = 0; i < 2; i++) {
+            const pad = LAUNCH_PADS[i];
+            pad.timer -= safeDt;
+            if (pad.timer <= 0) {
+                pad.timer = 1.9 + Math.random() * 1.3;
+                launchRocket(pad);
+            }
         }
 
-        const GRAVITY = 9.8;
-        const DRAG = 0.985;
+        const GRAVITY = 7.8;
+        const ROCKET_GRAVITY = 6.2;
+        const DRAG = 0.965;
 
         for (let i = 0; i < PARTICLE_COUNT; i++) {
             const p = particles[i];
-            p.life += safeDt;
-            if (p.life >= p.maxLife) {
-                resetFountainParticle(p);
+            const idx3 = i * 3;
+
+            if (!p.active) {
+                positions[idx3] = 0;
+                positions[idx3 + 1] = -100;
+                positions[idx3 + 2] = 0;
+                alphas[i] = 0;
+                sizes[i] = 0;
+                continue;
             }
 
-            p.vx *= DRAG;
-            p.vz *= DRAG;
-            p.vy -= GRAVITY * safeDt;
+            p.life += safeDt;
 
-            p.x += p.vx * safeDt;
-            p.y += p.vy * safeDt;
-            p.z += p.vz * safeDt;
+            if (p.type === 'rocket') {
+                p.vy -= ROCKET_GRAVITY * safeDt;
+                p.x += p.vx * safeDt;
+                p.y += p.vy * safeDt;
+                p.z += p.vz * safeDt;
 
-            const progress = p.life / p.maxLife;
-            let alpha = progress < 0.15 ? (progress / 0.15) : (1.0 - (progress - 0.15) / 0.85);
-            alpha *= (0.75 + 0.25 * Math.sin(p.life * 28.0 + i));
-            alpha = Math.max(0.0, Math.min(1.0, alpha));
+                // Spawn ascending trail sparks
+                if (Math.random() < 0.65) {
+                    const tr = obtainParticle();
+                    tr.active = true;
+                    tr.type = 'trail';
+                    tr.x = p.x + (Math.random() - 0.5) * 0.25;
+                    tr.y = p.y - 0.35;
+                    tr.z = p.z + (Math.random() - 0.5) * 0.25;
+                    tr.vx = p.vx * 0.2 + (Math.random() - 0.5) * 0.8;
+                    tr.vy = -1.5 - Math.random() * 2.0;
+                    tr.vz = p.vz * 0.2 + (Math.random() - 0.5) * 0.8;
+                    tr.r = 1.0;
+                    tr.g = 0.85;
+                    tr.b = 0.45;
+                    tr.life = 0;
+                    tr.maxLife = 0.24 + Math.random() * 0.16;
+                    tr.size = 3.6;
+                    tr.sparkleSpeed = 40.0;
+                }
 
-            const idx3 = i * 3;
+                if (p.life >= p.maxLife || p.vy <= 1.2) {
+                    p.active = false;
+                    triggerDetonation(p.x, p.y, p.z, p.palette);
+                }
+
+                alphas[i] = 1.0;
+                sizes[i] = p.size;
+            } else if (p.type === 'trail') {
+                p.vy -= 4.0 * safeDt;
+                p.x += p.vx * safeDt;
+                p.y += p.vy * safeDt;
+                p.z += p.vz * safeDt;
+
+                if (p.life >= p.maxLife) {
+                    p.active = false;
+                    alphas[i] = 0;
+                } else {
+                    const fade = 1.0 - p.life / p.maxLife;
+                    alphas[i] = fade * 0.85;
+                    sizes[i] = p.size * fade;
+                }
+            } else if (p.type === 'star') {
+                p.vx *= DRAG;
+                p.vz *= DRAG;
+                p.vy -= GRAVITY * safeDt;
+
+                p.x += p.vx * safeDt;
+                p.y += p.vy * safeDt;
+                p.z += p.vz * safeDt;
+
+                if (p.life >= p.maxLife) {
+                    p.active = false;
+                    alphas[i] = 0;
+                } else {
+                    const prog = p.life / p.maxLife;
+                    let alpha = prog < 0.12 ? (prog / 0.12) : Math.pow(1.0 - (prog - 0.12) / 0.88, 1.4);
+                    const twinkle = 0.72 + 0.28 * Math.sin(p.life * p.sparkleSpeed + p.seed);
+                    alpha *= twinkle;
+                    alphas[i] = Math.max(0, Math.min(1, alpha));
+                    sizes[i] = p.size * (1.0 - prog * 0.35);
+                }
+            }
+
             positions[idx3] = p.x;
             positions[idx3 + 1] = p.y;
             positions[idx3 + 2] = p.z;
-
             colors[idx3] = p.r;
             colors[idx3 + 1] = p.g;
             colors[idx3 + 2] = p.b;
-
-            alphas[i] = alpha;
-            sizes[i] = p.size;
         }
 
         geom.attributes.position.needsUpdate = true;

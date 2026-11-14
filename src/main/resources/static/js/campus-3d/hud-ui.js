@@ -255,7 +255,7 @@ export function setupCampusHud({
         playerController.skipIntroFlycam();
     });
 
-    // Mobile Quest panel collapse toggle + auto-collapse on narrow phones so screen center stays open
+    // Quest tracker panel collapse toggle defaulting to collapsed so view stays clear
     const questToggleBtn = document.getElementById('questToggleBtn');
     const questCard = document.getElementById('questCard');
     if (questToggleBtn && questCard) {
@@ -264,9 +264,7 @@ export function setupCampusHud({
             questToggleBtn.setAttribute('aria-expanded', String(!collapsed));
             questToggleBtn.textContent = collapsed ? 'Mở rộng' : 'Thu gọn';
         };
-        if (window.innerWidth <= 720) {
-            syncQuestToggleState(true);
-        }
+        syncQuestToggleState(true);
         questToggleBtn.addEventListener('click', () => {
             syncQuestToggleState(!questCard.classList.contains('is-collapsed'));
         });
@@ -889,15 +887,35 @@ export function setupCampusHud({
         snapshotBtn.addEventListener('click', handleSnapshotTrigger);
     }
 
+    // Cycle camera modes cleanly between Third-Person, First-Person, and Aerial Flycam
     const toggleCameraMode = () => {
         const current = playerController.getState().cameraMode;
-        const next = playerController.setCameraMode(current === 'third-person' ? 'first-person' : 'third-person');
-        if (camToggleBtn) {
-            const isFirstPerson = next === 'first-person';
-            camToggleBtn.setAttribute('aria-label', isFirstPerson ? 'Đổi sang Góc nhìn thứ 3' : 'Đổi sang Góc nhìn thứ nhất');
-            camToggleBtn.title = isFirstPerson ? 'Đang ở Góc nhìn thứ nhất · Bấm để về Góc nhìn thứ 3' : 'Đang ở Góc nhìn thứ 3 · Bấm để sang Góc nhìn thứ nhất';
+        let targetMode = 'first-person';
+        if (current === 'first-person') {
+            targetMode = 'fly';
+        } else if (current === 'fly') {
+            targetMode = 'third-person';
+        } else {
+            targetMode = 'first-person';
         }
-        showToast(next === 'first-person' ? 'Đã chuyển sang Góc nhìn thứ nhất' : 'Đã chuyển sang Góc nhìn thứ 3', 'info');
+        const next = playerController.setCameraMode(targetMode);
+        if (camToggleBtn) {
+            let label = 'Đổi sang Góc nhìn thứ nhất';
+            let title = 'Đang ở Góc nhìn thứ 3 · Bấm để sang Góc nhìn thứ nhất';
+            if (next === 'first-person') {
+                label = 'Đổi sang Góc nhìn toàn cảnh (Flycam)';
+                title = 'Đang ở Góc nhìn thứ nhất · Bấm để sang Góc nhìn toàn cảnh';
+            } else if (next === 'fly') {
+                label = 'Đổi sang Góc nhìn thứ 3';
+                title = 'Đang ở Góc nhìn toàn cảnh · Bấm để về Góc nhìn thứ 3';
+            }
+            camToggleBtn.setAttribute('aria-label', label);
+            camToggleBtn.title = title;
+        }
+        let toastMsg = 'Đã chuyển sang Góc nhìn thứ 3';
+        if (next === 'first-person') toastMsg = 'Đã chuyển sang Góc nhìn thứ nhất';
+        else if (next === 'fly') toastMsg = 'Đã chuyển sang Góc nhìn toàn cảnh (Flycam)';
+        showToast(toastMsg, 'info');
     };
     camToggleBtn.addEventListener('click', toggleCameraMode);
 

@@ -375,6 +375,7 @@
             justify-content: center;
             flex-shrink: 0;
             padding: 9px;
+            margin-left: -9px;
             pointer-events: auto;
         }
         .minimap-wrap {
@@ -459,14 +460,15 @@
         .minimap-column {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.35rem;
             flex-shrink: 0;
             pointer-events: auto;
         }
         .minimap-zone-label {
             display: inline-block;
-            max-inline-size: 138px;
+            inline-size: 118px;
+            box-sizing: border-box;
             padding: 0.25rem 0.55rem;
             border-radius: 0.55rem;
             background: rgba(15, 23, 42, 0.90);
@@ -573,14 +575,8 @@
             .hud-btn { transition: scale 120ms ease-out, background-color 150ms ease-out; }
             .hud-btn:active { scale: 0.96; }
         }
-        .hud-btn.is-active {
-            background: #eab308;
-            color: #0f172a;
-            border-color: #fef08a;
-            box-shadow: 0 0 14px rgba(250, 204, 21, 0.75);
-        }
 
-        /* Circular icon toolbar button with high-contrast white fill and black outline gear */
+        /* Circular icon toolbar button with high-contrast white fill and black outline */
         .hud-icon-btn {
             inline-size: max(36px, var(--target-size));
             block-size: max(36px, var(--target-size));
@@ -594,30 +590,24 @@
             block-size: 21px;
             flex: none;
             pointer-events: none;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+            transition: transform 120ms ease;
+        }
+        .hud-gear-icon {
             fill: #ffffff;
             stroke: #000000;
-            stroke-width: 2.2;
+            stroke-width: 1.4px;
             stroke-linejoin: round;
             paint-order: stroke fill;
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.72));
-            transition: fill 150ms ease, stroke 150ms ease;
         }
         svg.hud-action-icon[hidden] {
             display: none !important;
-        }
-        .hud-btn.is-active .hud-action-icon {
-            fill: #0f172a;
-            stroke: #000000;
         }
         @media (forced-colors: active) {
             .hud-gear-icon,
             .hud-action-icon {
                 fill: ButtonText;
                 stroke: ButtonFace;
-            }
-            .hud-btn.is-active .hud-action-icon {
-                fill: HighlightText;
-                stroke: Highlight;
             }
         }
 
@@ -1016,7 +1006,7 @@
         @media (max-width: 720px) {
             .intro-title-card { margin-top: 0.7rem; padding: 0.6rem 0.95rem; }
             .skip-intro-btn { min-inline-size: 84px; padding: 0.5rem 1.05rem; font-size: 0.82rem; }
-            .minimap-container { padding: 7px; }
+            .minimap-container { padding: 7px; margin-left: -7px; }
             .minimap-wrap { inline-size: 88px; block-size: 88px; border-radius: 0.85rem; }
             .minimap-wrap canvas { border-radius: 0.62rem; }
             .minimap-dir { inline-size: 16px; block-size: 16px; font-size: 8px; }
@@ -1024,7 +1014,7 @@
             .minimap-dir-s { bottom: 8px; }
             .minimap-dir-e { right: 8px; }
             .minimap-dir-w { left: 8px; }
-            .minimap-zone-label { max-inline-size: 104px; font-size: 0.62rem; padding: 0.18rem 0.35rem; }
+            .minimap-zone-label { inline-size: 88px; font-size: 0.62rem; padding: 0.18rem 0.35rem; }
             .hud-top-center { top: 0; }
             .clock-pill { padding: 0.26rem 0.65rem; gap: 0.4rem; }
             .clock-pill #weatherClockLabel { font-size: 0.7rem; }
@@ -1809,17 +1799,24 @@
 
                 <!-- Top-Right: Core navigation controls and gear icon settings button -->
                 <div class="hud-top-right">
-                    <button id="camToggleBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Đổi góc nhìn (Góc nhìn thứ 3 / Góc nhìn thứ nhất)" title="Đổi góc nhìn (Góc nhìn thứ 3 / Góc nhìn thứ nhất)">
+                    <button id="camToggleBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Đổi góc nhìn (Góc nhìn thứ 3 / Góc nhìn thứ nhất / Toàn cảnh)" title="Đổi góc nhìn (Góc nhìn thứ 3 / Góc nhìn thứ nhất / Toàn cảnh)">
                         <svg id="camEyeIcon" class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 6c-5 0-9.27 3.11-10.5 6 1.23 2.89 5.5 6 10.5 6s9.27-3.11 10.5-6c-1.23-2.89-5.5-6-10.5-6Zm0 9.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/>
+                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" fill="#ffffff" stroke="#000000" stroke-width="1.4" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3.2" fill="#0f172a" stroke="#ffffff" stroke-width="1"/>
                         </svg>
                     </button>
                     <button id="timeToggleBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Chuyển chế độ Ban ngày / Buổi tối" title="Chuyển chế độ Ban ngày / Buổi tối">
                         <svg id="timeIconSun" class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0-4a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Zm0 14.5a1 1 0 0 1 1 1V20a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1ZM20 12a1 1 0 0 1-1 1h-1.5a1 1 0 1 1 0-2H19a1 1 0 0 1 1 1ZM6.5 12a1 1 0 0 1-1 1H4a1 1 0 1 1 0-2h1.5a1 1 0 0 1 1 1Zm11.16-5.66a1 1 0 0 1 0 1.42l-1.06 1.06a1 1 0 1 1-1.42-1.42l1.06-1.06a1 1 0 0 1 1.42 0ZM8.82 14.18a1 1 0 0 1 0 1.42l-1.06 1.06a1 1 0 1 1-1.42-1.42l1.06-1.06a1 1 0 0 1 1.42 0Zm8.84 8.84a1 1 0 0 1-1.42 0l-1.06-1.06a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1 0 1.42ZM7.76 7.76a1 1 0 0 1-1.42 0L5.28 6.7a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1 0 1.42Z"/>
+                            <circle cx="12" cy="12" r="4.5" fill="#ffffff" stroke="#000000" stroke-width="1.3"/>
+                            <g stroke="#ffffff" stroke-width="2.2" stroke-linecap="round">
+                                <line x1="12" y1="2" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22"/><line x1="2" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22" y2="12"/><line x1="4.9" y1="4.9" x2="6.8" y2="6.8"/><line x1="17.2" y1="17.2" x2="19.1" y2="19.1"/><line x1="4.9" y1="19.1" x2="6.8" y2="17.2"/><line x1="17.2" y1="6.8" x2="19.1" y2="4.9"/>
+                            </g>
+                            <g stroke="#000000" stroke-width="1.1" stroke-linecap="round">
+                                <line x1="12" y1="2" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22"/><line x1="2" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22" y2="12"/><line x1="4.9" y1="4.9" x2="6.8" y2="6.8"/><line x1="17.2" y1="17.2" x2="19.1" y2="19.1"/><line x1="4.9" y1="19.1" x2="6.8" y2="17.2"/><line x1="17.2" y1="6.8" x2="19.1" y2="4.9"/>
+                            </g>
                         </svg>
                         <svg id="timeIconMoon" class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.1 3a9 9 0 0 0-8.6 11.5 9 9 0 0 0 11.3 6.4 9 9 0 0 0 5.2-4.1.8.8 0 0 0-.7-1.2 7.2 7.2 0 0 1-6.6-9.8.8.8 0 0 0-.6-1Z"/>
+                            <path d="M12.3 3a8.5 8.5 0 0 0-8 11.2A8.5 8.5 0 0 0 15 20.9a8.6 8.6 0 0 0 4.8-3.6.5.5 0 0 0-.4-.8 6.8 6.8 0 0 1-6.7-9.5.5.5 0 0 0-.4-.8z" fill="#ffffff" stroke="#000000" stroke-width="1.3" stroke-linejoin="round"/>
                         </svg>
                     </button>
                     <button id="openMenuBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Cài đặt" title="Cài đặt">
@@ -1832,10 +1829,10 @@
 
             <!-- Mid-Left: Collapsible Open-World Quest Tracker -->
             <div class="hud-middle-left">
-                <section id="questCard" class="hud-pill quest-card" aria-label="Bảng nhiệm vụ khám phá trường">
+                <section id="questCard" class="hud-pill quest-card is-collapsed" aria-label="Bảng nhiệm vụ khám phá trường">
                     <div class="quest-header">
                         <h2>Khám phá:</h2>
-                        <button id="questToggleBtn" type="button" class="quest-toggle-btn" aria-expanded="true">Thu gọn</button>
+                        <button id="questToggleBtn" type="button" class="quest-toggle-btn" aria-expanded="false">Mở rộng</button>
                     </div>
                     <div class="quest-list">
                         <button id="questRowCheckin" type="button" class="quest-row">
@@ -1883,12 +1880,15 @@
             <div class="action-cluster">
                 <button id="snapshotBtn" type="button" class="hud-btn hud-icon-btn action-fab" aria-label="Chụp ảnh" title="Chụp ảnh lưu niệm (Phím C)">
                     <svg class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M8.5 4.5a1.5 1.5 0 0 0-1.25.75L6.15 7H4.5A2.5 2.5 0 0 0 2 9.5v8.5A2.5 2.5 0 0 0 4.5 20.5h15a2.5 2.5 0 0 0 2.5-2.5V9.5A2.5 2.5 0 0 0 19.5 7h-1.65l-1.1-1.75A1.5 1.5 0 0 0 15.5 4.5h-7ZM12 17.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+                        <path d="M4 8a2 2 0 0 1 2-2h2.2l1.2-2h5.2l1.2 2H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z" fill="#ffffff" stroke="#000000" stroke-width="1.3" stroke-linejoin="round"/>
+                        <circle cx="12" cy="13" r="3.3" fill="#0f172a" stroke="#ffffff" stroke-width="1"/>
                     </svg>
                 </button>
                 <button id="openGalleryBtn" type="button" class="hud-btn hud-icon-btn action-fab" aria-label="Kho ảnh" title="Kho ảnh">
                     <svg class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path fill-rule="evenodd" d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5Zm2 0v14h14V5H5Zm2 12 3.5-4.5 2.5 3 3.5-4.5 4.5 6H7Zm2-9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/>
+                        <rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.3" stroke-linejoin="round"/>
+                        <circle cx="8.5" cy="8.5" r="1.6" fill="#0f172a"/>
+                        <path d="M5.5 18.5l4.5-5.5 3.5 4 2.5-3 3 4.5z" fill="#0f172a"/>
                     </svg>
                 </button>
             </div>
