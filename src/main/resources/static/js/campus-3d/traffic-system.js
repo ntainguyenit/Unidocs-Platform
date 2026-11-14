@@ -306,6 +306,69 @@ function createRiderHelmetGeometry() {
     return mergeCleanParts(parts);
 }
 
+// Build dual-lobed warm white forward headlight projection beam texture for cars
+function createCarHeadlightBeamTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 256, 128);
+
+    const drawLobe = (cy) => {
+        const grad = ctx.createRadialGradient(25, cy, 4, 115, cy, 110);
+        grad.addColorStop(0, 'rgba(255, 255, 238, 0.85)');
+        grad.addColorStop(0.28, 'rgba(255, 248, 215, 0.50)');
+        grad.addColorStop(0.65, 'rgba(255, 240, 190, 0.18)');
+        grad.addColorStop(1.0, 'rgba(255, 240, 190, 0.0)');
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(12, cy);
+        ctx.lineTo(245, cy - 38);
+        ctx.quadraticCurveTo(256, cy, 245, cy + 38);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.restore();
+    };
+
+    drawLobe(48);
+    drawLobe(80);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+}
+
+// Build focused warm white forward headlight projection beam texture for motorbikes
+function createMotoHeadlightBeamTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 256, 128);
+
+    const grad = ctx.createRadialGradient(20, 64, 4, 110, 64, 105);
+    grad.addColorStop(0, 'rgba(255, 255, 238, 0.88)');
+    grad.addColorStop(0.28, 'rgba(255, 248, 215, 0.52)');
+    grad.addColorStop(0.65, 'rgba(255, 240, 190, 0.18)');
+    grad.addColorStop(1.0, 'rgba(255, 240, 190, 0.0)');
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(10, 64);
+    ctx.lineTo(245, 22);
+    ctx.quadraticCurveTo(256, 64, 245, 106);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.restore();
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+}
+
 // Create instanced two-way vehicle pools with safe-distance braking and smooth loop wrapping
 export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' }) {
     const lanes = [];
@@ -474,14 +537,15 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
         totalCars * 4
     );
 
-    const carLightGeom = new THREE.BoxGeometry(0.10, 0.14, 0.36);
+    const carLightGeom = new THREE.BoxGeometry(0.12, 0.16, 0.38);
+    const carHeadlightMat = new THREE.MeshBasicMaterial({ color: 0x475569, toneMapped: false });
     const carHeadlightsInst = new THREE.InstancedMesh(
         carLightGeom,
-        new THREE.MeshBasicMaterial({ color: 0xfffbeb }),
+        carHeadlightMat,
         totalCars * 2
     );
     const carTaillightsInst = new THREE.InstancedMesh(
-        carLightGeom,
+        new THREE.BoxGeometry(0.10, 0.14, 0.36),
         new THREE.MeshBasicMaterial({ color: 0xffffff }),
         totalCars * 2
     );
@@ -543,9 +607,10 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
         totalMotos
     );
 
+    const motoHeadLightMat = new THREE.MeshBasicMaterial({ color: 0x475569, toneMapped: false });
     const motoHeadLightInst = new THREE.InstancedMesh(
-        new THREE.BoxGeometry(0.07, 0.11, 0.16),
-        new THREE.MeshBasicMaterial({ color: 0xfef9c3 }),
+        new THREE.BoxGeometry(0.09, 0.13, 0.18),
+        motoHeadLightMat,
         totalMotos
     );
     const motoTailLightInst = new THREE.InstancedMesh(
@@ -553,6 +618,41 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
         new THREE.MeshBasicMaterial({ color: 0xffffff }),
         totalMotos
     );
+
+    // Warm white forward ground projection light beams for cars and motorbikes
+    const carBeamTex = createCarHeadlightBeamTexture();
+    const motoBeamTex = createMotoHeadlightBeamTexture();
+
+    const carBeamMat = new THREE.MeshBasicMaterial({
+        map: carBeamTex,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        toneMapped: false
+    });
+    const motoBeamMat = new THREE.MeshBasicMaterial({
+        map: motoBeamTex,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        toneMapped: false
+    });
+
+    const carBeamGeom = new THREE.PlaneGeometry(12.0, 4.2);
+    carBeamGeom.rotateX(-Math.PI * 0.5);
+    carBeamGeom.translate(8.15, 0.038, 0);
+
+    const motoBeamGeom = new THREE.PlaneGeometry(8.5, 2.2);
+    motoBeamGeom.rotateX(-Math.PI * 0.5);
+    motoBeamGeom.translate(4.90, 0.038, 0);
+
+    const carBeamInst = new THREE.InstancedMesh(carBeamGeom, carBeamMat, totalCars);
+    carBeamInst.visible = false;
+
+    const motoBeamInst = new THREE.InstancedMesh(motoBeamGeom, motoBeamMat, totalMotos);
+    motoBeamInst.visible = false;
 
     const col = new THREE.Color();
     for (let i = 0; i < totalCars; i++) {
@@ -579,6 +679,7 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
         carRimsInst,
         carHeadlightsInst,
         carTaillightsInst,
+        carBeamInst,
         motoBodyInst,
         motoFrameInst,
         motoWheelsInst,
@@ -588,12 +689,56 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
         motoRiderHeadInst,
         motoHelmetInst,
         motoHeadLightInst,
-        motoTailLightInst
+        motoTailLightInst,
+        motoBeamInst
     ];
     for (const inst of trafficMeshes) {
         inst.frustumCulled = false;
         scene.add(inst);
     }
+
+    // Dynamic SpotLight pool illuminating road surfaces in front of closest moving vehicles
+    const spotLights = [];
+    const spotCount = 4;
+    for (let s = 0; s < spotCount; s++) {
+        const spot = new THREE.SpotLight(0xffffee, 0, 28, Math.PI * 0.22, 0.65, 1.2);
+        spot.castShadow = false;
+        spot.visible = false;
+        scene.add(spot);
+        scene.add(spot.target);
+        spotLights.push(spot);
+    }
+
+    const spotCandidates = [];
+    for (let i = 0; i < allUnits.length; i++) {
+        spotCandidates.push({ unit: null, distSq: 999999 });
+    }
+
+    let isNightMode = false;
+    const setNightMode = (night) => {
+        isNightMode = Boolean(night);
+        if (isNightMode) {
+            carHeadlightMat.color.setHex(0xffffee);
+            motoHeadLightMat.color.setHex(0xffffee);
+            carBeamMat.opacity = 0.85;
+            motoBeamMat.opacity = 0.82;
+            carBeamInst.visible = true;
+            motoBeamInst.visible = true;
+            carBeamInst.instanceMatrix.needsUpdate = true;
+            motoBeamInst.instanceMatrix.needsUpdate = true;
+        } else {
+            carHeadlightMat.color.setHex(0x475569);
+            motoHeadLightMat.color.setHex(0x475569);
+            carBeamMat.opacity = 0.0;
+            motoBeamMat.opacity = 0.0;
+            carBeamInst.visible = false;
+            motoBeamInst.visible = false;
+            for (let s = 0; s < spotCount; s++) {
+                spotLights[s].visible = false;
+                spotLights[s].intensity = 0;
+            }
+        }
+    };
 
     // Pooled reusable transform helpers preventing per-frame allocations
     const parentObj = new THREE.Object3D();
@@ -798,6 +943,7 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
 
             carBodyInst.setMatrixAt(i, parentObj.matrix);
             carGlassInst.setMatrixAt(i, parentObj.matrix);
+            carBeamInst.setMatrixAt(i, parentObj.matrix);
 
             for (let w = 0; w < 4; w++) {
                 const [ox, oy, oz] = carWheelOffsets[w];
@@ -837,6 +983,7 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
             motoRiderNavyInst.setMatrixAt(i, parentObj.matrix);
             motoRiderHeadInst.setMatrixAt(i, parentObj.matrix);
             motoHelmetInst.setMatrixAt(i, parentObj.matrix);
+            motoBeamInst.setMatrixAt(i, parentObj.matrix);
             setChildTransform(motoHeadLightInst, i, 0.60, 0.68, 0);
             setChildTransform(motoTailLightInst, i, -0.70, 0.64, 0);
             if (m.lastIsBraking !== m.isBraking) {
@@ -870,7 +1017,76 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
         motoHeadLightInst.instanceMatrix.needsUpdate = true;
         motoTailLightInst.instanceMatrix.needsUpdate = true;
         if (motoBrakeDirty) motoTailLightInst.instanceColor.needsUpdate = true;
+
+        if (isNightMode) {
+            carBeamInst.instanceMatrix.needsUpdate = true;
+            motoBeamInst.instanceMatrix.needsUpdate = true;
+
+            // Direct dynamic spotlights to illuminate road surface in front of nearest vehicles
+            const px = playerState ? playerState.x : 0;
+            const pz = playerState ? playerState.z : 40;
+
+            let candCount = 0;
+            for (let i = 0; i < allUnits.length; i++) {
+                const u = allUnits[i];
+                const dx = u.wx - px;
+                const dz = u.wz - pz;
+                const distSq = dx * dx + dz * dz;
+                if (distSq < 4900) {
+                    const slot = spotCandidates[candCount++];
+                    slot.unit = u;
+                    slot.distSq = distSq;
+                }
+            }
+
+            for (let i = 0; i < candCount - 1; i++) {
+                for (let j = i + 1; j < candCount; j++) {
+                    if (spotCandidates[j].distSq < spotCandidates[i].distSq) {
+                        const tmpU = spotCandidates[i].unit;
+                        const tmpD = spotCandidates[i].distSq;
+                        spotCandidates[i].unit = spotCandidates[j].unit;
+                        spotCandidates[i].distSq = spotCandidates[j].distSq;
+                        spotCandidates[j].unit = tmpU;
+                        spotCandidates[j].distSq = tmpD;
+                    }
+                }
+            }
+
+            for (let s = 0; s < spotCount; s++) {
+                const spot = spotLights[s];
+                if (s < candCount) {
+                    const cand = spotCandidates[s];
+                    const u = cand.unit;
+                    const fwdOffset = u.isCar ? 2.15 : 0.62;
+                    const lightY = u.isCar ? 0.62 : 0.68;
+                    const targetDist = u.isCar ? 8.5 : 5.8;
+                    const fx = u.wx + u.dirX * fwdOffset;
+                    const fz = u.wz + u.dirZ * fwdOffset;
+
+                    spot.position.set(fx, lightY, fz);
+                    spot.target.position.set(fx + u.dirX * targetDist, 0.02, fz + u.dirZ * targetDist);
+                    spot.target.updateMatrixWorld();
+
+                    const dist = Math.sqrt(cand.distSq);
+                    const edgeFade = dist > 50 ? Math.max(0, (70 - dist) / 20) : 1.0;
+                    spot.intensity = (u.isCar ? 2.8 : 1.8) * edgeFade;
+                    spot.visible = spot.intensity > 0.05;
+                } else {
+                    spot.visible = false;
+                    spot.intensity = 0;
+                }
+            }
+        } else {
+            for (let s = 0; s < spotCount; s++) {
+                if (spotLights[s].visible) {
+                    spotLights[s].visible = false;
+                    spotLights[s].intensity = 0;
+                }
+            }
+        }
     };
+
+    updateTraffic.setNightMode = setNightMode;
 
     updateTraffic.setShadowTier = (tier) => {
         const castSmall = tier !== 'low' && tier !== 'off';

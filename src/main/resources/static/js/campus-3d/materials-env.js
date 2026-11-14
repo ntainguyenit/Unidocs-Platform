@@ -2210,6 +2210,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             haloInst.visible = true;
             renderer.toneMappingExposure = 1.04;
             setNightSkyActive(false);
+            if (updateTraffic && updateTraffic.setNightMode) updateTraffic.setNightMode(false);
         } else if (mode === 'night') {
             sunLight.position.set(-70, 95, -55);
             sunLight.color.setHex(0x93c5fd);
@@ -2229,6 +2230,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             haloInst.visible = true;
             renderer.toneMappingExposure = 1.12;
             setNightSkyActive(true);
+            if (updateTraffic && updateTraffic.setNightMode) updateTraffic.setNightMode(true);
         } else {
             sunLight.position.set(78, 118, 72);
             sunLight.color.setHex(0xfff5e4);
@@ -2248,6 +2250,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             haloInst.visible = false;
             renderer.toneMappingExposure = 1.06;
             setNightSkyActive(false);
+            if (updateTraffic && updateTraffic.setNightMode) updateTraffic.setNightMode(false);
         }
         renderer.shadowMap.needsUpdate = true;
     };
