@@ -23,12 +23,65 @@ function createJetAircraftModel() {
     fuselageGeom.rotateX(Math.PI * 0.5);
     fuselageGeom.computeVertexNormals();
 
+    // Vietnam Airlines signature palette: Lotus Teal Blue, Golden Lotus, Crisp White, and Titanium
+    const vnaBlueMat = new THREE.MeshStandardMaterial({
+        color: 0x006584,
+        roughness: 0.25,
+        metalness: 0.28
+    });
+    const vnaGoldMat = new THREE.MeshStandardMaterial({
+        color: 0xe5a93c,
+        roughness: 0.30,
+        metalness: 0.55
+    });
     const aviationWhiteMat = new THREE.MeshStandardMaterial({
         color: 0xf8fafc,
         roughness: 0.22,
-        metalness: 0.32
+        metalness: 0.20
     });
-    const fuselageMesh = new THREE.Mesh(fuselageGeom, aviationWhiteMat);
+    const darkEngineMat = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        roughness: 0.40,
+        metalness: 0.60
+    });
+    const rimSilverMat = new THREE.MeshStandardMaterial({
+        color: 0xcbd5e1,
+        roughness: 0.20,
+        metalness: 0.75
+    });
+
+    // Procedural Vietnam Airlines livery canvas: white upper body, lotus blue belly, gold cheatline, and windows
+    const liveryCanvas = document.createElement('canvas');
+    liveryCanvas.width = 512;
+    liveryCanvas.height = 256;
+    const lCtx = liveryCanvas.getContext('2d');
+    if (lCtx) {
+        lCtx.fillStyle = '#f8fafc';
+        lCtx.fillRect(0, 0, 512, 256);
+        lCtx.fillStyle = '#006584';
+        lCtx.fillRect(0, 0, 114, 256);
+        lCtx.fillRect(398, 0, 114, 256);
+        lCtx.fillStyle = '#e5a93c';
+        lCtx.fillRect(114, 0, 6, 256);
+        lCtx.fillRect(392, 0, 6, 256);
+        lCtx.fillStyle = '#0f172a';
+        for (let y = 84; y < 210; y += 9) {
+            lCtx.fillRect(174, y, 7, 5);
+            lCtx.fillRect(331, y, 7, 5);
+        }
+        lCtx.fillStyle = '#090d16';
+        lCtx.fillRect(236, 230, 40, 16);
+    }
+    const fuselageTex = new THREE.CanvasTexture(liveryCanvas);
+    fuselageTex.wrapS = THREE.RepeatWrapping;
+    fuselageTex.wrapT = THREE.ClampToEdgeWrapping;
+    fuselageTex.colorSpace = THREE.SRGBColorSpace;
+    const fuselageMat = new THREE.MeshStandardMaterial({
+        map: fuselageTex,
+        roughness: 0.22,
+        metalness: 0.22
+    });
+    const fuselageMesh = new THREE.Mesh(fuselageGeom, fuselageMat);
     fuselageMesh.castShadow = false;
     root.add(fuselageMesh);
 
@@ -82,34 +135,46 @@ function createJetAircraftModel() {
     rightWingMesh.position.set(0, -0.12, 0);
     root.add(rightWingMesh);
 
-    // Left and right wingtip winglets angled upward
+    // Left and right wingtip winglets angled upward in Vietnam Airlines Lotus Blue with golden tip
     const wingletGeom = new THREE.BoxGeometry(0.12, 0.85, 1.1);
     wingletGeom.translate(0, 0.42, 0);
-    const leftWinglet = new THREE.Mesh(wingletGeom, aviationWhiteMat);
+    const leftWinglet = new THREE.Mesh(wingletGeom, vnaBlueMat);
     leftWinglet.position.set(-9.35, -0.05, -3.8);
     leftWinglet.rotation.z = -0.18;
     root.add(leftWinglet);
 
-    const rightWinglet = new THREE.Mesh(wingletGeom, aviationWhiteMat);
+    const leftWingletTip = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.16, 1.12), vnaGoldMat);
+    leftWingletTip.position.set(0, 0.78, 0);
+    leftWinglet.add(leftWingletTip);
+
+    const rightWinglet = new THREE.Mesh(wingletGeom, vnaBlueMat);
     rightWinglet.position.set(9.35, -0.05, -3.8);
     rightWinglet.rotation.z = 0.18;
     root.add(rightWinglet);
 
-    // Twin turbofan jet engines mounted on wing pylons with rear exhausts facing -Z
+    const rightWingletTip = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.16, 1.12), vnaGoldMat);
+    rightWingletTip.position.set(0, 0.78, 0);
+    rightWinglet.add(rightWingletTip);
+
+    // Twin turbofan jet engines in Vietnam Airlines Lotus Blue with silver lip ring
     const engineNacelleGeom = new THREE.CylinderGeometry(0.46, 0.42, 2.6, 14);
     engineNacelleGeom.rotateX(Math.PI * 0.5);
     engineNacelleGeom.computeVertexNormals();
 
+    const engineRimGeom = new THREE.TorusGeometry(0.44, 0.04, 8, 16);
+    engineRimGeom.translate(0, 0, 1.3);
+
     const engineIntakeGeom = new THREE.CylinderGeometry(0.38, 0.12, 0.6, 12);
     engineIntakeGeom.rotateX(Math.PI * 0.5);
-    const darkEngineMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.6 });
 
     const createTurbofan = (x) => {
         const engGroup = new THREE.Group();
-        const nacelle = new THREE.Mesh(engineNacelleGeom, aviationWhiteMat);
+        const nacelle = new THREE.Mesh(engineNacelleGeom, vnaBlueMat);
+        const rim = new THREE.Mesh(engineRimGeom, rimSilverMat);
         const intake = new THREE.Mesh(engineIntakeGeom, darkEngineMat);
         intake.position.set(0, 0, 1.1);
         engGroup.add(nacelle);
+        engGroup.add(rim);
         engGroup.add(intake);
         engGroup.position.set(x, -0.62, -0.8);
         return engGroup;
@@ -117,19 +182,59 @@ function createJetAircraftModel() {
     root.add(createTurbofan(-3.4));
     root.add(createTurbofan(3.4));
 
-    // Vertical swept tail fin stabilizer at the rear fuselage
-    const finShape = new THREE.Shape();
-    finShape.moveTo(0, -6.8);
-    finShape.lineTo(0, -9.8);
-    finShape.lineTo(3.4, -10.2);
-    finShape.lineTo(3.2, -8.6);
-    finShape.closePath();
-    const finGeom = new THREE.ExtrudeGeometry(finShape, { depth: 0.14, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03 });
-    finGeom.rotateY(-Math.PI * 0.5);
+    // Vertical swept tail fin stabilizer seated cleanly on top rear fuselage with zero orphaned geometry
+    const finGeom = new THREE.BufferGeometry();
+    const finPositions = new Float32Array([
+        -0.08, 0.82, -6.40,
+        +0.08, 0.82, -6.40,
+        -0.03, 4.15, -9.40,
+        +0.03, 4.15, -9.40,
+        -0.03, 3.90, -10.35,
+        +0.03, 3.90, -10.35,
+        -0.07, 0.35, -10.25,
+        +0.07, 0.35, -10.25
+    ]);
+    const finIndices = [
+        0, 2, 4,  0, 4, 6,
+        1, 5, 3,  1, 7, 5,
+        0, 3, 2,  0, 1, 3,
+        4, 5, 7,  4, 7, 6,
+        2, 3, 5,  2, 5, 4,
+        0, 6, 7,  0, 7, 1
+    ];
+    finGeom.setAttribute('position', new THREE.BufferAttribute(finPositions, 3));
+    finGeom.setIndex(finIndices);
     finGeom.computeVertexNormals();
-    const finMesh = new THREE.Mesh(finGeom, aviationWhiteMat);
-    finMesh.position.set(0, 0.72, 0);
+    const finMesh = new THREE.Mesh(finGeom, vnaBlueMat);
     root.add(finMesh);
+
+    // Vietnam Airlines Golden Lotus emblem attached to both sides of the tail fin
+    const createGoldenLotus = (sideSign) => {
+        const lotusGroup = new THREE.Group();
+        const petalGeom = new THREE.ConeGeometry(0.22, 0.88, 6);
+        petalGeom.scale(0.25, 1.0, 0.14);
+
+        const centerPetal = new THREE.Mesh(petalGeom, vnaGoldMat);
+        centerPetal.position.set(0, 0.08, 0);
+        lotusGroup.add(centerPetal);
+
+        const leftPetal = new THREE.Mesh(petalGeom, vnaGoldMat);
+        leftPetal.position.set(0, 0.04, 0.22);
+        leftPetal.rotation.x = 0.38;
+        leftPetal.scale.set(0.22, 0.78, 0.12);
+        lotusGroup.add(leftPetal);
+
+        const rightPetal = new THREE.Mesh(petalGeom, vnaGoldMat);
+        rightPetal.position.set(0, 0.04, -0.22);
+        rightPetal.rotation.x = -0.38;
+        rightPetal.scale.set(0.22, 0.78, 0.12);
+        lotusGroup.add(rightPetal);
+
+        lotusGroup.position.set(sideSign * 0.042, 2.65, -8.85);
+        return lotusGroup;
+    };
+    root.add(createGoldenLotus(-1));
+    root.add(createGoldenLotus(1));
 
     // Horizontal tail stabilizers at the rear fuselage
     const hTailShape = new THREE.Shape();

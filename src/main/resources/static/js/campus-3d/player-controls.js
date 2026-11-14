@@ -165,15 +165,6 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
     const keys = { w: false, a: false, s: false, d: false };
     const joyVector = { x: 0, y: 0 };
 
-    // Multi-shot cinematic scenes with dynamic titles
-    const INTRO_SCENES = [
-        { startU: 0.0, endU: 0.26, title: 'GÓC NHÌN TOÀN CẢNH' },
-        { startU: 0.26, endU: 0.50, title: 'KHUÔN VIÊN & SÂN TRƯỜNG TỪ DƯỚI LÊN' },
-        { startU: 0.50, endU: 0.78, title: 'TOÀ NHÀ TRUNG TÂM · QUAY 360°' },
-        { startU: 0.78, endU: 1.0, title: 'CỔNG CHÍNH 77 NGUYỄN HUỆ · BẮT ĐẦU' }
-    ];
-    let currentSceneTitle = INTRO_SCENES[0].title;
-
     // Precomputed cinematic multi-shot flycam splines with overhead zoom down, ground zoom up, 360 orbit, and gate landing
     const endHoriz = Math.cos(state.camPitch) * state.camDist;
     const endVert = Math.sin(state.camPitch) * state.camDist + 0.35;
@@ -181,64 +172,102 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
     const endCamY = EXPLORER_LOOK_Y + endVert;
     const endCamZ = CAMPUS_START_POSE.z + Math.cos(state.camYaw) * endHoriz;
 
-    const introCamCurve = new THREE.CatmullRomCurve3([
-        // Phase 1: High overhead bird-eye view zooming down across campus
-        new THREE.Vector3(-42, 118, 155),
-        new THREE.Vector3(-32, 80, 130),
-        new THREE.Vector3(-24, 46, 100),
-        new THREE.Vector3(-18, 22, 74),
-        // Phase 2: Ground-level courtyard sweep soaring upward from below
-        new THREE.Vector3(-25, 3.2, 52),
-        new THREE.Vector3(-13, 7.8, 36),
-        new THREE.Vector3(-4, 18.5, 26),
-        // Phase 3: 360-degree orbital sweep around central building Nhà A
-        new THREE.Vector3(-13, 23.0, 48),
-        new THREE.Vector3(24, 25.0, 12),
-        new THREE.Vector3(-13, 27.0, -26),
-        new THREE.Vector3(-48, 25.0, 8),
-        new THREE.Vector3(-34, 21.0, 46),
-        // Phase 4: Sweeping through Main Gate 77 Nguyen Hue and landing behind avatar
-        new THREE.Vector3(-13, 14.5, 112),
-        new THREE.Vector3(-12.8, 7.2, 95),
-        new THREE.Vector3(-12.6, 4.0, 89),
-        new THREE.Vector3(endCamX, endCamY, endCamZ)
-    ], false, 'centripetal', 0.5);
+    // Multi-shot cinematic scenes showcasing all 3 surrounding streets and central campus with film cuts
+    const INTRO_SHOTS = [
+        {
+            title: 'TUYẾN 1: ĐƯỜNG NGUYỄN HUỆ · CỔNG CHÍNH 77 NGUYỄN HUỆ',
+            duration: 4.2,
+            camCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-62, 14.0, 106),
+                new THREE.Vector3(-32, 11.5, 99),
+                new THREE.Vector3(2, 9.8, 95),
+                new THREE.Vector3(34, 8.8, 93)
+            ], false, 'centripetal', 0.5),
+            lookCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-22, 6.0, 78),
+                new THREE.Vector3(-13, 6.5, 76),
+                new THREE.Vector3(-8, 6.0, 74),
+                new THREE.Vector3(6, 5.5, 72)
+            ], false, 'centripetal', 0.5)
+        },
+        {
+            title: 'TUYẾN 2: ĐƯỜNG LÝ THƯỜNG KIỆT · SÂN BÓNG ĐÁ & KHU TÂY',
+            duration: 4.0,
+            camCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-132, 18.0, 96),
+                new THREE.Vector3(-128, 15.0, 52),
+                new THREE.Vector3(-124, 13.0, 10),
+                new THREE.Vector3(-120, 11.5, -28)
+            ], false, 'centripetal', 0.5),
+            lookCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-78, 6.5, 45),
+                new THREE.Vector3(-72, 7.0, 25),
+                new THREE.Vector3(-65, 8.0, 5),
+                new THREE.Vector3(-55, 9.0, -15)
+            ], false, 'centripetal', 0.5)
+        },
+        {
+            title: 'TUYẾN 3: ĐƯỜNG ĐỐNG ĐA · CỔNG 38 ĐỐNG ĐA & KHU NỘI VIỆN',
+            duration: 4.0,
+            camCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-68, 16.0, -104),
+                new THREE.Vector3(-32, 13.5, -96),
+                new THREE.Vector3(8, 11.5, -88),
+                new THREE.Vector3(48, 10.0, -80)
+            ], false, 'centripetal', 0.5),
+            lookCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-32, 6.0, -66),
+                new THREE.Vector3(-12, 6.5, -60),
+                new THREE.Vector3(12, 5.5, -55),
+                new THREE.Vector3(32, 4.8, -50)
+            ], false, 'centripetal', 0.5)
+        },
+        {
+            title: 'TOÀ NHÀ TRUNG TÂM · QUAY 360° & BẮT ĐẦU',
+            duration: 5.6,
+            camCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(32, 28.0, 36),
+                new THREE.Vector3(-13, 32.0, -28),
+                new THREE.Vector3(-52, 26.0, 8),
+                new THREE.Vector3(-28, 18.0, 48),
+                new THREE.Vector3(-13, 11.5, 104),
+                new THREE.Vector3(-12.8, 5.5, 94),
+                new THREE.Vector3(endCamX, endCamY, endCamZ)
+            ], false, 'centripetal', 0.5),
+            lookCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-13, 11.0, 10),
+                new THREE.Vector3(-13, 11.0, 10),
+                new THREE.Vector3(-13, 11.0, 10),
+                new THREE.Vector3(-13, 9.0, 24),
+                new THREE.Vector3(-12.5, 3.8, 76),
+                new THREE.Vector3(-12.5, 2.0, 82),
+                new THREE.Vector3(CAMPUS_START_POSE.x, EXPLORER_LOOK_Y, CAMPUS_START_POSE.z)
+            ], false, 'centripetal', 0.5)
+        }
+    ];
 
-    const introTargetCurve = new THREE.CatmullRomCurve3([
-        // Phase 1: Focusing on central building from overhead
-        new THREE.Vector3(-13, 9, 10),
-        new THREE.Vector3(-13, 8, 14),
-        new THREE.Vector3(-13, 6, 18),
-        new THREE.Vector3(-13, 4.5, 22),
-        // Phase 2: Looking UP at facade, roof sign, flags, and sky from ground level
-        new THREE.Vector3(-13, 15.0, 10),
-        new THREE.Vector3(-13, 16.5, 10),
-        new THREE.Vector3(-13, 13.0, 10),
-        // Phase 3: Locked onto central building during 360-degree orbit
-        new THREE.Vector3(-13, 11.0, 10),
-        new THREE.Vector3(-13, 11.0, 10),
-        new THREE.Vector3(-13, 11.0, 10),
-        new THREE.Vector3(-13, 11.0, 10),
-        new THREE.Vector3(-13, 10.0, 12),
-        // Phase 4: Leading through main gate to student avatar
-        new THREE.Vector3(-12.5, 4.0, 72.5),
-        new THREE.Vector3(-12.5, 2.8, 75.5),
-        new THREE.Vector3(-12.5, 2.2, 78.0),
-        new THREE.Vector3(CAMPUS_START_POSE.x, EXPLORER_LOOK_Y, CAMPUS_START_POSE.z)
-    ], false, 'centripetal', 0.5);
+    let currentShotIndex = 0;
+    let currentShotTime = 0;
+    let isDipTransitioning = false;
+    let currentSceneTitle = INTRO_SHOTS[0].title;
 
     const _introPos = new THREE.Vector3();
     const _introLook = new THREE.Vector3();
 
     // Precompute CatmullRom arc-length lookup tables during startup so Frame 1 never hitches
-    introCamCurve.getPointAt(0, _introPos);
-    introTargetCurve.getPointAt(0, _introLook);
+    INTRO_SHOTS[0].camCurve.getPointAt(0, _introPos);
+    INTRO_SHOTS[0].lookCurve.getPointAt(0, _introLook);
 
     // Sample normalized Intro spline waypoint cleanly for behind-curtain GPU pre-warm passes
     const sampleIntroPose = (u) => {
         const clampedU = Math.max(0.0, Math.min(1.0, u));
-        introCamCurve.getPointAt(clampedU, _introPos);
-        introTargetCurve.getPointAt(clampedU, _introLook);
+        const totalShots = INTRO_SHOTS.length;
+        const shotSpan = 1.0 / totalShots;
+        const sIdx = Math.min(totalShots - 1, Math.floor(clampedU / shotSpan));
+        const localU = Math.max(0.0, Math.min(1.0, (clampedU - sIdx * shotSpan) / shotSpan));
+        const curShot = INTRO_SHOTS[sIdx];
+        curShot.camCurve.getPointAt(localU, _introPos);
+        curShot.lookCurve.getPointAt(localU, _introLook);
         camera.position.copy(_introPos);
         camera.lookAt(_introLook);
     };
@@ -246,8 +275,11 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
     // Position camera at exact Intro Frame 0 so shader compilation & warm-up match entry view
     const prepareIntroStartFrame = () => {
         orbitControls.enabled = false;
+        currentShotIndex = 0;
+        currentShotTime = 0;
+        isDipTransitioning = false;
         sampleIntroPose(0);
-        currentSceneTitle = INTRO_SCENES[0].title;
+        currentSceneTitle = INTRO_SHOTS[0].title;
         if (onCallbacks.onIntroSceneChange) {
             onCallbacks.onIntroSceneChange(currentSceneTitle);
         }
@@ -277,8 +309,14 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         }
         state.introPlaying = true;
         state.introTime = 0;
-        currentSceneTitle = INTRO_SCENES[0].title;
+        currentShotIndex = 0;
+        currentShotTime = 0;
+        isDipTransitioning = false;
+        currentSceneTitle = INTRO_SHOTS[0].title;
         orbitControls.enabled = false;
+        if (onCallbacks.onClearCinematicDip) {
+            onCallbacks.onClearCinematicDip();
+        }
         if (onCallbacks.onIntroSceneChange) {
             onCallbacks.onIntroSceneChange(currentSceneTitle);
         }
@@ -288,6 +326,10 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (!state.introPlaying) return;
         state.introPlaying = false;
         state.introTime = state.introDuration;
+        isDipTransitioning = false;
+        if (onCallbacks.onClearCinematicDip) {
+            onCallbacks.onClearCinematicDip();
+        }
         orbitControls.enabled = state.cameraMode === 'fly';
         if (state.cameraMode === 'third-person') {
             snapCameraToExplorer();
@@ -449,41 +491,52 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         const clampedDt = Math.min(safeDt, 0.05);
 
         if (state.introPlaying) {
-            state.introTime += Math.min(safeDt, 0.14);
-            const linearT = Math.min(1.0, state.introTime / state.introDuration);
-            // Smooth ease-in at start, steady cruise across scenes, smooth ease-out into avatar landing
-            let eased;
-            if (linearT < 0.08) {
-                const p = linearT / 0.08;
-                eased = 0.08 * (p * p * (3 - 2 * p));
-            } else if (linearT > 0.92) {
-                const p = (linearT - 0.92) / 0.08;
-                eased = 0.92 + 0.08 * (p * p * (3 - 2 * p));
-            } else {
-                eased = linearT;
+            const curShot = INTRO_SHOTS[currentShotIndex];
+            if (!isDipTransitioning) {
+                currentShotTime += Math.min(safeDt, 0.08);
             }
-            const safeU = Math.max(0.0, Math.min(1.0, eased));
-            introCamCurve.getPointAt(safeU, _introPos);
-            introTargetCurve.getPointAt(safeU, _introLook);
+
+            // Smooth cubic interpolation across the active camera trajectory
+            const progress = Math.min(1.0, currentShotTime / curShot.duration);
+            const easedT = progress * progress * (3.0 - 2.0 * progress);
+            const safeU = Math.max(0.0, Math.min(1.0, easedT));
+
+            curShot.camCurve.getPointAt(safeU, _introPos);
+            curShot.lookCurve.getPointAt(safeU, _introLook);
             camera.position.copy(_introPos);
             camera.lookAt(_introLook);
 
-            // Synchronize dynamic scene title with HUD subtitle
-            for (let i = 0; i < INTRO_SCENES.length; i++) {
-                const sc = INTRO_SCENES[i];
-                if (safeU >= sc.startU && safeU < sc.endU) {
-                    if (sc.title !== currentSceneTitle) {
-                        currentSceneTitle = sc.title;
+            // Trigger film dip-to-black cut between street scenes or landing upon completion
+            if (currentShotTime >= curShot.duration && !isDipTransitioning) {
+                if (currentShotIndex < INTRO_SHOTS.length - 1) {
+                    isDipTransitioning = true;
+                    if (onCallbacks.onCinematicDip) {
+                        onCallbacks.onCinematicDip(() => {
+                            currentShotIndex++;
+                            currentShotTime = 0;
+                            isDipTransitioning = false;
+                            currentSceneTitle = INTRO_SHOTS[currentShotIndex].title;
+                            if (onCallbacks.onIntroSceneChange) {
+                                onCallbacks.onIntroSceneChange(currentSceneTitle);
+                            }
+                            const nextShot = INTRO_SHOTS[currentShotIndex];
+                            nextShot.camCurve.getPointAt(0, _introPos);
+                            nextShot.lookCurve.getPointAt(0, _introLook);
+                            camera.position.copy(_introPos);
+                            camera.lookAt(_introLook);
+                        });
+                    } else {
+                        currentShotIndex++;
+                        currentShotTime = 0;
+                        isDipTransitioning = false;
+                        currentSceneTitle = INTRO_SHOTS[currentShotIndex].title;
                         if (onCallbacks.onIntroSceneChange) {
                             onCallbacks.onIntroSceneChange(currentSceneTitle);
                         }
                     }
-                    break;
+                } else {
+                    skipIntroFlycam();
                 }
-            }
-
-            if (linearT >= 1.0) {
-                skipIntroFlycam();
             }
             return;
         }

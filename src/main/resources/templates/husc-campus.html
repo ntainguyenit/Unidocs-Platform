@@ -230,6 +230,18 @@
         }
 
         /* Compact responsive flycam intro overlay */
+        .intro-black-curtain {
+            position: fixed;
+            inset: 0;
+            background: #000000;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 44;
+            transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .intro-black-curtain.is-black {
+            opacity: 1;
+        }
         .intro-banner {
             position: absolute;
             inset: 0;
@@ -1753,6 +1765,9 @@
             <span>Bỏ qua</span>
         </button>
     </div>
+
+    <!-- Cinematic Dip-to-Black Transition Curtain for Intro Street Scenes -->
+    <div id="introBlackCurtain" class="intro-black-curtain" aria-hidden="true"></div>
 
     <!-- Viewfinder Camera Snapshot Frame Overlay -->
     <div id="snapshotFrameOverlay" class="snapshot-frame-overlay" aria-hidden="true">

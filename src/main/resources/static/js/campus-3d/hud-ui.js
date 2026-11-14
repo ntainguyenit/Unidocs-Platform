@@ -241,6 +241,29 @@ export function setupCampusHud({
 
     let introEndedAtMs = 0;
     const introSubTitle = introBanner ? introBanner.querySelector('.intro-title-card p') : null;
+    const introBlackCurtain = document.getElementById('introBlackCurtain');
+
+    // Trigger cinematic film dip-to-black transition between intro street scenes
+    const triggerCinematicDip = (onMidpointCut) => {
+        if (!introBlackCurtain) {
+            if (onMidpointCut) onMidpointCut();
+            return;
+        }
+        introBlackCurtain.classList.add('is-black');
+        setTimeout(() => {
+            if (onMidpointCut) onMidpointCut();
+            setTimeout(() => {
+                introBlackCurtain.classList.remove('is-black');
+            }, 60);
+        }, 220);
+    };
+
+    // Ensure curtain is cleared immediately when skipping or exiting intro
+    const clearCinematicDip = () => {
+        if (introBlackCurtain) {
+            introBlackCurtain.classList.remove('is-black');
+        }
+    };
 
     // Smoothly update Intro Scene Subtitle with subtle crossfade
     const setIntroSubTitle = (title) => {
@@ -258,11 +281,13 @@ export function setupCampusHud({
         hudLayer.classList.toggle('hud-hidden', isIntroPlaying);
         introBanner.hidden = !isIntroPlaying;
         if (!isIntroPlaying) {
+            clearCinematicDip();
             introEndedAtMs = performance.now();
         }
     };
 
     skipIntroBtn.addEventListener('click', () => {
+        clearCinematicDip();
         playerController.skipIntroFlycam();
     });
 
@@ -1373,6 +1398,8 @@ export function setupCampusHud({
     return {
         syncIntroVisibility,
         setIntroSubTitle,
+        triggerCinematicDip,
+        clearCinematicDip,
         executeContextAction,
         triggerSnapshot,
         toggleCameraMode,
