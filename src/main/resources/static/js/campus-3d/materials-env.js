@@ -2985,27 +2985,30 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     // Ground floor semi-circular porte-cochere canopy and 2nd floor curved balcony matching Photo 4
     const canopyR = 4.2;
     const canopyH = 0.25;
-    const canopyGeom = new THREE.CylinderGeometry(canopyR, canopyR, canopyH, 16, 1, false, 0, Math.PI);
+    const canopyGeom = new THREE.CylinderGeometry(canopyR, canopyR, canopyH, 24, 1, false, -Math.PI * 0.5, Math.PI);
     const canopyMesh = new THREE.Mesh(canopyGeom, whiteTrimMat);
     canopyMesh.position.set(0, 3.8, cgbD * 0.5);
-    canopyMesh.rotation.y = Math.PI;
     cgGroup.add(canopyMesh);
 
     // 3 White cylindrical columns supporting the canopy
     const canopyColGeom = new THREE.CylinderGeometry(0.20, 0.20, 3.8, 12);
+    const colAngles = [-Math.PI * 0.28, 0, Math.PI * 0.28];
     for (let c = 0; c < 3; c++) {
-        const cang = 0.35 + c * (Math.PI - 0.7) * 0.5;
+        const cang = colAngles[c];
         const col = new THREE.Mesh(canopyColGeom, whiteTrimMat);
-        col.position.set(Math.cos(cang) * (canopyR - 0.4), 1.9, cgbD * 0.5 + Math.sin(cang) * (canopyR - 0.4));
+        col.position.set(
+            Math.sin(cang) * (canopyR - 0.45),
+            1.9,
+            cgbD * 0.5 + Math.cos(cang) * (canopyR - 0.45)
+        );
         cgGroup.add(col);
     }
 
     // Curved black metal railing on 2nd-floor balcony
-    const railGeom = new THREE.CylinderGeometry(canopyR - 0.1, canopyR - 0.1, 0.85, 16, 1, true, 0, Math.PI);
+    const railGeom = new THREE.CylinderGeometry(canopyR - 0.1, canopyR - 0.1, 0.85, 24, 1, true, -Math.PI * 0.5, Math.PI);
     const railMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.85, roughness: 0.3, side: THREE.DoubleSide });
     const railMesh = new THREE.Mesh(railGeom, railMat);
     railMesh.position.set(0, 4.35, cgbD * 0.5);
-    railMesh.rotation.y = Math.PI;
     cgGroup.add(railMesh);
 
     const ledMesh = new THREE.Mesh(new THREE.BoxGeometry(9.6, 3.8, 0.22), ledMat);
@@ -3029,15 +3032,6 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         bm.position.set(0, f * 3.8, -5.5);
         cgGroup.add(bm);
     }
-
-    // Paved pedestrian plaza and entry terrace beneath Corner Gabled Building
-    const cgPlazaGeom = new THREE.PlaneGeometry(28.0, 36.0);
-    const cgPlazaMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.78 });
-    const cgPlazaMesh = new THREE.Mesh(cgPlazaGeom, cgPlazaMat);
-    cgPlazaMesh.rotation.x = -Math.PI * 0.5;
-    cgPlazaMesh.position.set(0, 0.015, -4.0);
-    cgPlazaMesh.receiveShadow = true;
-    cgGroup.add(cgPlazaMesh);
 
     // Position Corner Gabled Building set back at the center of the Ly Thuong Kiet x Dong Da intersection corner
     cgGroup.position.set(-98.0, 0, -68.0);
@@ -3441,11 +3435,11 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
 
     // 7. Techcombank Hue Branch building at 24 Ly Thuong Kiet street corner (Photos 1, 2, 3)
     const tcbGroup = new THREE.Group();
-    const tcbLen = 22.0;
-    const tcbDepth = 18.0;
+    const tcbLen = 15.0;
+    const tcbDepth = 16.0;
     const tcbPodiumH = 14.5;
     const tcbTowerH = 19.5;
-    const tcbRadius = 5.5;
+    const tcbRadius = 3.8;
 
     // Procedural PBR texture for Techcombank podium and tower facade
     const tcbCanvas = document.createElement('canvas');
@@ -3586,7 +3580,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     tcbGroup.add(tcbCornerPodiumMesh);
 
     // 3. Signature 5th-floor circular cantilever ring pergola terrace (Photos 1, 2)
-    const ringRadius = 7.2;
+    const ringRadius = 4.8;
     const ringH = 0.55;
     const ringGeom = new THREE.CylinderGeometry(ringRadius, ringRadius, ringH, 32, 1, true);
     const ringMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.4, metalness: 0.2, side: THREE.DoubleSide });
@@ -3595,30 +3589,30 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     tcbGroup.add(ringMesh);
 
     // Circular pergola outer canopy lip
-    const lipGeom = new THREE.TorusGeometry(ringRadius, 0.28, 8, 32);
+    const lipGeom = new THREE.TorusGeometry(ringRadius, 0.25, 8, 32);
     const lipMesh = new THREE.Mesh(lipGeom, whiteTrimMat);
     lipMesh.rotation.x = Math.PI * 0.5;
     lipMesh.position.set(tcbCornerX, tcbPodiumH + 3.25, tcbCornerZ);
     tcbGroup.add(lipMesh);
 
     // Slender support columns for circular pergola
-    const ringColGeom = new THREE.CylinderGeometry(0.12, 0.12, 3.0, 8);
+    const ringColGeom = new THREE.CylinderGeometry(0.10, 0.10, 3.0, 8);
     for (let rc = 0; rc < 8; rc++) {
         const rAng = (rc / 8) * Math.PI * 2;
         const rCol = new THREE.Mesh(ringColGeom, whiteTrimMat);
         rCol.position.set(
-            tcbCornerX + Math.cos(rAng) * (ringRadius - 0.45),
+            tcbCornerX + Math.cos(rAng) * (ringRadius - 0.4),
             tcbPodiumH + 1.5,
-            tcbCornerZ + Math.sin(rAng) * (ringRadius - 0.45)
+            tcbCornerZ + Math.sin(rAng) * (ringRadius - 0.4)
         );
         tcbGroup.add(rCol);
     }
 
     // 4. Upper tower main rectangular block (floors 5-10)
-    const tcbTowerLen = 16.0;
-    const tcbTowerDepth = 15.0;
+    const tcbTowerLen = 11.5;
+    const tcbTowerDepth = 12.0;
     const tcbTowerMesh = new THREE.Mesh(new THREE.BoxGeometry(tcbTowerLen, tcbTowerH, tcbTowerDepth), tcbMat);
-    tcbTowerMesh.position.set(-1.5, tcbPodiumH + tcbTowerH * 0.5, -1.0);
+    tcbTowerMesh.position.set(-1.2, tcbPodiumH + tcbTowerH * 0.5, -1.0);
     tcbTowerMesh.castShadow = true;
     tcbGroup.add(tcbTowerMesh);
 
@@ -3667,26 +3661,26 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     });
 
     // Signboard facing Ly Thuong Kiet (along local +Z)
-    const tcbRoofSignMesh = new THREE.Mesh(new THREE.PlaneGeometry(16.5, 4.1), tcbSignMat);
-    tcbRoofSignMesh.position.set(0, tcbPodiumH + tcbTowerH + 2.5, tcbDepth * 0.5 - 2.5);
+    const tcbRoofSignMesh = new THREE.Mesh(new THREE.PlaneGeometry(12.5, 3.2), tcbSignMat);
+    tcbRoofSignMesh.position.set(0, tcbPodiumH + tcbTowerH + 2.0, tcbDepth * 0.5 - 2.0);
     tcbRoofSignMesh.rotation.y = 0;
     tcbGroup.add(tcbRoofSignMesh);
 
     // Signboard facing Dong Da (along local +X)
-    const tcbRoofSignMeshNorth = new THREE.Mesh(new THREE.PlaneGeometry(16.5, 4.1), tcbSignMat);
-    tcbRoofSignMeshNorth.position.set(tcbLen * 0.5 - 2.5, tcbPodiumH + tcbTowerH + 2.5, 0);
+    const tcbRoofSignMeshNorth = new THREE.Mesh(new THREE.PlaneGeometry(12.5, 3.2), tcbSignMat);
+    tcbRoofSignMeshNorth.position.set(tcbLen * 0.5 - 2.0, tcbPodiumH + tcbTowerH + 2.0, 0);
     tcbRoofSignMeshNorth.rotation.y = Math.PI * 0.5;
     tcbGroup.add(tcbRoofSignMeshNorth);
 
     // Structural steel support truss behind signs
-    const tcbTrussGeom = new THREE.BoxGeometry(16.8, 3.8, 0.4);
+    const tcbTrussGeom = new THREE.BoxGeometry(12.8, 3.0, 0.4);
     const tcbTrussMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.35 });
     const tcbTrussMesh = new THREE.Mesh(tcbTrussGeom, tcbTrussMat);
-    tcbTrussMesh.position.set(0, tcbPodiumH + tcbTowerH + 2.5, tcbDepth * 0.5 - 2.75);
+    tcbTrussMesh.position.set(0, tcbPodiumH + tcbTowerH + 2.0, tcbDepth * 0.5 - 2.2);
     tcbGroup.add(tcbTrussMesh);
 
     // Position Techcombank Building at South-West corner of Ly Thuong Kiet x Dong Da intersection
-    tcbGroup.position.set(-141.0, 0, -8.0);
+    tcbGroup.position.set(-142.0, 0, -1.5);
     tcbGroup.rotation.y = 1.5308;
     ensembleGroup.add(tcbGroup);
 
