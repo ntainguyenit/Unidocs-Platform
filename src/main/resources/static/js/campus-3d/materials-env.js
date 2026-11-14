@@ -3430,6 +3430,570 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     shGroup.rotation.y = -0.4461;
     ensembleGroup.add(shGroup);
 
+    // 7. Techcombank Hue Branch building at 24 Ly Thuong Kiet street corner (Photos 1, 2, 3)
+    const tcbGroup = new THREE.Group();
+    const tcbLen = 22.0;
+    const tcbDepth = 18.0;
+    const tcbPodiumH = 14.5;
+    const tcbTowerH = 19.5;
+    const tcbRadius = 5.5;
+
+    // Procedural PBR texture for Techcombank podium and tower facade
+    const tcbCanvas = document.createElement('canvas');
+    tcbCanvas.width = 1024;
+    tcbCanvas.height = 1024;
+    const tcbCtx = tcbCanvas.getContext('2d');
+
+    // Clean modern off-white building paneling
+    tcbCtx.fillStyle = '#f8fafc';
+    tcbCtx.fillRect(0, 0, 1024, 1024);
+
+    // Subtle horizontal panel joint grooves
+    tcbCtx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+    tcbCtx.lineWidth = 2;
+    for (let py = 0; py < 1024; py += 64) {
+        tcbCtx.beginPath();
+        tcbCtx.moveTo(0, py);
+        tcbCtx.lineTo(1024, py);
+        tcbCtx.stroke();
+    }
+
+    // Ground floor storefront glass curtain wall (y: 780 to 1024)
+    tcbCtx.fillStyle = '#1e293b';
+    tcbCtx.fillRect(0, 780, 1024, 244);
+
+    // Blue-tinted glass panes with warm interior glow and reflections
+    const numStorefrontBays = 8;
+    const bayW = 1024 / numStorefrontBays;
+    for (let sb = 0; sb < numStorefrontBays; sb++) {
+        const sx = sb * bayW;
+        tcbCtx.fillStyle = '#0f172a';
+        tcbCtx.fillRect(sx + 6, 795, bayW - 12, 220);
+
+        const glassGrad = tcbCtx.createLinearGradient(sx + 6, 795, sx + bayW - 6, 1015);
+        glassGrad.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
+        glassGrad.addColorStop(0.5, 'rgba(15, 23, 42, 0.85)');
+        glassGrad.addColorStop(1, 'rgba(254, 240, 138, 0.35)');
+        tcbCtx.fillStyle = glassGrad;
+        tcbCtx.fillRect(sx + 10, 800, bayW - 20, 210);
+
+        tcbCtx.strokeStyle = 'rgba(248, 250, 252, 0.6)';
+        tcbCtx.lineWidth = 2;
+        tcbCtx.strokeRect(sx + 10, 800, bayW - 20, 210);
+    }
+
+    // Festive promotional wall graphic decal on the corner facade bay (Photo 2)
+    tcbCtx.fillStyle = '#dc2626';
+    tcbCtx.fillRect(bayW * 0.1, 805, bayW * 2.2, 190);
+    tcbCtx.fillStyle = '#ffffff';
+    tcbCtx.font = '900 24px "Inter", sans-serif';
+    tcbCtx.fillText('TECHCOMBANK', bayW * 0.2, 840);
+    tcbCtx.font = '700 15px "Inter", sans-serif';
+    tcbCtx.fillText('CHỌN TÀI KHOẢN', bayW * 0.2, 875);
+    tcbCtx.fillText('TRỌN ĐỜI MIỄN PHÍ', bayW * 0.2, 905);
+    tcbCtx.fillStyle = '#fef08a';
+    tcbCtx.font = '700 14px "Inter", sans-serif';
+    tcbCtx.fillText('GIÁ TRỊ VƯỢT TRỘI', bayW * 0.2, 935);
+
+    // Decorative ribbon cross on gift box graphic
+    tcbCtx.fillStyle = '#facc15';
+    tcbCtx.fillRect(bayW * 1.6, 805, 18, 190);
+    tcbCtx.fillRect(bayW * 0.1, 890, bayW * 2.2, 18);
+
+    // Floors 2-4 podium light slate-blue paneling (y: 460 to 780)
+    tcbCtx.fillStyle = '#e2e8f0';
+    tcbCtx.fillRect(0, 460, 1024, 320);
+
+    // Parapet horizontal white band with red Techcombank signage above floor 4 (y: 470 to 530)
+    tcbCtx.fillStyle = '#ffffff';
+    tcbCtx.fillRect(0, 470, 1024, 65);
+    tcbCtx.strokeStyle = '#cbd5e1';
+    tcbCtx.lineWidth = 3;
+    tcbCtx.strokeRect(0, 470, 1024, 65);
+
+    tcbCtx.fillStyle = '#dc2626';
+    tcbCtx.font = '900 36px "Inter", sans-serif';
+    tcbCtx.fillText('TECHCOMBANK', 140, 516);
+
+    // Red Techcombank diamond logo on parapet
+    tcbCtx.beginPath();
+    tcbCtx.moveTo(90, 485);
+    tcbCtx.lineTo(115, 502);
+    tcbCtx.lineTo(90, 520);
+    tcbCtx.lineTo(65, 502);
+    tcbCtx.closePath();
+    tcbCtx.fill();
+    tcbCtx.fillStyle = '#ffffff';
+    tcbCtx.fillRect(83, 496, 14, 13);
+
+    // Floors 2, 3, 4 horizontal ribbon windows
+    for (let f = 0; f < 3; f++) {
+        const fy = 550 + f * 75;
+        for (let w = 0; w < 6; w++) {
+            const wx = w * (1024 / 6);
+            tcbCtx.fillStyle = '#1e293b';
+            tcbCtx.fillRect(wx + 15, fy, 1024 / 6 - 30, 48);
+            tcbCtx.fillStyle = '#38bdf8';
+            tcbCtx.fillRect(wx + 18, fy + 3, 1024 / 6 - 36, 42);
+        }
+    }
+
+    // Upper tower floors 5-10 ribbon windows (y: 40 to 450)
+    for (let tf = 0; tf < 6; tf++) {
+        const ty = 50 + tf * 68;
+        for (let tw = 0; tw < 6; tw++) {
+            const twx = tw * (1024 / 6);
+            tcbCtx.fillStyle = '#1e293b';
+            tcbCtx.fillRect(twx + 18, ty, 1024 / 6 - 36, 40);
+            tcbCtx.fillStyle = '#0284c7';
+            tcbCtx.fillRect(twx + 21, ty + 3, 1024 / 6 - 42, 34);
+        }
+    }
+
+    const tcbTex = new THREE.CanvasTexture(tcbCanvas);
+    tcbTex.colorSpace = THREE.SRGBColorSpace;
+    tcbTex.anisotropy = Math.min(8, maxAniso);
+
+    const tcbMat = new THREE.MeshStandardMaterial({
+        map: tcbTex,
+        roughness: 0.35,
+        metalness: 0.15
+    });
+
+    // 1. Techcombank 4-story podium base
+    const tcbPodiumMesh = new THREE.Mesh(new THREE.BoxGeometry(tcbLen, tcbPodiumH, tcbDepth), tcbMat);
+    tcbPodiumMesh.position.set(0, tcbPodiumH * 0.5, 0);
+    tcbPodiumMesh.castShadow = true;
+    tcbPodiumMesh.receiveShadow = true;
+    tcbGroup.add(tcbPodiumMesh);
+
+    // 2. Corner curved cylindrical bay on podium (facing the intersection) (Photos 1, 2)
+    const tcbCornerX = tcbLen * 0.5 - tcbRadius;
+    const tcbCornerZ = tcbDepth * 0.5 - tcbRadius;
+    const tcbCornerPodiumGeom = new THREE.CylinderGeometry(tcbRadius, tcbRadius, tcbPodiumH, 24, 1, false, 0, Math.PI * 0.5);
+    const tcbCornerPodiumMesh = new THREE.Mesh(tcbCornerPodiumGeom, tcbMat);
+    tcbCornerPodiumMesh.position.set(tcbCornerX, tcbPodiumH * 0.5, tcbCornerZ);
+    tcbCornerPodiumMesh.castShadow = true;
+    tcbGroup.add(tcbCornerPodiumMesh);
+
+    // 3. Signature 5th-floor circular cantilever ring pergola terrace (Photos 1, 2)
+    const ringRadius = 7.2;
+    const ringH = 0.55;
+    const ringGeom = new THREE.CylinderGeometry(ringRadius, ringRadius, ringH, 32, 1, true);
+    const ringMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.4, metalness: 0.2, side: THREE.DoubleSide });
+    const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+    ringMesh.position.set(tcbCornerX, tcbPodiumH + 3.0, tcbCornerZ);
+    tcbGroup.add(ringMesh);
+
+    // Circular pergola outer canopy lip
+    const lipGeom = new THREE.TorusGeometry(ringRadius, 0.28, 8, 32);
+    const lipMesh = new THREE.Mesh(lipGeom, whiteTrimMat);
+    lipMesh.rotation.x = Math.PI * 0.5;
+    lipMesh.position.set(tcbCornerX, tcbPodiumH + 3.25, tcbCornerZ);
+    tcbGroup.add(lipMesh);
+
+    // Slender support columns for circular pergola
+    const ringColGeom = new THREE.CylinderGeometry(0.12, 0.12, 3.0, 8);
+    for (let rc = 0; rc < 8; rc++) {
+        const rAng = (rc / 8) * Math.PI * 2;
+        const rCol = new THREE.Mesh(ringColGeom, whiteTrimMat);
+        rCol.position.set(
+            tcbCornerX + Math.cos(rAng) * (ringRadius - 0.45),
+            tcbPodiumH + 1.5,
+            tcbCornerZ + Math.sin(rAng) * (ringRadius - 0.45)
+        );
+        tcbGroup.add(rCol);
+    }
+
+    // 4. Upper tower main rectangular block (floors 5-10)
+    const tcbTowerLen = 16.0;
+    const tcbTowerDepth = 15.0;
+    const tcbTowerMesh = new THREE.Mesh(new THREE.BoxGeometry(tcbTowerLen, tcbTowerH, tcbTowerDepth), tcbMat);
+    tcbTowerMesh.position.set(-1.5, tcbPodiumH + tcbTowerH * 0.5, -1.0);
+    tcbTowerMesh.castShadow = true;
+    tcbGroup.add(tcbTowerMesh);
+
+    // 5. Distinctive cylindrical curved tower bay rising up to rooftop (Photos 1, 2)
+    const tcbTowerCylinderGeom = new THREE.CylinderGeometry(tcbRadius, tcbRadius, tcbTowerH + 1.5, 32);
+    const tcbTowerCylinderMesh = new THREE.Mesh(tcbTowerCylinderGeom, tcbMat);
+    tcbTowerCylinderMesh.position.set(tcbCornerX, tcbPodiumH + (tcbTowerH + 1.5) * 0.5, tcbCornerZ);
+    tcbTowerCylinderMesh.castShadow = true;
+    tcbGroup.add(tcbTowerCylinderMesh);
+
+    // 6. Giant rooftop illuminated billboard frame with TECHCOMBANK sign and logo (Photos 1, 2)
+    const tcbSignCanvas = document.createElement('canvas');
+    tcbSignCanvas.width = 1024;
+    tcbSignCanvas.height = 256;
+    const tcbSignCtx = tcbSignCanvas.getContext('2d');
+
+    // Bold red Techcombank letters
+    tcbSignCtx.fillStyle = '#dc2626';
+    tcbSignCtx.font = '900 110px "Inter", "Arial Black", sans-serif';
+    tcbSignCtx.fillText('TECHCOMBANK', 40, 165);
+
+    // Red Techcombank double-rhombus diamond logo
+    tcbSignCtx.beginPath();
+    tcbSignCtx.moveTo(930, 60);
+    tcbSignCtx.lineTo(995, 128);
+    tcbSignCtx.lineTo(930, 196);
+    tcbSignCtx.lineTo(865, 128);
+    tcbSignCtx.closePath();
+    tcbSignCtx.fill();
+
+    // White square cutout in center of diamond
+    tcbSignCtx.fillStyle = '#ffffff';
+    tcbSignCtx.fillRect(908, 106, 44, 44);
+
+    const tcbSignTex = new THREE.CanvasTexture(tcbSignCanvas);
+    tcbSignTex.colorSpace = THREE.SRGBColorSpace;
+    tcbSignTex.anisotropy = Math.min(8, maxAniso);
+
+    const tcbSignMat = new THREE.MeshStandardMaterial({
+        map: tcbSignTex,
+        emissiveMap: tcbSignTex,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.92,
+        roughness: 0.25,
+        transparent: true
+    });
+
+    // Signboard facing Ly Thuong Kiet (along local +Z)
+    const tcbRoofSignMesh = new THREE.Mesh(new THREE.PlaneGeometry(16.5, 4.1), tcbSignMat);
+    tcbRoofSignMesh.position.set(0, tcbPodiumH + tcbTowerH + 2.5, tcbDepth * 0.5 - 2.5);
+    tcbRoofSignMesh.rotation.y = 0;
+    tcbGroup.add(tcbRoofSignMesh);
+
+    // Signboard facing Dong Da (along local +X)
+    const tcbRoofSignMeshNorth = new THREE.Mesh(new THREE.PlaneGeometry(16.5, 4.1), tcbSignMat);
+    tcbRoofSignMeshNorth.position.set(tcbLen * 0.5 - 2.5, tcbPodiumH + tcbTowerH + 2.5, 0);
+    tcbRoofSignMeshNorth.rotation.y = Math.PI * 0.5;
+    tcbGroup.add(tcbRoofSignMeshNorth);
+
+    // Structural steel support truss behind signs
+    const tcbTrussGeom = new THREE.BoxGeometry(16.8, 3.8, 0.4);
+    const tcbTrussMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.35 });
+    const tcbTrussMesh = new THREE.Mesh(tcbTrussGeom, tcbTrussMat);
+    tcbTrussMesh.position.set(0, tcbPodiumH + tcbTowerH + 2.5, tcbDepth * 0.5 - 2.75);
+    tcbGroup.add(tcbTrussMesh);
+
+    // Position Techcombank Building at South-West corner of Ly Thuong Kiet x Dong Da intersection
+    tcbGroup.position.set(-141.0, 0, -8.0);
+    tcbGroup.rotation.y = 1.5308;
+    ensembleGroup.add(tcbGroup);
+
+    // 8. DongA Bank Hue Branch building at 26 Ly Thuong Kiet street (Photos 1, 3)
+    const daGroup = new THREE.Group();
+    const daLen = 18.0;
+    const daDepth = 18.0;
+    const daH = 26.0;
+
+    // Procedural PBR texture for DongA Bank teal / sea-green facade
+    const daCanvas = document.createElement('canvas');
+    daCanvas.width = 512;
+    daCanvas.height = 1024;
+    const daCtx = daCanvas.getContext('2d');
+
+    // Rich teal / sea-green facade paint
+    daCtx.fillStyle = '#235855';
+    daCtx.fillRect(0, 0, 512, 1024);
+
+    // Polished dark brown granite base for ground floor banking hall (y: 820 to 1024)
+    daCtx.fillStyle = '#1c1917';
+    daCtx.fillRect(0, 820, 512, 204);
+
+    // Grand entrance glass doors and golden door frames
+    daCtx.fillStyle = '#0f172a';
+    daCtx.fillRect(160, 840, 192, 184);
+    daCtx.strokeStyle = '#f59e0b';
+    daCtx.lineWidth = 4;
+    daCtx.strokeRect(165, 845, 182, 175);
+
+    // Central reflective curtain wall window bay (x: 170 to 342, y: 120 to 820)
+    daCtx.fillStyle = '#0c2229';
+    daCtx.fillRect(170, 120, 172, 700);
+
+    // Window mullions and floor divisions
+    daCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    daCtx.lineWidth = 3;
+    for (let df = 1; df < 7; df++) {
+        const dfy = 120 + df * (700 / 7);
+        daCtx.beginPath();
+        daCtx.moveTo(170, dfy);
+        daCtx.lineTo(342, dfy);
+        daCtx.stroke();
+    }
+
+    // Side office windows on wings
+    for (let wf = 1; wf <= 6; wf++) {
+        const wfy = 140 + (wf - 1) * 110;
+        daCtx.fillStyle = '#04161a';
+        daCtx.fillRect(40, wfy, 85, 60);
+        daCtx.fillStyle = '#0284c7';
+        daCtx.fillRect(44, wfy + 4, 77, 52);
+
+        daCtx.fillStyle = '#04161a';
+        daCtx.fillRect(387, wfy, 85, 60);
+        daCtx.fillStyle = '#0284c7';
+        daCtx.fillRect(391, wfy + 4, 77, 52);
+    }
+
+    const daTex = new THREE.CanvasTexture(daCanvas);
+    daTex.colorSpace = THREE.SRGBColorSpace;
+    daTex.anisotropy = Math.min(8, maxAniso);
+
+    const daMat = new THREE.MeshStandardMaterial({
+        map: daTex,
+        roughness: 0.38,
+        metalness: 0.2
+    });
+
+    const daBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(daLen, daH, daDepth), daMat);
+    daBodyMesh.position.set(0, daH * 0.5, 0);
+    daBodyMesh.castShadow = true;
+    daBodyMesh.receiveShadow = true;
+    daGroup.add(daBodyMesh);
+
+    // Two prominent white vertical architectural pilasters framing the central glass bay (Photo 3)
+    const daPilasterGeom = new THREE.BoxGeometry(0.75, daH - 2.5, 0.65);
+    const daP1 = new THREE.Mesh(daPilasterGeom, whiteTrimMat);
+    daP1.position.set(-3.8, (daH - 2.5) * 0.5 + 1.25, daDepth * 0.5 + 0.3);
+    daGroup.add(daP1);
+
+    const daP2 = new THREE.Mesh(daPilasterGeom, whiteTrimMat);
+    daP2.position.set(3.8, (daH - 2.5) * 0.5 + 1.25, daDepth * 0.5 + 0.3);
+    daGroup.add(daP2);
+
+    // Rooftop Signage: NGÂN HÀNG ĐÔNG Á + circular orange & blue sun logo (Photo 3)
+    const daSignCanvas = document.createElement('canvas');
+    daSignCanvas.width = 768;
+    daSignCanvas.height = 192;
+    const daSignCtx = daSignCanvas.getContext('2d');
+
+    // Bold blue text
+    daSignCtx.fillStyle = '#0284c7';
+    daSignCtx.font = '900 60px "Inter", "Arial Black", sans-serif';
+    daSignCtx.fillText('NGÂN HÀNG ĐÔNG Á', 170, 115);
+
+    // Circular orange & blue DongA Bank sun logo
+    daSignCtx.beginPath();
+    daSignCtx.arc(95, 96, 55, 0, Math.PI * 2);
+    daSignCtx.fillStyle = '#0284c7';
+    daSignCtx.fill();
+
+    daSignCtx.beginPath();
+    daSignCtx.arc(95, 96, 40, 0, Math.PI * 2);
+    daSignCtx.fillStyle = '#f97316';
+    daSignCtx.fill();
+
+    daSignCtx.beginPath();
+    daSignCtx.arc(95, 96, 22, 0, Math.PI * 2);
+    daSignCtx.fillStyle = '#ffffff';
+    daSignCtx.fill();
+
+    const daSignTex = new THREE.CanvasTexture(daSignCanvas);
+    daSignTex.colorSpace = THREE.SRGBColorSpace;
+    daSignTex.anisotropy = Math.min(8, maxAniso);
+
+    const daSignMat = new THREE.MeshStandardMaterial({
+        map: daSignTex,
+        emissiveMap: daSignTex,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.85,
+        roughness: 0.3,
+        transparent: true
+    });
+
+    const daSignMesh = new THREE.Mesh(new THREE.PlaneGeometry(14.0, 3.5), daSignMat);
+    daSignMesh.position.set(0, daH + 2.0, daDepth * 0.5 + 0.1);
+    daGroup.add(daSignMesh);
+
+    // Two rooftop flagpoles (Photo 3)
+    const poleGeomSmall = new THREE.CylinderGeometry(0.04, 0.04, 5.5, 6);
+    const flagMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.85, roughness: 0.25 });
+    const fp1 = new THREE.Mesh(poleGeomSmall, flagMat);
+    fp1.position.set(-5.0, daH + 2.75, daDepth * 0.5 - 1.5);
+    daGroup.add(fp1);
+
+    const fp2 = new THREE.Mesh(poleGeomSmall, flagMat);
+    fp2.position.set(5.0, daH + 2.75, daDepth * 0.5 - 1.5);
+    daGroup.add(fp2);
+
+    // Position DongA Bank building adjacent to Techcombank on Ly Thuong Kiet
+    daGroup.position.set(-141.0, 0, 14.0);
+    daGroup.rotation.y = 1.5308;
+    ensembleGroup.add(daGroup);
+
+    // 9. Contemporary Commercial Office Tower at 28 Ly Thuong Kiet street (Photos 1, 3)
+    const ofGroup = new THREE.Group();
+    const ofLen = 24.0;
+    const ofDepth = 18.0;
+    const ofH = 29.0;
+
+    // Procedural PBR texture for clean white modern commercial office building
+    const ofCanvas = document.createElement('canvas');
+    ofCanvas.width = 1024;
+    ofCanvas.height = 1024;
+    const ofCtx = ofCanvas.getContext('2d');
+
+    // Crisp white facade with grey architectural accents
+    ofCtx.fillStyle = '#f1f5f9';
+    ofCtx.fillRect(0, 0, 1024, 1024);
+
+    // Ground floor commercial lobby entrance (y: 840 to 1024)
+    ofCtx.fillStyle = '#334155';
+    ofCtx.fillRect(0, 840, 1024, 184);
+
+    // Ground floor glass bays
+    for (let gb = 0; gb < 7; gb++) {
+        const gbx = gb * (1024 / 7);
+        ofCtx.fillStyle = '#0f172a';
+        ofCtx.fillRect(gbx + 10, 855, 1024 / 7 - 20, 155);
+        ofCtx.fillStyle = '#38bdf8';
+        ofCtx.fillRect(gbx + 14, 859, 1024 / 7 - 28, 147);
+    }
+
+    // Floors 2-9 repeating regular rhythm of contemporary tinted office windows (Photo 3)
+    const numOfficeFloors = 8;
+    const floorH = 840 / numOfficeFloors;
+    for (let f = 0; f < numOfficeFloors; f++) {
+        const fy = f * floorH;
+
+        // Horizontal white sill moulding
+        ofCtx.fillStyle = '#ffffff';
+        ofCtx.fillRect(0, fy + floorH - 12, 1024, 12);
+
+        for (let b = 0; b < 7; b++) {
+            const bx = b * (1024 / 7);
+            ofCtx.fillStyle = '#1e293b';
+            ofCtx.fillRect(bx + 18, fy + 14, 1024 / 7 - 36, floorH - 32);
+
+            ofCtx.fillStyle = '#1e3a5f';
+            ofCtx.fillRect(bx + 22, fy + 18, 1024 / 7 - 44, floorH - 40);
+
+            ofCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ofCtx.lineWidth = 1.5;
+            ofCtx.strokeRect(bx + 22, fy + 18, 1024 / 7 - 44, floorH - 40);
+        }
+    }
+
+    const ofTex = new THREE.CanvasTexture(ofCanvas);
+    ofTex.colorSpace = THREE.SRGBColorSpace;
+    ofTex.anisotropy = Math.min(8, maxAniso);
+
+    const ofMat = new THREE.MeshStandardMaterial({
+        map: ofTex,
+        roughness: 0.32,
+        metalness: 0.15
+    });
+
+    const ofBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(ofLen, ofH, ofDepth), ofMat);
+    ofBodyMesh.position.set(0, ofH * 0.5, 0);
+    ofBodyMesh.castShadow = true;
+    ofBodyMesh.receiveShadow = true;
+    ofGroup.add(ofBodyMesh);
+
+    // Rooftop elevator mechanical penthouse structure
+    const ofPenthouseMesh = new THREE.Mesh(new THREE.BoxGeometry(10.0, 3.6, 10.0), whiteTrimMat);
+    ofPenthouseMesh.position.set(0, ofH + 1.8, 0);
+    ofGroup.add(ofPenthouseMesh);
+
+    // Position Office Tower adjacent to DongA Bank on Ly Thuong Kiet
+    ofGroup.position.set(-141.0, 0, 38.0);
+    ofGroup.rotation.y = 1.5308;
+    ensembleGroup.add(ofGroup);
+
+    // 10. West sidewalk along Ly Thuong Kiet, mature shade trees with wooden braces, and streetscape props (Photos 1, 3)
+    const ltkWestSidewalkGroup = new THREE.Group();
+
+    // Smooth terrazzo sidewalk pavement extending from Dong Da intersection down towards Nguyen Hue
+    const swLen = 78.0;
+    const swW = 7.5;
+    const ltkSidewalkPaveGeom = new THREE.PlaneGeometry(swW, swLen);
+    const ltkSidewalkPaveMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.78 });
+    const ltkSidewalkPaveMesh = new THREE.Mesh(ltkSidewalkPaveGeom, ltkSidewalkPaveMat);
+    ltkSidewalkPaveMesh.rotation.x = -Math.PI * 0.5;
+    ltkSidewalkPaveMesh.position.set(-128.25, 0.012, 19.0);
+    ltkSidewalkPaveMesh.receiveShadow = true;
+    ltkWestSidewalkGroup.add(ltkSidewalkPaveMesh);
+
+    // Beveled dark granite curb along road edge
+    const curbBarGeom = new THREE.BoxGeometry(0.35, 0.24, swLen);
+    const curbBarMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.85 });
+    const curbBarMesh = new THREE.Mesh(curbBarGeom, curbBarMat);
+    curbBarMesh.position.set(-124.6, 0.12, 19.0);
+    ltkWestSidewalkGroup.add(curbBarMesh);
+
+    // Mature urban shade trees with authentic wooden tripod/pyramid support braces (Photos 1, 3)
+    const treeTrunkGeom = new THREE.CylinderGeometry(0.20, 0.28, 4.6, 8);
+    const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x452311, roughness: 0.92 });
+    const treeFoliageGeom = new THREE.SphereGeometry(2.4, 8, 6);
+    const treeFoliageMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.82 });
+
+    // Wooden tree brace stakes for urban storm protection (Photos 1, 3)
+    const stakeGeom = new THREE.CylinderGeometry(0.035, 0.035, 2.4, 6);
+    const collarGeom = new THREE.BoxGeometry(0.04, 0.08, 0.85);
+    const woodBraceMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.85 });
+
+    const treeZPositions = [-14.0, 0.0, 14.0, 28.0, 42.0, 54.0];
+    treeZPositions.forEach((tz) => {
+        const trGroup = new THREE.Group();
+        const trunk = new THREE.Mesh(treeTrunkGeom, treeTrunkMat);
+        trunk.position.set(0, 2.3, 0);
+        trGroup.add(trunk);
+
+        const crown = new THREE.Mesh(treeFoliageGeom, treeFoliageMat);
+        crown.position.set(0, 5.2, 0);
+        crown.scale.set(1.2, 0.95, 1.2);
+        crown.castShadow = true;
+        trGroup.add(crown);
+
+        // 4 Wooden support stakes angled around the trunk
+        for (let s = 0; s < 4; s++) {
+            const sang = (s / 4) * Math.PI * 2;
+            const stake = new THREE.Mesh(stakeGeom, woodBraceMat);
+            stake.position.set(Math.cos(sang) * 0.45, 1.15, Math.sin(sang) * 0.45);
+            stake.rotation.z = Math.cos(sang) * -0.18;
+            stake.rotation.x = Math.sin(sang) * 0.18;
+            trGroup.add(stake);
+        }
+
+        // Horizontal wooden cross-collar securing the stakes around the trunk
+        const c1 = new THREE.Mesh(collarGeom, woodBraceMat);
+        c1.position.set(0, 1.4, 0);
+        trGroup.add(c1);
+
+        const c2 = new THREE.Mesh(collarGeom, woodBraceMat);
+        c2.rotation.y = Math.PI * 0.5;
+        c2.position.set(0, 1.4, 0);
+        trGroup.add(c2);
+
+        trGroup.position.set(-127.0, 0, tz);
+        ltkWestSidewalkGroup.add(trGroup);
+    });
+
+    // Parked motorbikes on sidewalk in front of Techcombank and DongA Bank (Photos 1, 3)
+    const bikeGeom = new THREE.BoxGeometry(0.55, 0.85, 1.6);
+    const bikeColors = [0xdc2626, 0x1e293b, 0x0284c7, 0xf8fafc, 0x475569];
+    const bikeSpotsZ = [-10.0, -8.5, -7.0, 7.5, 9.0, 10.5, 20.0, 21.5];
+    bikeSpotsZ.forEach((bz, bidx) => {
+        const bMat = new THREE.MeshStandardMaterial({ color: bikeColors[bidx % bikeColors.length], roughness: 0.45, metalness: 0.35 });
+        const bike = new THREE.Mesh(bikeGeom, bMat);
+        bike.position.set(-129.2, 0.43, bz);
+        bike.rotation.y = Math.PI * 0.5 + 0.15;
+        ltkWestSidewalkGroup.add(bike);
+    });
+
+    // Parked white sedan car along sidewalk edge (Photo 3)
+    const carGeom = new THREE.BoxGeometry(1.9, 1.45, 4.4);
+    const carMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, metalness: 0.7 });
+    const carMesh = new THREE.Mesh(carGeom, carMat);
+    carMesh.position.set(-122.8, 0.73, 4.0);
+    carMesh.rotation.y = -1.6106;
+    carMesh.castShadow = true;
+    ltkWestSidewalkGroup.add(carMesh);
+
+    ensembleGroup.add(ltkWestSidewalkGroup);
+
     scene.add(ensembleGroup);
 }
 
