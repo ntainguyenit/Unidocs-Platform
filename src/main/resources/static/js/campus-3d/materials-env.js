@@ -2600,8 +2600,768 @@ function createTeleportBeacons(scene, hardwareProfile = { maxAnisotropy: 4 }) {
     return beacons;
 }
 
+// Create authentic urban ensemble opposite Ly Thuong Kiet x Dong Da intersection matching Photos 1-5
+function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
+    const maxAniso = hardwareProfile.maxAnisotropy || 4;
+    const ensembleGroup = new THREE.Group();
+
+    // 1. GOLDLAND PLAZA COMPLEX (Photos 1, 3, 4)
+    // Procedural PBR texture for Goldland Plaza: white structural colonnade + rich golden honeycomb lattice
+    const glCanvas = document.createElement('canvas');
+    glCanvas.width = 1024;
+    glCanvas.height = 512;
+    const glCtx = glCanvas.getContext('2d');
+
+    // Base background and golden lattice bays
+    glCtx.fillStyle = '#1e1b18';
+    glCtx.fillRect(0, 0, 1024, 512);
+
+    const numBays = 7;
+    const bayWidth = 1024 / numBays;
+    const colWidth = 24;
+
+    for (let b = 0; b < numBays; b++) {
+        const bx = b * bayWidth;
+
+        // Rich golden honeycomb / diamond sunscreen lattice
+        glCtx.fillStyle = '#b45309';
+        glCtx.fillRect(bx + colWidth, 40, bayWidth - colWidth * 2, 360);
+
+        // Golden geometric lattice diamonds
+        glCtx.strokeStyle = '#facc15';
+        glCtx.lineWidth = 2.0;
+        const gridStep = 18;
+        for (let gy = 40; gy < 400; gy += gridStep) {
+            glCtx.beginPath();
+            glCtx.moveTo(bx + colWidth, gy);
+            glCtx.lineTo(bx + bayWidth - colWidth, gy + (bayWidth - colWidth * 2) * 0.5);
+            glCtx.moveTo(bx + colWidth, gy + (bayWidth - colWidth * 2) * 0.5);
+            glCtx.lineTo(bx + bayWidth - colWidth, gy);
+            glCtx.stroke();
+        }
+
+        // Golden highlight sheen
+        const goldGrad = glCtx.createLinearGradient(bx, 40, bx, 400);
+        goldGrad.addColorStop(0, 'rgba(254, 240, 138, 0.45)');
+        goldGrad.addColorStop(0.5, 'rgba(234, 179, 8, 0.20)');
+        goldGrad.addColorStop(1, 'rgba(180, 83, 9, 0.55)');
+        glCtx.fillStyle = goldGrad;
+        glCtx.fillRect(bx + colWidth, 40, bayWidth - colWidth * 2, 360);
+
+        // Ground floor recessed glass arcade with warm cafe glow
+        const cafeGrad = glCtx.createLinearGradient(bx, 400, bx, 512);
+        cafeGrad.addColorStop(0, 'rgba(15, 23, 42, 0.95)');
+        cafeGrad.addColorStop(0.4, 'rgba(254, 243, 199, 0.40)');
+        cafeGrad.addColorStop(1, 'rgba(15, 23, 42, 0.98)');
+        glCtx.fillStyle = cafeGrad;
+        glCtx.fillRect(bx + 6, 400, bayWidth - 12, 112);
+
+        // White vertical structural columns
+        glCtx.fillStyle = '#f8fafc';
+        glCtx.fillRect(bx, 0, colWidth, 512);
+        glCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+        glCtx.fillRect(bx + colWidth - 4, 0, 4, 512);
+    }
+
+    // Top white parapet header beam
+    glCtx.fillStyle = '#f8fafc';
+    glCtx.fillRect(0, 0, 1024, 40);
+    glCtx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+    glCtx.fillRect(0, 36, 1024, 4);
+
+    // Ground floor horizontal canopy beam
+    glCtx.fillStyle = '#d97706';
+    glCtx.fillRect(0, 396, 1024, 12);
+
+    const goldlandTex = new THREE.CanvasTexture(glCanvas);
+    goldlandTex.colorSpace = THREE.SRGBColorSpace;
+    goldlandTex.anisotropy = Math.min(8, maxAniso);
+
+    const goldlandMat = new THREE.MeshStandardMaterial({
+        map: goldlandTex,
+        roughness: 0.38,
+        metalness: 0.55
+    });
+
+    const whiteTrimMat = new THREE.MeshStandardMaterial({
+        color: 0xf8fafc,
+        roughness: 0.50,
+        metalness: 0.05
+    });
+
+    // Goldland Plaza main building block
+    const glW = 38.0;
+    const glD = 28.0;
+    const glH = 21.0;
+    const glGroup = new THREE.Group();
+
+    const glBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(glD, glH, glW), goldlandMat);
+    glBodyMesh.position.set(0, glH * 0.5, 0);
+    glBodyMesh.castShadow = true;
+    glBodyMesh.receiveShadow = true;
+    glGroup.add(glBodyMesh);
+
+    // 3D White Colonnade exterior pillars along front facade
+    const colGeom = new THREE.BoxGeometry(0.85, glH, 0.85);
+    for (let c = 0; c <= numBays; c++) {
+        const cz = -glW * 0.5 + c * (glW / numBays);
+        const colMesh = new THREE.Mesh(colGeom, whiteTrimMat);
+        colMesh.position.set(glD * 0.5 + 0.42, glH * 0.5, cz);
+        colMesh.castShadow = true;
+        glGroup.add(colMesh);
+    }
+
+    // Ground floor cantilevered canopy projecting towards street
+    const glCanopyGeom = new THREE.BoxGeometry(3.5, 0.26, glW + 1.2);
+    const glCanopyMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.35, metalness: 0.65 });
+    const glCanopyMesh = new THREE.Mesh(glCanopyGeom, glCanopyMat);
+    glCanopyMesh.position.set(glD * 0.5 + 1.75, 4.2, 0);
+    glGroup.add(glCanopyMesh);
+
+    // Sidewalk cafe terrace in front of Goldland Plaza
+    const cafeTerraceGeom = new THREE.PlaneGeometry(9.0, glW + 2.0);
+    const cafeTerraceMat = new THREE.MeshStandardMaterial({ color: 0xcfd6df, roughness: 0.75 });
+    const cafeTerraceMesh = new THREE.Mesh(cafeTerraceGeom, cafeTerraceMat);
+    cafeTerraceMesh.rotation.x = -Math.PI * 0.5;
+    cafeTerraceMesh.position.set(glD * 0.5 + 4.5, 0.012, 0);
+    cafeTerraceMesh.receiveShadow = true;
+    glGroup.add(cafeTerraceMesh);
+
+    // 6 Outdoor cafe umbrellas (Highlands Coffee) in rich dark espresso brown (Photos 1 & 3)
+    const umbrellaMat = new THREE.MeshStandardMaterial({ color: 0x582f1e, roughness: 0.72 });
+    const darkPoleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
+    const tableMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.4, roughness: 0.5 });
+    const umbrellaCanopyGeom = new THREE.ConeGeometry(1.65, 0.48, 8);
+    const umbrellaPoleGeom = new THREE.CylinderGeometry(0.038, 0.038, 2.5, 8);
+    const tableGeom = new THREE.CylinderGeometry(0.48, 0.48, 0.045, 12);
+    const stoolGeom = new THREE.CylinderGeometry(0.18, 0.18, 0.42, 8);
+
+    const umbrellaSpots = [
+        [glD * 0.5 + 3.2, -12.0], [glD * 0.5 + 3.2, -4.0], [glD * 0.5 + 3.2, 4.0], [glD * 0.5 + 3.2, 12.0],
+        [glD * 0.5 + 6.4, -8.0], [glD * 0.5 + 6.4, 8.0]
+    ];
+
+    for (const [ux, uz] of umbrellaSpots) {
+        const uGroup = new THREE.Group();
+        const pole = new THREE.Mesh(umbrellaPoleGeom, darkPoleMat);
+        pole.position.set(0, 1.25, 0);
+        uGroup.add(pole);
+
+        const canopy = new THREE.Mesh(umbrellaCanopyGeom, umbrellaMat);
+        canopy.position.set(0, 2.35, 0);
+        canopy.castShadow = true;
+        uGroup.add(canopy);
+
+        const table = new THREE.Mesh(tableGeom, tableMat);
+        table.position.set(0, 0.72, 0);
+        uGroup.add(table);
+
+        for (let s = 0; s < 3; s++) {
+            const sang = (s / 3) * Math.PI * 2;
+            const stool = new THREE.Mesh(stoolGeom, darkPoleMat);
+            stool.position.set(Math.cos(sang) * 0.65, 0.21, Math.sin(sang) * 0.65);
+            uGroup.add(stool);
+        }
+        uGroup.position.set(ux, 0, uz);
+        glGroup.add(uGroup);
+    }
+
+    // GOLDLAND PLAZA polished granite entrance monument sign (Photo 1)
+    const signCanvas = document.createElement('canvas');
+    signCanvas.width = 512;
+    signCanvas.height = 128;
+    const signCtx = signCanvas.getContext('2d');
+    signCtx.fillStyle = '#18181b';
+    signCtx.fillRect(0, 0, 512, 128);
+
+    signCtx.strokeStyle = '#c28b42';
+    signCtx.lineWidth = 4;
+    signCtx.strokeRect(8, 8, 496, 112);
+
+    signCtx.font = '900 48px "Cinzel", "Times New Roman", serif';
+    signCtx.textAlign = 'center';
+    signCtx.textBaseline = 'middle';
+    signCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    signCtx.shadowBlur = 6;
+    const goldGradText = signCtx.createLinearGradient(0, 30, 0, 95);
+    goldGradText.addColorStop(0, '#fef08a');
+    goldGradText.addColorStop(0.5, '#facc15');
+    goldGradText.addColorStop(1, '#ca8a04');
+    signCtx.fillStyle = goldGradText;
+    signCtx.fillText('GOLDLAND PLAZA', 256, 64);
+
+    const signTex = new THREE.CanvasTexture(signCanvas);
+    signTex.colorSpace = THREE.SRGBColorSpace;
+    signTex.anisotropy = Math.min(8, maxAniso);
+
+    const monumentMat = new THREE.MeshStandardMaterial({
+        color: 0x18181b,
+        roughness: 0.25,
+        metalness: 0.2
+    });
+    const monumentSignMat = new THREE.MeshStandardMaterial({
+        map: signTex,
+        roughness: 0.35,
+        metalness: 0.4
+    });
+
+    const monumentBase = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.5, 5.2), monumentMat);
+    monumentBase.position.set(glD * 0.5 + 7.2, 0.75, 14.5);
+    glGroup.add(monumentBase);
+
+    const monumentFace1 = new THREE.Mesh(new THREE.PlaneGeometry(5.0, 1.3), monumentSignMat);
+    monumentFace1.position.set(glD * 0.5 + 7.72, 0.75, 14.5);
+    monumentFace1.rotation.y = Math.PI * 0.5;
+    glGroup.add(monumentFace1);
+
+    const monumentFace2 = new THREE.Mesh(new THREE.PlaneGeometry(5.0, 1.3), monumentSignMat);
+    monumentFace2.position.set(glD * 0.5 + 6.68, 0.75, 14.5);
+    monumentFace2.rotation.y = -Math.PI * 0.5;
+    glGroup.add(monumentFace2);
+
+    // Rooftop penthouse structure
+    const glRoofMesh = new THREE.Mesh(new THREE.BoxGeometry(16.0, 3.6, 20.0), whiteTrimMat);
+    glRoofMesh.position.set(-2.0, glH + 1.8, 0);
+    glGroup.add(glRoofMesh);
+
+    // Telecommunication Lattice Antenna Mast with aviation beacon light (Photo 1)
+    const towerH = 19.0;
+    const towerMastGeom = new THREE.CylinderGeometry(0.25, 0.95, towerH, 3);
+    const towerMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.85, roughness: 0.25 });
+    const towerMesh = new THREE.Mesh(towerMastGeom, towerMat);
+    towerMesh.position.set(-2.0, glH + 3.6 + towerH * 0.5, -4.0);
+    glGroup.add(towerMesh);
+
+    // Aviation red warning beacon light at antenna mast apex
+    const beaconSphereGeom = new THREE.SphereGeometry(0.24, 8, 8);
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+    const beaconMesh = new THREE.Mesh(beaconSphereGeom, beaconMat);
+    beaconMesh.position.set(-2.0, glH + 3.6 + towerH + 0.15, -4.0);
+    glGroup.add(beaconMesh);
+
+    // Position Goldland Plaza at the North-West corner of the intersection
+    glGroup.position.set(-154.0, 0, -62.0);
+    ensembleGroup.add(glGroup);
+
+    // 2. CORNER GABLED COMMERCIAL BUILDING WITH GIANT CURVED LED SCREEN (Photos 3, 4, 5)
+    const cgGroup = new THREE.Group();
+
+    // Procedural texture for Corner Gabled Building (soft pastel sage-green + white mouldings)
+    const cgCanvas = document.createElement('canvas');
+    cgCanvas.width = 1024;
+    cgCanvas.height = 512;
+    const cgCtx = cgCanvas.getContext('2d');
+
+    // Pastel mint / sage-green wall render
+    cgCtx.fillStyle = '#bbf7d0';
+    cgCtx.fillRect(0, 0, 1024, 512);
+
+    // White classical pilasters and mouldings
+    cgCtx.fillStyle = '#f8fafc';
+    for (let c = 0; c <= 8; c++) {
+        cgCtx.fillRect(c * 128, 0, 18, 512);
+    }
+    // Horizontal frieze beams
+    cgCtx.fillRect(0, 0, 1024, 32);
+    cgCtx.fillRect(0, 180, 1024, 24);
+    cgCtx.fillRect(0, 360, 1024, 24);
+
+    // Neoclassical upper windows with white architraves and dark glass panes
+    for (let w = 0; w < 8; w++) {
+        const wx = w * 128 + 28;
+        cgCtx.fillStyle = '#0f172a';
+        cgCtx.fillRect(wx, 50, 72, 110);
+        cgCtx.fillRect(wx, 220, 72, 120);
+
+        cgCtx.strokeStyle = '#ffffff';
+        cgCtx.lineWidth = 3;
+        cgCtx.strokeRect(wx, 50, 72, 110);
+        cgCtx.strokeRect(wx, 220, 72, 120);
+    }
+
+    // Ground floor commercial glass storefronts
+    for (let g = 0; g < 8; g++) {
+        const gx = g * 128 + 24;
+        cgCtx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        cgCtx.fillRect(gx, 390, 80, 122);
+        cgCtx.strokeStyle = '#e2e8f0';
+        cgCtx.lineWidth = 3;
+        cgCtx.strokeRect(gx, 390, 80, 122);
+    }
+
+    const cgTex = new THREE.CanvasTexture(cgCanvas);
+    cgTex.colorSpace = THREE.SRGBColorSpace;
+    cgTex.anisotropy = Math.min(8, maxAniso);
+
+    const cgMat = new THREE.MeshStandardMaterial({
+        map: cgTex,
+        roughness: 0.65,
+        metalness: 0.08
+    });
+
+    // 3-story front corner building body
+    const cgbW = 16.0;
+    const cgbD = 14.0;
+    const cgbH = 12.5;
+    const cgbMesh = new THREE.Mesh(new THREE.BoxGeometry(cgbW, cgbH, cgbD), cgMat);
+    cgbMesh.position.set(0, cgbH * 0.5, 0);
+    cgbMesh.castShadow = true;
+    cgbMesh.receiveShadow = true;
+    cgGroup.add(cgbMesh);
+
+    // Signature Triangular Gable Pediment facing the intersection (Photos 3, 4, 5)
+    const pedimentShape = new THREE.Shape();
+    pedimentShape.moveTo(-cgbW * 0.5 - 0.2, 0);
+    pedimentShape.lineTo(cgbW * 0.5 + 0.2, 0);
+    pedimentShape.lineTo(0, 4.2);
+    pedimentShape.closePath();
+
+    const pedimentGeom = new THREE.ExtrudeGeometry(pedimentShape, { depth: 0.6, bevelEnabled: false });
+    pedimentGeom.translate(0, cgbH, cgbD * 0.5 - 0.3);
+    const pedimentMesh = new THREE.Mesh(pedimentGeom, whiteTrimMat);
+    cgGroup.add(pedimentMesh);
+
+    // Circular arched window & blue brand plaque in the center of the gable pediment
+    const atticHoleGeom = new THREE.CylinderGeometry(0.75, 0.75, 0.7, 16);
+    atticHoleGeom.rotateX(Math.PI * 0.5);
+    const atticGlassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.2, metalness: 0.5 });
+    const atticMesh = new THREE.Mesh(atticHoleGeom, atticGlassMat);
+    atticMesh.position.set(0, cgbH + 1.6, cgbD * 0.5 + 0.05);
+    cgGroup.add(atticMesh);
+
+    // GIANT CURVED LED ADVERTISING SCREEN (Photos 3, 4, 5)
+    const ledCanvas = document.createElement('canvas');
+    ledCanvas.width = 512;
+    ledCanvas.height = 256;
+    const ledCtx = ledCanvas.getContext('2d');
+
+    // Vibrant digital billboard gradient
+    const ledGrad = ledCtx.createLinearGradient(0, 0, 512, 256);
+    ledGrad.addColorStop(0, '#090d16');
+    ledGrad.addColorStop(0.3, '#1e1b4b');
+    ledGrad.addColorStop(0.7, '#0369a1');
+    ledGrad.addColorStop(1, '#0f172a');
+    ledCtx.fillStyle = ledGrad;
+    ledCtx.fillRect(0, 0, 512, 256);
+
+    // Digital dot matrix scanlines
+    ledCtx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    for (let y = 0; y < 256; y += 4) {
+        ledCtx.fillRect(0, y, 512, 1.5);
+    }
+
+    // Glowing vibrant billboard graphics
+    ledCtx.fillStyle = '#38bdf8';
+    ledCtx.font = '900 36px "Inter", "Segoe UI", sans-serif';
+    ledCtx.textAlign = 'center';
+    ledCtx.shadowColor = '#0284c7';
+    ledCtx.shadowBlur = 12;
+    ledCtx.fillText('HUẾ · THÀNH PHỐ DI SẢN', 256, 82);
+
+    ledCtx.fillStyle = '#fde047';
+    ledCtx.font = '800 28px "Inter", "Segoe UI", sans-serif';
+    ledCtx.shadowColor = '#eab308';
+    ledCtx.shadowBlur = 10;
+    ledCtx.fillText('FESTIVAL HUẾ 2024', 256, 138);
+
+    ledCtx.fillStyle = '#f8fafc';
+    ledCtx.font = '700 20px "Inter", "Segoe UI", sans-serif';
+    ledCtx.shadowBlur = 4;
+    ledCtx.fillText('CHÀO ĐÓN DU KHÁCH THẬP PHƯƠNG', 256, 192);
+
+    const ledTex = new THREE.CanvasTexture(ledCanvas);
+    ledTex.colorSpace = THREE.SRGBColorSpace;
+    ledTex.anisotropy = Math.min(8, maxAniso);
+
+    const ledMat = new THREE.MeshStandardMaterial({
+        map: ledTex,
+        emissiveMap: ledTex,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.88,
+        roughness: 0.25,
+        metalness: 0.1
+    });
+
+    const ledMesh = new THREE.Mesh(new THREE.BoxGeometry(9.6, 3.8, 0.22), ledMat);
+    ledMesh.position.set(0, 6.4, cgbD * 0.5 + 0.16);
+    cgGroup.add(ledMesh);
+
+    // Stepped hotel / residential building terraces extending to the rear (Photos 4, 5)
+    const stepHotelMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.65 });
+    const step1Mesh = new THREE.Mesh(new THREE.BoxGeometry(18.0, 16.5, 14.0), stepHotelMat);
+    step1Mesh.position.set(0, 8.25, -12.0);
+    cgGroup.add(step1Mesh);
+
+    const step2Mesh = new THREE.Mesh(new THREE.BoxGeometry(15.0, 21.0, 12.0), stepHotelMat);
+    step2Mesh.position.set(0, 10.5, -23.0);
+    cgGroup.add(step2Mesh);
+
+    // Cantilevered white balcony lines on stepped hotel
+    const balconyGeom = new THREE.BoxGeometry(18.4, 0.45, 1.4);
+    for (let f = 1; f <= 4; f++) {
+        const bm = new THREE.Mesh(balconyGeom, whiteTrimMat);
+        bm.position.set(0, f * 3.8, -5.5);
+        cgGroup.add(bm);
+    }
+
+    // Position Corner Gabled Building at the North-East intersection apex
+    cgGroup.position.set(-118.0, 0, -62.0);
+    cgGroup.rotation.y = 2.45;
+    ensembleGroup.add(cgGroup);
+
+    // 3. VIETTEL OFFICE BUILDING (Photos 3, 4)
+    const vtGroup = new THREE.Group();
+    const vtW = 18.0;
+    const vtD = 16.0;
+    const vtH = 28.0;
+
+    // Procedural Viettel facade texture: 9 stories of cyan-blue reflective glass ribbon windows
+    const vtCanvas = document.createElement('canvas');
+    vtCanvas.width = 512;
+    vtCanvas.height = 512;
+    const vtCtx = vtCanvas.getContext('2d');
+
+    vtCtx.fillStyle = '#f8fafc';
+    vtCtx.fillRect(0, 0, 512, 512);
+
+    const vtFloors = 9;
+    const vtFloorH = 512 / vtFloors;
+    for (let f = 0; f < vtFloors; f++) {
+        const fy = f * vtFloorH;
+        // Blue reflective curtain wall glass
+        const vGlassGrad = vtCtx.createLinearGradient(0, fy + 8, 0, fy + vtFloorH - 6);
+        vGlassGrad.addColorStop(0, '#0284c7');
+        vGlassGrad.addColorStop(0.4, '#0369a1');
+        vGlassGrad.addColorStop(1, '#0c4a6e');
+        vtCtx.fillStyle = vGlassGrad;
+        vtCtx.fillRect(8, fy + 8, 496, vtFloorH - 14);
+
+        // Mullions
+        vtCtx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        vtCtx.lineWidth = 1.5;
+        for (let m = 28; m < 512; m += 40) {
+            vtCtx.beginPath();
+            vtCtx.moveTo(m, fy + 8);
+            vtCtx.lineTo(m, fy + vtFloorH - 6);
+            vtCtx.stroke();
+        }
+    }
+
+    const vtTex = new THREE.CanvasTexture(vtCanvas);
+    vtTex.colorSpace = THREE.SRGBColorSpace;
+    vtTex.anisotropy = Math.min(8, maxAniso);
+
+    const vtMat = new THREE.MeshStandardMaterial({
+        map: vtTex,
+        roughness: 0.22,
+        metalness: 0.65
+    });
+
+    const vtBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(vtW, vtH, vtD), vtMat);
+    vtBodyMesh.position.set(0, vtH * 0.5, 0);
+    vtBodyMesh.castShadow = true;
+    vtGroup.add(vtBodyMesh);
+
+    // Official red "viettel" logo sign on rooftop white header parapet (Photos 3, 4)
+    const vLogoCanvas = document.createElement('canvas');
+    vLogoCanvas.width = 512;
+    vLogoCanvas.height = 128;
+    const vLogoCtx = vLogoCanvas.getContext('2d');
+    vLogoCtx.fillStyle = '#ffffff';
+    vLogoCtx.fillRect(0, 0, 512, 128);
+
+    vLogoCtx.fillStyle = '#dc2626';
+    vLogoCtx.font = '900 68px "Inter", "Arial Black", sans-serif';
+    vLogoCtx.textAlign = 'center';
+    vLogoCtx.textBaseline = 'middle';
+    vLogoCtx.fillText('viettel', 256, 64);
+
+    const vLogoTex = new THREE.CanvasTexture(vLogoCanvas);
+    vLogoTex.colorSpace = THREE.SRGBColorSpace;
+    vLogoTex.anisotropy = Math.min(8, maxAniso);
+
+    const vLogoMat = new THREE.MeshStandardMaterial({ map: vLogoTex, roughness: 0.4 });
+    const vLogoMesh = new THREE.Mesh(new THREE.BoxGeometry(12.0, 2.2, 0.45), vLogoMat);
+    vLogoMesh.position.set(0, vtH + 1.1, vtD * 0.5 + 0.25);
+    vtGroup.add(vLogoMesh);
+
+    vtGroup.position.set(-108.0, 0, -98.0);
+    ensembleGroup.add(vtGroup);
+
+    // 4. MELIA VINPEARL HUE SKYSCRAPER 33 TẦNG (Photos 1, 4, 5)
+    const vpGroup = new THREE.Group();
+    const vpW = 24.0;
+    const vpD = 20.0;
+    const vpH = 88.0;
+
+    // Procedural dark sapphire curtain wall texture for Melia Vinpearl
+    const vpCanvas = document.createElement('canvas');
+    vpCanvas.width = 512;
+    vpCanvas.height = 1024;
+    const vpCtx = vpCanvas.getContext('2d');
+
+    vpCtx.fillStyle = '#090e17';
+    vpCtx.fillRect(0, 0, 512, 1024);
+
+    // 33 horizontal floors of dark reflective glass
+    const vpFloors = 33;
+    const vpFloorH = 1024 / vpFloors;
+    for (let f = 0; f < vpFloors; f++) {
+        const fy = f * vpFloorH;
+        const vpGlassGrad = vpCtx.createLinearGradient(0, fy, 0, fy + vpFloorH);
+        vpGlassGrad.addColorStop(0, '#0f223a');
+        vpGlassGrad.addColorStop(0.5, '#132f50');
+        vpGlassGrad.addColorStop(1, '#091524');
+        vpCtx.fillStyle = vpGlassGrad;
+        vpCtx.fillRect(4, fy + 3, 504, vpFloorH - 5);
+
+        // White vertical accent mullions
+        vpCtx.strokeStyle = 'rgba(255, 255, 255, 0.40)';
+        vpCtx.lineWidth = 1.6;
+        for (let m = 16; m < 512; m += 24) {
+            vpCtx.beginPath();
+            vpCtx.moveTo(m, fy + 3);
+            vpCtx.lineTo(m, fy + vpFloorH - 2);
+            vpCtx.stroke();
+        }
+    }
+
+    const vpTex = new THREE.CanvasTexture(vpCanvas);
+    vpTex.colorSpace = THREE.SRGBColorSpace;
+    vpTex.anisotropy = Math.min(8, maxAniso);
+
+    const vpMat = new THREE.MeshStandardMaterial({
+        map: vpTex,
+        roughness: 0.15,
+        metalness: 0.85
+    });
+
+    // Lower tower shaft (height = 76m)
+    const vpShaftH = 76.0;
+    const vpBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(vpW, vpShaftH, vpD), vpMat);
+    vpBodyMesh.position.set(0, vpShaftH * 0.5, 0);
+    vpBodyMesh.castShadow = true;
+    vpGroup.add(vpBodyMesh);
+
+    // Signature 45-degree slanted cutaway glass crown (Photos 1, 4, 5)
+    const crownShape = new THREE.Shape();
+    crownShape.moveTo(-vpW * 0.5, 0);
+    crownShape.lineTo(vpW * 0.5, 0);
+    crownShape.lineTo(vpW * 0.5, 12.0);
+    crownShape.lineTo(-vpW * 0.5, 2.0);
+    crownShape.closePath();
+
+    const crownGeom = new THREE.ExtrudeGeometry(crownShape, { depth: vpD, bevelEnabled: false });
+    crownGeom.translate(0, vpShaftH, -vpD * 0.5);
+    const crownMesh = new THREE.Mesh(crownGeom, vpMat);
+    vpGroup.add(crownMesh);
+
+    // Red aviation warning beacon on the pinnacle
+    const vpBeaconMesh = new THREE.Mesh(beaconSphereGeom, beaconMat);
+    vpBeaconMesh.position.set(vpW * 0.5 - 1.0, vpShaftH + 12.5, 0);
+    vpGroup.add(vpBeaconMesh);
+
+    // Position Melia Vinpearl Hue in the iconic background skyline
+    vpGroup.position.set(-75.0, 0, -195.0);
+    ensembleGroup.add(vpGroup);
+
+    // 5. DẢI PHÂN CÁCH ĐƯỜNG ĐỐNG ĐA & CỘT ĐÈN ĐÔI TREO BĂNG RÔN CỜ ĐỎ (Photos 4, 5)
+    const medianGroup = new THREE.Group();
+    const medLen = 36.0;
+    const medW = 1.8;
+    const medH = 0.32;
+
+    // Raised concrete median curb with rounded bullnose ends
+    const medCurbGeom = new THREE.BoxGeometry(medW, medH, medLen);
+    const medCurbMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.88 });
+    const medCurbMesh = new THREE.Mesh(medCurbGeom, medCurbMat);
+    medCurbMesh.position.set(0, medH * 0.5, 0);
+    medianGroup.add(medCurbMesh);
+
+    // Green lawn interior
+    const lawnGeom = new THREE.PlaneGeometry(medW - 0.28, medLen - 0.5);
+    const lawnMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.9 });
+    const lawnMesh = new THREE.Mesh(lawnGeom, lawnMat);
+    lawnMesh.rotation.x = -Math.PI * 0.5;
+    lawnMesh.position.set(0, medH + 0.01, 0);
+    medianGroup.add(lawnMesh);
+
+    // Sculpted green ornamental shrubs along median island
+    const shrubGeom = new THREE.SphereGeometry(0.55, 8, 6);
+    const shrubMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.85 });
+    for (let s = -medLen * 0.4; s <= medLen * 0.4; s += 6.0) {
+        const shrub = new THREE.Mesh(shrubGeom, shrubMat);
+        shrub.position.set(0, medH + 0.48, s);
+        shrub.scale.set(0.9, 1.2, 0.9);
+        medianGroup.add(shrub);
+    }
+
+    // Tall double-arm streetlamp pole (cột đèn đôi vươn cần chiếu sáng 2 làn xe)
+    const poleH = 9.5;
+    const poleGeom = new THREE.CylinderGeometry(0.08, 0.16, poleH, 8);
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.7, roughness: 0.35 });
+    const poleMesh = new THREE.Mesh(poleGeom, poleMat);
+    poleMesh.position.set(0, poleH * 0.5, 0);
+    medianGroup.add(poleMesh);
+
+    // Double outreach arms
+    const armGeom = new THREE.CylinderGeometry(0.035, 0.035, 2.2, 8);
+    armGeom.rotateZ(Math.PI * 0.35);
+    const arm1 = new THREE.Mesh(armGeom, poleMat);
+    arm1.position.set(-1.0, poleH - 0.3, 0);
+    medianGroup.add(arm1);
+
+    const arm2 = new THREE.Mesh(armGeom, poleMat);
+    arm2.rotation.y = Math.PI;
+    arm2.position.set(1.0, poleH - 0.3, 0);
+    medianGroup.add(arm2);
+
+    // LED lamp head luminaires
+    const lumGeom = new THREE.BoxGeometry(0.65, 0.12, 0.28);
+    const lumMat = new THREE.MeshBasicMaterial({ color: 0xfef9c3 });
+    const lum1 = new THREE.Mesh(lumGeom, lumMat);
+    lum1.position.set(-1.95, poleH - 0.55, 0);
+    medianGroup.add(lum1);
+
+    const lum2 = new THREE.Mesh(lumGeom, lumMat);
+    lum2.position.set(1.95, poleH - 0.55, 0);
+    medianGroup.add(lum2);
+
+    // Dual-sided Red Festive Propaganda Banners (CHÚC MỪNG NĂM MỚI 2024) (Photos 4, 5)
+    const banCanvas = document.createElement('canvas');
+    banCanvas.width = 256;
+    banCanvas.height = 512;
+    const banCtx = banCanvas.getContext('2d');
+
+    banCtx.fillStyle = '#dc2626';
+    banCtx.fillRect(0, 0, 256, 512);
+
+    banCtx.strokeStyle = '#facc15';
+    banCtx.lineWidth = 6;
+    banCtx.strokeRect(10, 10, 236, 492);
+
+    // Golden 5-pointed star emblem
+    banCtx.fillStyle = '#facc15';
+    banCtx.beginPath();
+    const cx = 128, cy = 90, rOut = 36, rIn = 16;
+    for (let p = 0; p < 10; p++) {
+        const pang = (p / 10) * Math.PI * 2 - Math.PI * 0.5;
+        const pr = p % 2 === 0 ? rOut : rIn;
+        const px = cx + Math.cos(pang) * pr;
+        const py = cy + Math.sin(pang) * pr;
+        if (p === 0) banCtx.moveTo(px, py); else banCtx.lineTo(px, py);
+    }
+    banCtx.closePath();
+    banCtx.fill();
+
+    banCtx.textAlign = 'center';
+    banCtx.textBaseline = 'middle';
+    banCtx.font = '900 28px "Inter", "Segoe UI", sans-serif';
+    banCtx.fillText('CHÚC MỪNG', 128, 175);
+    banCtx.fillText('NĂM MỚI', 128, 220);
+
+    banCtx.font = '900 48px "Inter", "Segoe UI", sans-serif';
+    banCtx.fillText('2024', 128, 290);
+
+    banCtx.font = '700 22px "Inter", "Segoe UI", sans-serif';
+    banCtx.fillText('MỪNG ĐẢNG', 128, 385);
+    banCtx.fillText('MỪNG XUÂN', 128, 425);
+
+    const banTex = new THREE.CanvasTexture(banCanvas);
+    banTex.colorSpace = THREE.SRGBColorSpace;
+    banTex.anisotropy = Math.min(8, maxAniso);
+
+    const bannerMat = new THREE.MeshStandardMaterial({
+        map: banTex,
+        roughness: 0.45,
+        metalness: 0.1,
+        side: THREE.DoubleSide
+    });
+
+    const banW = 1.15;
+    const banH = 2.6;
+    const bannerMesh1 = new THREE.Mesh(new THREE.PlaneGeometry(banW, banH), bannerMat);
+    bannerMesh1.position.set(-0.68, 5.0, 0);
+    medianGroup.add(bannerMesh1);
+
+    const bannerMesh2 = new THREE.Mesh(new THREE.PlaneGeometry(banW, banH), bannerMat);
+    bannerMesh2.position.set(0.68, 5.0, 0);
+    medianGroup.add(bannerMesh2);
+
+    // Position median along Dong Da centerline
+    medianGroup.position.set(-91.0, 0, -51.0);
+    medianGroup.rotation.y = -0.4461;
+    ensembleGroup.add(medianGroup);
+
+    // 6. DÃY NHÀ PHỐ KINH DOANH & HÀNG CÂY XANH ĐƯỜNG ĐỐNG ĐA (Photo 5)
+    const shGroup = new THREE.Group();
+    const shCanvas = document.createElement('canvas');
+    shCanvas.width = 1024;
+    shCanvas.height = 256;
+    const shCtx = shCanvas.getContext('2d');
+
+    const shColors = ['#fef08a', '#e0e7ff', '#ffedd5', '#f1f5f9'];
+    const shSigns = ['BÁNH MÌ HUẾ', 'CÀ PHÊ SÁNG', 'TIỆM ĂN NHANH', 'ĐẶC SẢN CỐ ĐÔ'];
+    const signBg = ['#dc2626', '#78350f', '#ea580c', '#0284c7'];
+
+    for (let i = 0; i < 4; i++) {
+        const sx = i * 256;
+        shCtx.fillStyle = shColors[i];
+        shCtx.fillRect(sx, 0, 256, 256);
+
+        // Upper windows
+        shCtx.fillStyle = '#0f172a';
+        shCtx.fillRect(sx + 30, 25, 65, 80);
+        shCtx.fillRect(sx + 155, 25, 65, 80);
+
+        // Store sign
+        shCtx.fillStyle = signBg[i];
+        shCtx.fillRect(sx + 16, 125, 224, 46);
+        shCtx.strokeStyle = '#facc15';
+        shCtx.lineWidth = 2;
+        shCtx.strokeRect(sx + 16, 125, 224, 46);
+
+        shCtx.fillStyle = '#ffffff';
+        shCtx.font = '900 24px "Inter", "Segoe UI", sans-serif';
+        shCtx.textAlign = 'center';
+        shCtx.textBaseline = 'middle';
+        shCtx.fillText(shSigns[i], sx + 128, 148);
+
+        // Ground floor entrance
+        shCtx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        shCtx.fillRect(sx + 20, 180, 216, 76);
+    }
+
+    const shTex = new THREE.CanvasTexture(shCanvas);
+    shTex.colorSpace = THREE.SRGBColorSpace;
+    shTex.anisotropy = Math.min(8, maxAniso);
+
+    const shMat = new THREE.MeshStandardMaterial({ map: shTex, roughness: 0.72 });
+    const shRowMesh = new THREE.Mesh(new THREE.BoxGeometry(42.0, 10.5, 12.0), shMat);
+    shRowMesh.position.set(0, 5.25, 0);
+    shGroup.add(shRowMesh);
+
+    // Fabric awnings (mái hiên di động)
+    const awningGeom = new THREE.BoxGeometry(9.6, 0.15, 2.2);
+    awningGeom.rotateX(0.2);
+    const awningColors = [0xdc2626, 0x15803d, 0xd97706, 0x0284c7];
+    for (let i = 0; i < 4; i++) {
+        const awMat = new THREE.MeshStandardMaterial({ color: awningColors[i], roughness: 0.65 });
+        const awMesh = new THREE.Mesh(awningGeom, awMat);
+        awMesh.position.set(-15.0 + i * 10.2, 3.8, 6.8);
+        shGroup.add(awMesh);
+    }
+
+    // Position shophouses along the right side of Dong Da street
+    shGroup.position.set(-42.0, 0, -84.0);
+    shGroup.rotation.y = -0.4461;
+    ensembleGroup.add(shGroup);
+
+    scene.add(ensembleGroup);
+}
+
 // Create sky dome shader, instanced drifting clouds, street lamp posts, and neutral city backdrop
-function createAtmosphereAndProps(scene) {
+function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
     // Sky Dome
     const skyGeom = new THREE.SphereGeometry(420, 20, 12);
     const skyUniforms = {
@@ -2678,10 +3438,10 @@ function createAtmosphereAndProps(scene) {
     // Background urban massing blocks beyond surrounding streets (softly blended into distance fog)
     const cityMat = new THREE.MeshLambertMaterial({ color: 0xc2cbd4 });
     const ctxCoords = [
-        [-148, -72, 22, 14, 18], [-146, 12, 22, 18, 20], [-140, 55, 22, 12, 20],
+        [-146, 12, 22, 18, 20], [-140, 55, 22, 12, 20],
         [-80, 118, 26, 14, 18], [-15, 120, 28, 16, 16], [52, 118, 26, 15, 22],
         [108, 48, 24, 18, 18], [98, -22, 22, 16, 20], [72, -88, 26, 15, 18],
-        [-25, -116, 28, 18, 16], [-125, -118, 24, 16, 18]
+        [-25, -116, 28, 18, 16]
     ];
     const cityInst = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), cityMat, ctxCoords.length);
     const dummy = new THREE.Object3D();
@@ -2693,6 +3453,9 @@ function createAtmosphereAndProps(scene) {
     });
     cityInst.instanceMatrix.needsUpdate = true;
     scene.add(cityInst);
+
+    // Authentic detailed urban ensemble opposite Ly Thuong Kiet x Dong Da intersection (Photos 1-5)
+    createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile);
 
     // Street Lamp Posts flanking Main Plaza and Central Inner Courtyard Avenue
     const lampCoords = [[-22.5, 60], [-3.0, 60], [-22.5, 36], [-3.0, 36], [5.4, -2.0], [9.6, -2.0], [5.4, -14.0], [9.6, -14.0]];
@@ -2995,7 +3758,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         haloInst,
         setNightSkyActive,
         updateNightSky
-    } = createAtmosphereAndProps(scene);
+    } = createAtmosphereAndProps(scene, hardwareProfile);
 
     let shadowUpdateStride = initialTier === 'low' ? 4 : (initialTier === 'medium' ? 2 : 1);
     let shadowFrameCount = 0;
