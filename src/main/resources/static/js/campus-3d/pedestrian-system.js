@@ -257,6 +257,19 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
         rightLeg.castShadow = castShadows;
         root.add(rightLeg);
 
+        const road = cfg.road === 'nh-cross' ? ROAD_SPECS.nh : ROAD_SPECS[cfg.road];
+        const initPos = uvToWorld(road, cfg.u, cfg.v);
+        let initYaw = 0;
+        if (cfg.road === 'nh-cross') {
+            initYaw = cfg.dir > 0 ? Math.PI : 0;
+        } else {
+            const ux = Math.cos(road.rotY) * cfg.dir;
+            const uz = Math.sin(road.rotY) * cfg.dir;
+            initYaw = Math.atan2(-ux, -uz);
+        }
+        root.position.set(initPos[0], 0.015, initPos[1]);
+        root.rotation.y = initYaw;
+
         return {
             root,
             torsoPivot,
@@ -270,6 +283,10 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
             v: cfg.v,
             dir: cfg.dir,
             speed: cfg.speed,
+            lastX: initPos[0],
+            lastZ: initPos[1],
+            targetYaw: initYaw,
+            isWaiting: false,
             walkPhase: Math.random() * Math.PI * 2
         };
     }
@@ -281,37 +298,52 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
         return p;
     });
 
-    // Advance walking motion, reciprocal limb swing, and boundaries every frame
-    return function updatePedestrians(dt, elapsedSec = 0) {
+    // Advance walking motion, reciprocal limb swing, and traffic signal compliance
+    return function updatePedestrians(dt, elapsedSec = 0, signalState = null) {
         if (dt <= 0 || dt > 0.2) return;
+
+        // Pedestrian crosswalk signal for Nguyen Hue (green walk when vehicles stop at red)
+        const isNhPedestrianGreen = signalState && signalState.nh && signalState.nh.ewState === 'red';
 
         for (let i = 0; i < pedestrians.length; i++) {
             const p = pedestrians[i];
             const cfg = p.config;
 
-            let worldX = 0;
-            let worldZ = 0;
-            let targetYaw = 0;
+            let worldX = p.lastX;
+            let worldZ = p.lastZ;
 
             if (cfg.road === 'nh-cross') {
-                // Crosswalk walkers crossing between sidewalks
-                p.v += p.dir * p.speed * dt;
-                if (p.v >= cfg.vMax) {
-                    p.v = cfg.vMax;
-                    p.dir = -1;
-                } else if (p.v <= cfg.vMin) {
-                    p.v = cfg.vMin;
-                    p.dir = 1;
-                }
                 const road = ROAD_SPECS.nh;
+                const atNorthCurb = p.v <= -8.8 && p.dir > 0;
+                const atSouthCurb = p.v >= 8.8 && p.dir < 0;
+
+                // Wait at sidewalk curb when vehicle traffic light is green or yellow
+                if ((atNorthCurb || atSouthCurb) && !isNhPedestrianGreen) {
+                    p.isWaiting = true;
+                } else {
+                    p.isWaiting = false;
+                }
+
+                if (!p.isWaiting) {
+                    p.v += p.dir * p.speed * dt;
+                    if (p.v >= cfg.vMax) {
+                        p.v = cfg.vMax;
+                        p.dir = -1;
+                    } else if (p.v <= cfg.vMin) {
+                        p.v = cfg.vMin;
+                        p.dir = 1;
+                    }
+                }
+
                 const pos = uvToWorld(road, p.u, p.v);
                 worldX = pos[0];
                 worldZ = pos[1];
 
-                // Lateral heading perpendicular to road axis
-                targetYaw = p.dir > 0 ? 0 : Math.PI;
+                // Crosswalk orientation strictly facing travel direction
+                p.targetYaw = p.dir > 0 ? Math.PI : 0;
             } else {
-                // Sidewalk walkers patrolling along road axis
+                // Sidewalk walkers patrolling along street orientation
+                p.isWaiting = false;
                 const road = ROAD_SPECS[cfg.road];
                 p.u += p.dir * p.speed * dt;
                 if (p.u >= cfg.uMax) {
@@ -325,29 +357,39 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
                 worldX = pos[0];
                 worldZ = pos[1];
 
-                // Tangent heading aligned with street longitudinal orientation
+                // Tangent heading strictly aligned so character model faces forward
                 const ux = Math.cos(road.rotY) * p.dir;
                 const uz = Math.sin(road.rotY) * p.dir;
-                targetYaw = Math.atan2(ux, uz) + Math.PI;
+                p.targetYaw = Math.atan2(-ux, -uz);
             }
 
             // Stand flush on sidewalk top surface
             p.root.position.set(worldX, 0.015, worldZ);
-            p.root.rotation.y = targetYaw;
+            p.root.rotation.y = p.targetYaw;
+            p.lastX = worldX;
+            p.lastZ = worldZ;
 
-            // Animate natural reciprocal gait cycle
-            p.walkPhase += dt * p.speed * 4.2;
-            const legSwing = Math.sin(p.walkPhase) * 0.44;
-            const armSwing = Math.sin(p.walkPhase) * 0.36;
+            // Animate limbs: idle standing when waiting for light, natural swinging when walking
+            if (p.isWaiting) {
+                p.leftLeg.rotation.x = 0;
+                p.rightLeg.rotation.x = 0;
+                p.leftArm.rotation.x = 0;
+                p.rightArm.rotation.x = 0;
+                p.torsoPivot.position.y = 0.94 + Math.sin(elapsedSec * 2.0 + i) * 0.005;
+                p.headGroup.rotation.y = Math.sin(elapsedSec * 1.2 + i) * 0.08;
+            } else {
+                p.walkPhase += dt * p.speed * 4.2;
+                const legSwing = Math.sin(p.walkPhase) * 0.44;
+                const armSwing = Math.sin(p.walkPhase) * 0.36;
 
-            p.leftLeg.rotation.x = legSwing;
-            p.rightLeg.rotation.x = -legSwing;
-            p.leftArm.rotation.x = -armSwing;
-            p.rightArm.rotation.x = armSwing;
+                p.leftLeg.rotation.x = legSwing;
+                p.rightLeg.rotation.x = -legSwing;
+                p.leftArm.rotation.x = -armSwing;
+                p.rightArm.rotation.x = armSwing;
 
-            // Natural vertical bounce and gentle head gaze
-            p.torsoPivot.position.y = 0.94 + Math.abs(Math.sin(p.walkPhase)) * 0.035;
-            p.headGroup.rotation.y = Math.sin(p.walkPhase * 0.5) * 0.08;
+                p.torsoPivot.position.y = 0.94 + Math.abs(Math.sin(p.walkPhase)) * 0.035;
+                p.headGroup.rotation.y = Math.sin(p.walkPhase * 0.5) * 0.08;
+            }
         }
     };
 }

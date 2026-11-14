@@ -807,14 +807,16 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
             polygonOffset: true,
             polygonOffsetFactor: -3
         });
-        for (const offset of offsets) {
+        for (let i = 0; i < offsets.length; i++) {
+            const offset = offsets[i];
+            const laneSign = i % 2 === 0 ? 1 : -1;
             const lMesh = new THREE.Mesh(new THREE.PlaneGeometry(24.0, 3.75), labelMat);
             lMesh.rotation.x = -Math.PI * 0.5;
-            lMesh.rotation.z = -road.rotY;
+            lMesh.rotation.z = laneSign > 0 ? -road.rotY : -road.rotY + Math.PI;
             lMesh.position.set(
-                road.cx + dirX * offset + perpX * (road.d * 0.24),
+                road.cx + dirX * offset + perpX * (road.d * 0.24 * laneSign),
                 -0.002,
-                road.cz + dirZ * offset + perpZ * (road.d * 0.24)
+                road.cz + dirZ * offset + perpZ * (road.d * 0.24 * laneSign)
             );
             scene.add(lMesh);
         }
@@ -1192,15 +1194,22 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     const maxAniso = hardwareProfile.maxAnisotropy || 4;
     const isLowTier = hardwareProfile.tier === 'low';
 
-    const addBillboard = (tex, w, h, x, y, z, rotY = 0, rotX = 0) => {
-        const mesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(w, h),
-            new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide })
-        );
+    const addBillboard = (tex, w, h, x, y, z, rotY = 0, rotX = 0, isTwoWay = false) => {
+        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.FrontSide });
+        const geom = new THREE.PlaneGeometry(w, h);
+        const mesh = new THREE.Mesh(geom, mat);
         mesh.position.set(x, y, z);
         mesh.rotation.y = rotY;
         mesh.rotation.x = rotX;
         scene.add(mesh);
+
+        if (isTwoWay) {
+            const backMesh = new THREE.Mesh(geom, mat);
+            backMesh.position.set(x, y, z);
+            backMesh.rotation.y = rotY + Math.PI;
+            backMesh.rotation.x = -rotX;
+            scene.add(backMesh);
+        }
         return mesh;
     };
 
@@ -1208,7 +1217,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     const roofSignTex = createSignTexture(['TRƯỜNG ĐẠI HỌC KHOA HỌC'], {
         w: 1024, h: 144, bg: 'transparent', color: '#9f1d1b', fontSizes: [68], maxAnisotropy: maxAniso
     });
-    addBillboard(roofSignTex, 18.8, 1.75, -13.0, 13.86, 15.96);
+    addBillboard(roofSignTex, 18.8, 1.75, -13.0, 13.86, 15.96, 0, 0, true);
 
     // 2. Building A Portico Marquee Board (TRƯỜNG ĐẠI HỌC KHOA HỌC · ĐẠI HỌC HUẾ)
     const porticoTex = createSignTexture(['TRƯỜNG ĐẠI HỌC KHOA HỌC, ĐẠI HỌC HUẾ'], {
@@ -1347,12 +1356,14 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     const ddGateTex = createSignTexture(['CỔNG 38 ĐỐNG ĐA · ĐHKH HUẾ'], {
         w: 768, h: 128, bg: '#1e293b', border: '#fbbf24', color: '#fef08a', fontSizes: [42], maxAnisotropy: maxAniso
     });
-    addBillboard(ddGateTex, 8.2, 0.95, 17.58, 5.45, -88.06, 0.4461);
+    // Double-sided banner facing outside (0.4461 + Math.PI) towards Dong Da and inside towards campus
+    addBillboard(ddGateTex, 8.2, 0.95, 17.58, 5.45, -88.06, 0.4461 + Math.PI, 0, true);
 
     const mainRoofLabel = createSignTexture(['NHÀ TRƯỜNG'], {
         w: 512, h: 128, bg: 'transparent', color: '#991b1b', fontSizes: [74], maxAnisotropy: maxAniso
     });
-    addBillboard(mainRoofLabel, 13.5, 2.8, 24.0, 17.8, -63.0, -0.35);
+    // Double-sided roof marquee visible from Dong Da (north) and courtyard (south) without mirroring
+    addBillboard(mainRoofLabel, 13.5, 2.8, 24.0, 17.8, -63.0, -0.35 + Math.PI, 0, true);
 
     const myThuatTex = createSignTexture(['PHÒNG HỌC MỸ THUẬT'], {
         w: 640, h: 112, bg: '#1f2937', border: '#facc15', color: '#fde047', fontSizes: [42], maxAnisotropy: maxAniso
@@ -1368,7 +1379,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     });
     addBillboard(garageTex, 13.0, 2.6, -64.0, 4.7, 67.5, 0, -Math.PI * 0.48);
     addBillboard(garageTex, 13.0, 2.6, 34.0, 4.7, 67.5, 0, -Math.PI * 0.48);
-    addBillboard(parkingDongDaTex, 11.5, 2.4, -29.21, 4.75, -61.80, 0.4461, -Math.PI * 0.48);
+    addBillboard(parkingDongDaTex, 11.5, 2.4, -29.21, 4.75, -61.80, 0.4461 + Math.PI, Math.PI * 0.48);
 
     // 6. Monument spiky red-and-green dracaena/croton foliage tufts inside black stone planter (Photo 5)
     const spikeCanvas = document.createElement('canvas');
@@ -1513,7 +1524,8 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
         ctx.lineWidth = 4;
         ctx.strokeStyle = '#ffffff';
         ctx.stroke();
-        ctx.font = '800 30px Inter, sans-serif';
+        const fontSize = loc.code.length > 7 ? 24 : 30;
+        ctx.font = `800 ${fontSize}px Inter, sans-serif`;
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1524,7 +1536,8 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: spriteTex, depthTest: true }));
         const badgeY = loc.category === 'sport' ? 5.2 : (loc.id === 'cong-dong-da' ? 8.2 : 17.8);
         sprite.position.set(loc.rect.cx, badgeY, loc.rect.cz);
-        sprite.scale.set(6.4, 2.4, 1);
+        const spriteW = loc.code.length > 7 ? 7.6 : 6.4;
+        sprite.scale.set(spriteW, 2.4, 1);
         scene.add(sprite);
     }
 
@@ -2141,7 +2154,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         airspaceSystem.update(dt, elapsedSec);
         const signalState = intersectionSignals.updateSignals(dt);
         updateTraffic(dt, playerState, signalState);
-        if (updatePedestrians) updatePedestrians(dt, elapsedSec);
+        if (updatePedestrians) updatePedestrians(dt, elapsedSec, signalState);
 
         envFrameCount += 1;
         cloudAccumDt += dt;

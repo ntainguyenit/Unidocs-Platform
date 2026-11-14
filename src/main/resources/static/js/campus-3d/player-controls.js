@@ -158,7 +158,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         moveBlend: 0,
         introPlaying: false,
         introTime: 0,
-        introDuration: 23.0
+        introDuration: 23.4
     };
 
     const EXPLORER_LOOK_Y = 2.15;
@@ -207,19 +207,21 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             ], false, 'centripetal', 0.5)
         },
         {
-            title: 'TUYẾN 3: ĐƯỜNG ĐỐNG ĐA · KHU ĐỂ XE, NHÀ H, NHÀ K & CỔNG PHỤ 38 ĐỐNG ĐA',
-            duration: 4.4,
+            title: 'TUYẾN 3: ĐƯỜNG ĐỐNG ĐA · QUÉT TOÀN TUYẾN & CỔNG PHỤ 38 ĐỐNG ĐA',
+            duration: 4.8,
             camCurve: new THREE.CatmullRomCurve3([
-                new THREE.Vector3(-62, 16.5, -98),
-                new THREE.Vector3(-24, 14.0, -93),
-                new THREE.Vector3(4, 10.5, -91),
-                new THREE.Vector3(15.2, 5.8, -94.0)
+                new THREE.Vector3(-96.0, 18.0, -118.0),
+                new THREE.Vector3(-52.0, 15.5, -108.0),
+                new THREE.Vector3(-12.0, 12.5, -104.0),
+                new THREE.Vector3(8.0, 8.8, -103.0),
+                new THREE.Vector3(12.5, 7.2, -101.5)
             ], false, 'centripetal', 0.5),
             lookCurve: new THREE.CatmullRomCurve3([
-                new THREE.Vector3(-42, 6.0, -58),
-                new THREE.Vector3(-8, 7.5, -53),
-                new THREE.Vector3(26, 6.8, -55),
-                new THREE.Vector3(17.58, 5.45, -88.06)
+                new THREE.Vector3(-68.0, 7.0, -72.0),
+                new THREE.Vector3(-28.0, 7.5, -58.0),
+                new THREE.Vector3(8.0, 6.5, -58.0),
+                new THREE.Vector3(17.58, 4.8, -88.06),
+                new THREE.Vector3(17.58, 4.2, -88.06)
             ], false, 'centripetal', 0.5)
         },
         {

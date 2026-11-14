@@ -79,7 +79,7 @@ export const CAMPUS_LOCATIONS = [
     },
     {
         id: 'cong-dong-da',
-        code: '38 ĐĐ',
+        code: '38 ĐỐNG ĐA',
         name: 'Cổng Phụ 38 Đống Đa',
         shortName: 'Cổng 38 Đống Đa',
         category: 'gate',
