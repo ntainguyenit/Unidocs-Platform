@@ -760,11 +760,13 @@ export function setupCampusHud({
 
     const toggleCameraMode = () => {
         const current = playerController.getState().cameraMode;
-        const next = playerController.setCameraMode(current === 'third-person' ? 'fly' : 'third-person');
-        if (camToggleLabel) {
-            camToggleLabel.textContent = next === 'fly' ? 'Góc nhìn thứ 3' : 'Toàn cảnh';
+        const next = playerController.setCameraMode(current === 'third-person' ? 'first-person' : 'third-person');
+        if (camToggleBtn) {
+            const isFirstPerson = next === 'first-person';
+            camToggleBtn.setAttribute('aria-label', isFirstPerson ? 'Đổi sang Góc nhìn thứ 3' : 'Đổi sang Góc nhìn thứ nhất');
+            camToggleBtn.title = isFirstPerson ? 'Đang ở Góc nhìn thứ nhất · Bấm để về Góc nhìn thứ 3' : 'Đang ở Góc nhìn thứ 3 · Bấm để sang Góc nhìn thứ nhất';
         }
-        showToast(next === 'fly' ? 'Chế độ Toàn cảnh tự do (kéo để xoay toàn trường)' : 'Chế độ Nhân vật góc nhìn thứ 3');
+        showToast(next === 'first-person' ? 'Đã chuyển sang Góc nhìn thứ nhất' : 'Đã chuyển sang Góc nhìn thứ 3', 'info');
     };
     camToggleBtn.addEventListener('click', toggleCameraMode);
 
@@ -775,12 +777,17 @@ export function setupCampusHud({
 
     const updateTimeToggleBtnUI = (lighting) => {
         const isNight = lighting === 'night';
-        if (timeIconSun) timeIconSun.hidden = isNight;
-        if (timeIconMoon) timeIconMoon.hidden = !isNight;
+        if (timeIconSun) {
+            if (isNight) timeIconSun.setAttribute('hidden', '');
+            else timeIconSun.removeAttribute('hidden');
+        }
+        if (timeIconMoon) {
+            if (isNight) timeIconMoon.removeAttribute('hidden');
+            else timeIconMoon.setAttribute('hidden', '');
+        }
         if (timeToggleBtn) {
             timeToggleBtn.setAttribute('aria-label', isNight ? 'Chuyển sang Ban ngày' : 'Chuyển sang Buổi tối');
             timeToggleBtn.title = isNight ? 'Đang là Buổi tối · Bấm để đổi sang Ban ngày' : 'Đang là Ban ngày · Bấm để đổi sang Buổi tối';
-            timeToggleBtn.classList.toggle('is-active', isNight);
         }
     };
 

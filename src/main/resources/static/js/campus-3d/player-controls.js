@@ -250,18 +250,30 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (onCallbacks.onIntroComplete) onCallbacks.onIntroComplete();
     };
 
-    // Switch between Third-Person Explorer and Aerial Orbit Flycam modes
+    // Switch between Third-Person Explorer, First-Person Explorer, and Aerial Orbit Flycam modes
     const setCameraMode = (mode) => {
         if (state.introPlaying) {
             skipIntroFlycam();
         }
-        state.cameraMode = mode === 'fly' ? 'fly' : 'third-person';
-        if (state.cameraMode === 'fly') {
+        if (mode === 'fly') {
+            state.cameraMode = 'fly';
+            avatar.root.visible = true;
             orbitControls.target.set(avatar.root.position.x, 1.5, avatar.root.position.z - 12);
             camera.position.set(avatar.root.position.x - 16, 48, avatar.root.position.z + 44);
             orbitControls.enabled = true;
             orbitControls.update();
+        } else if (mode === 'first-person') {
+            state.cameraMode = 'first-person';
+            avatar.root.visible = false;
+            orbitControls.enabled = false;
+            camera.position.set(avatar.root.position.x, 1.62, avatar.root.position.z);
+            const lookDirX = -Math.sin(state.camYaw) * Math.cos(state.camPitch);
+            const lookDirY = Math.sin(state.camPitch);
+            const lookDirZ = -Math.cos(state.camYaw) * Math.cos(state.camPitch);
+            camera.lookAt(avatar.root.position.x + lookDirX, 1.62 + lookDirY, avatar.root.position.z + lookDirZ);
         } else {
+            state.cameraMode = 'third-person';
+            avatar.root.visible = true;
             orbitControls.enabled = false;
             snapCameraToExplorer();
         }
@@ -281,6 +293,12 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (state.cameraMode === 'fly') {
             orbitControls.target.set(pos.x, 1.5, pos.z);
             orbitControls.update();
+        } else if (state.cameraMode === 'first-person') {
+            camera.position.set(pos.x, 1.62, pos.z);
+            const lookDirX = -Math.sin(state.camYaw) * Math.cos(state.camPitch);
+            const lookDirY = Math.sin(state.camPitch);
+            const lookDirZ = -Math.cos(state.camYaw) * Math.cos(state.camPitch);
+            camera.lookAt(pos.x + lookDirX, 1.62 + lookDirY, pos.z + lookDirZ);
         } else {
             snapCameraToExplorer();
         }
@@ -332,13 +350,13 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (document.hidden) resetMovementKeys();
     });
 
-    // Smooth pointer orbit drag on canvas in Third-Person mode (desktop mouse & touch drag)
+    // Smooth pointer orbit drag on canvas in Third-Person and First-Person modes
     let activePointerId = null;
     let lastPx = 0;
     let lastPy = 0;
 
     domElement.addEventListener('pointerdown', (e) => {
-        if (state.introPlaying || state.cameraMode !== 'third-person') return;
+        if (state.introPlaying || (state.cameraMode !== 'third-person' && state.cameraMode !== 'first-person')) return;
         if (activePointerId !== null) return;
         activePointerId = e.pointerId;
         lastPx = e.clientX;
@@ -347,13 +365,16 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
     });
 
     domElement.addEventListener('pointermove', (e) => {
-        if (e.pointerId !== activePointerId || state.cameraMode !== 'third-person') return;
+        if (e.pointerId !== activePointerId || (state.cameraMode !== 'third-person' && state.cameraMode !== 'first-person')) return;
         const dx = e.clientX - lastPx;
         const dy = e.clientY - lastPy;
         lastPx = e.clientX;
         lastPy = e.clientY;
         state.camYaw -= dx * 0.0052;
-        state.camPitch = Math.max(-0.38, Math.min(1.12, state.camPitch + dy * 0.0042));
+        const pitchDelta = state.cameraMode === 'first-person' ? -dy * 0.0042 : dy * 0.0042;
+        const minPitch = state.cameraMode === 'first-person' ? -1.15 : -0.38;
+        const maxPitch = state.cameraMode === 'first-person' ? 1.15 : 1.12;
+        state.camPitch = Math.max(minPitch, Math.min(maxPitch, state.camPitch + pitchDelta));
     });
 
     const releasePointer = (e) => {
@@ -526,7 +547,19 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         }
 
         // Update active camera transform
-        if (state.cameraMode === 'third-person') {
+        if (state.cameraMode === 'first-person') {
+            avatar.root.visible = false;
+            camera.position.set(avatar.root.position.x, 1.62, avatar.root.position.z);
+            const lookDirX = -Math.sin(state.camYaw) * Math.cos(state.camPitch);
+            const lookDirY = Math.sin(state.camPitch);
+            const lookDirZ = -Math.cos(state.camYaw) * Math.cos(state.camPitch);
+            camera.lookAt(
+                avatar.root.position.x + lookDirX,
+                1.62 + lookDirY,
+                avatar.root.position.z + lookDirZ
+            );
+        } else if (state.cameraMode === 'third-person') {
+            avatar.root.visible = true;
             const lookY = state.camDist < 4.5 ? 1.32 : 2.15;
             _lookTarget.set(avatar.root.position.x, lookY, avatar.root.position.z);
             const horizDist = Math.cos(state.camPitch) * state.camDist;
@@ -540,6 +573,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             camera.position.lerp(safeCam, Math.min(1.0, clampedDt * 12.0));
             camera.lookAt(_lookTarget);
         } else {
+            avatar.root.visible = true;
             orbitControls.update();
         }
     };

@@ -1912,6 +1912,201 @@ function createAtmosphereAndProps(scene) {
     return { skyUniforms, syncCloudInstances, cloudMat, lampHeadMat, lampHaloMat, haloInst, setNightSkyActive, updateNightSky };
 }
 
+// Rooftop celebratory fireworks and sparkling particle fountains along "TRƯỜNG ĐẠI HỌC KHOA HỌC"
+function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }) {
+    const isLowTier = hardwareProfile.tier === 'low';
+    const PARTICLE_COUNT = isLowTier ? 320 : 640;
+
+    const positions = new Float32Array(PARTICLE_COUNT * 3);
+    const colors = new Float32Array(PARTICLE_COUNT * 3);
+    const alphas = new Float32Array(PARTICLE_COUNT);
+    const sizes = new Float32Array(PARTICLE_COUNT);
+
+    const particles = [];
+    const PALETTE = [
+        new THREE.Color(1.0, 0.85, 0.12),
+        new THREE.Color(1.0, 0.20, 0.28),
+        new THREE.Color(0.12, 1.0, 0.45),
+        new THREE.Color(0.08, 0.88, 1.0),
+        new THREE.Color(1.0, 0.28, 0.86),
+        new THREE.Color(1.0, 0.58, 0.08),
+        new THREE.Color(0.72, 0.38, 1.0),
+        new THREE.Color(0.98, 0.98, 1.0)
+    ];
+
+    // Coordinate span covering before letter 'T' to after letter 'C' of the rooftop sign
+    const X_MIN = -23.2;
+    const X_MAX = -2.8;
+    const Y_LAUNCH = 15.2;
+    const Z_LAUNCH = 15.9;
+
+    // Reset fountain spark launched upward from rooftop cornice nozzles
+    const resetFountainParticle = (p) => {
+        p.active = true;
+        p.type = 'fountain';
+        p.x = X_MIN + Math.random() * (X_MAX - X_MIN);
+        p.y = Y_LAUNCH + Math.random() * 0.3;
+        p.z = Z_LAUNCH + (Math.random() - 0.5) * 0.8;
+        p.vx = (Math.random() - 0.5) * 1.8;
+        p.vy = 12.0 + Math.random() * 10.0;
+        p.vz = (Math.random() - 0.5) * 1.6;
+        p.life = 0;
+        p.maxLife = 1.2 + Math.random() * 0.9;
+        const col = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+        p.r = col.r;
+        p.g = col.g;
+        p.b = col.b;
+        p.size = 3.6 + Math.random() * 2.8;
+    };
+
+    // Spawn an aerial shell detonation burst high above the building
+    const triggerBurst = (bx, by, bz, burstColor) => {
+        const burstCount = isLowTier ? 22 : 40;
+        let spawned = 0;
+        for (let i = 0; i < PARTICLE_COUNT && spawned < burstCount; i++) {
+            const p = particles[i];
+            if (!p.active || p.life / p.maxLife > 0.65) {
+                p.active = true;
+                p.type = 'burst';
+                p.x = bx;
+                p.y = by;
+                p.z = bz;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const speed = 3.5 + Math.random() * 7.5;
+                p.vx = Math.sin(phi) * Math.cos(theta) * speed;
+                p.vy = Math.cos(phi) * speed * 0.8 + 2.0;
+                p.vz = Math.sin(phi) * Math.sin(theta) * speed;
+                p.life = 0;
+                p.maxLife = 1.3 + Math.random() * 0.8;
+                p.r = burstColor.r;
+                p.g = burstColor.g;
+                p.b = burstColor.b;
+                p.size = 4.2 + Math.random() * 3.0;
+                spawned++;
+            }
+        }
+    };
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const p = {
+            active: false,
+            type: 'fountain',
+            x: 0, y: -100, z: 0,
+            vx: 0, vy: 0, vz: 0,
+            r: 1, g: 1, b: 1,
+            life: 0, maxLife: 1,
+            size: 4
+        };
+        resetFountainParticle(p);
+        p.life = Math.random() * p.maxLife;
+        particles.push(p);
+    }
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geom.setAttribute('aAlpha', new THREE.BufferAttribute(alphas, 1));
+    geom.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+
+    const mat = new THREE.ShaderMaterial({
+        vertexColors: true,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.NormalBlending,
+        vertexShader: `
+            attribute float aAlpha;
+            attribute float aSize;
+            varying vec3 vColor;
+            varying float vAlpha;
+            void main() {
+                vColor = color;
+                vAlpha = aAlpha;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_Position = projectionMatrix * mvPosition;
+                gl_PointSize = clamp(aSize * (220.0 / -mvPosition.z), 3.0, 36.0);
+            }
+        `,
+        fragmentShader: `
+            varying vec3 vColor;
+            varying float vAlpha;
+            void main() {
+                vec2 coord = gl_PointCoord - vec2(0.5);
+                float dist = length(coord);
+                if (dist > 0.5) discard;
+                float core = 1.0 - smoothstep(0.0, 0.22, dist);
+                float glow = 1.0 - smoothstep(0.12, 0.5, dist);
+                vec3 col = mix(vColor, vec3(1.0, 1.0, 1.0), core * 0.85);
+                gl_FragColor = vec4(col, glow * vAlpha);
+            }
+        `
+    });
+
+    const points = new THREE.Points(geom, mat);
+    points.frustumCulled = false;
+    scene.add(points);
+
+    let burstTimer = 0.8;
+
+    // Advance particle physics, gravity, and shell explosion bursts
+    const update = (dt) => {
+        const safeDt = Math.min(dt, 0.05);
+
+        burstTimer -= safeDt;
+        if (burstTimer <= 0) {
+            burstTimer = 0.7 + Math.random() * 0.9;
+            const bx = X_MIN + Math.random() * (X_MAX - X_MIN);
+            const by = 26.0 + Math.random() * 8.0;
+            const bz = Z_LAUNCH + (Math.random() - 0.5) * 4.0;
+            const burstColor = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+            triggerBurst(bx, by, bz, burstColor);
+        }
+
+        const GRAVITY = 9.8;
+        const DRAG = 0.985;
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const p = particles[i];
+            p.life += safeDt;
+            if (p.life >= p.maxLife) {
+                resetFountainParticle(p);
+            }
+
+            p.vx *= DRAG;
+            p.vz *= DRAG;
+            p.vy -= GRAVITY * safeDt;
+
+            p.x += p.vx * safeDt;
+            p.y += p.vy * safeDt;
+            p.z += p.vz * safeDt;
+
+            const progress = p.life / p.maxLife;
+            let alpha = progress < 0.15 ? (progress / 0.15) : (1.0 - (progress - 0.15) / 0.85);
+            alpha *= (0.75 + 0.25 * Math.sin(p.life * 28.0 + i));
+            alpha = Math.max(0.0, Math.min(1.0, alpha));
+
+            const idx3 = i * 3;
+            positions[idx3] = p.x;
+            positions[idx3 + 1] = p.y;
+            positions[idx3 + 2] = p.z;
+
+            colors[idx3] = p.r;
+            colors[idx3 + 1] = p.g;
+            colors[idx3 + 2] = p.b;
+
+            alphas[i] = alpha;
+            sizes[i] = p.size;
+        }
+
+        geom.attributes.position.needsUpdate = true;
+        geom.attributes.color.needsUpdate = true;
+        geom.attributes.aAlpha.needsUpdate = true;
+        geom.attributes.aSize.needsUpdate = true;
+    };
+
+    return { update, points };
+}
+
 // Initialize lighting, sky, gardens, signage, animated foliage, and adaptive hardware quality presets
 export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier: 'high', maxAnisotropy: 4, isSoftware: false }) {
     const initialTier = hardwareProfile.tier || 'high';
@@ -1963,6 +2158,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     const intersectionSignals = createSmartIntersectionSystem(scene, hardwareProfile);
     const updateTraffic = createRoadTrafficSystem(scene, hardwareProfile);
     const teleportBeacons = createTeleportBeacons(scene, hardwareProfile);
+    const rooftopFireworks = createRooftopFireworks(scene, hardwareProfile);
     const {
         skyUniforms,
         syncCloudInstances,
@@ -2127,6 +2323,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     const updateEnvironment = (elapsedSec, dt, playerState = null) => {
         windUniform.value = elapsedSec;
         updateNightSky(elapsedSec, dt);
+        rooftopFireworks.update(dt);
         const signalState = intersectionSignals.updateSignals(dt);
         updateTraffic(dt, playerState, signalState);
 

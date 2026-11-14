@@ -602,6 +602,9 @@
             filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.72));
             transition: fill 150ms ease, stroke 150ms ease;
         }
+        svg.hud-action-icon[hidden] {
+            display: none !important;
+        }
         .hud-btn.is-active .hud-action-icon {
             fill: #0f172a;
             stroke: #000000;
@@ -1629,15 +1632,17 @@
 
                 <!-- Top-Right: Core navigation controls and gear icon settings button -->
                 <div class="hud-top-right">
-                    <button id="camToggleBtn" type="button" class="hud-btn">
-                        <span id="camToggleLabel">Toàn cảnh</span>
+                    <button id="camToggleBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Đổi góc nhìn (Góc nhìn thứ 3 / Góc nhìn thứ nhất)" title="Đổi góc nhìn (Góc nhìn thứ 3 / Góc nhìn thứ nhất)">
+                        <svg id="camEyeIcon" class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 6c-5 0-9.27 3.11-10.5 6 1.23 2.89 5.5 6 10.5 6s9.27-3.11 10.5-6c-1.23-2.89-5.5-6-10.5-6Zm0 9.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/>
+                        </svg>
                     </button>
                     <button id="timeToggleBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Chuyển chế độ Ban ngày / Buổi tối" title="Chuyển chế độ Ban ngày / Buổi tối">
                         <svg id="timeIconSun" class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path fill-rule="evenodd" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1Zm10-7a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1ZM5 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1Zm14.07-7.07a1 1 0 0 1 0 1.41l-1.41 1.41a1 1 0 1 1-1.42-1.41l1.42-1.41a1 1 0 0 1 1.41 0ZM7.76 16.24a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 1 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0Zm11.31 11.31a1 1 0 0 1-1.41 0l-1.42-1.41a1 1 0 0 1 1.42-1.42l1.41 1.42a1 1 0 0 1 0 1.41ZM6.34 6.34a1 1 0 0 1-1.41 0L3.52 4.93a1 1 0 1 1 1.41-1.41l1.41 1.41a1 1 0 0 1 0 1.41Z"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0-4a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Zm0 14.5a1 1 0 0 1 1 1V20a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1ZM20 12a1 1 0 0 1-1 1h-1.5a1 1 0 1 1 0-2H19a1 1 0 0 1 1 1ZM6.5 12a1 1 0 0 1-1 1H4a1 1 0 1 1 0-2h1.5a1 1 0 0 1 1 1Zm11.16-5.66a1 1 0 0 1 0 1.42l-1.06 1.06a1 1 0 1 1-1.42-1.42l1.06-1.06a1 1 0 0 1 1.42 0ZM8.82 14.18a1 1 0 0 1 0 1.42l-1.06 1.06a1 1 0 1 1-1.42-1.42l1.06-1.06a1 1 0 0 1 1.42 0Zm8.84 8.84a1 1 0 0 1-1.42 0l-1.06-1.06a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1 0 1.42ZM7.76 7.76a1 1 0 0 1-1.42 0L5.28 6.7a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1 0 1.42Z"/>
                         </svg>
                         <svg id="timeIconMoon" class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
-                            <path fill-rule="evenodd" d="M12.3 2a10 10 0 0 0-.19 14 10 10 0 0 0 9.89 4 1 1 0 0 0 .78-1.52A10 10 0 0 1 10.5 4.02a1 1 0 0 0-.2-2Z"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12.1 3a9 9 0 0 0-8.6 11.5 9 9 0 0 0 11.3 6.4 9 9 0 0 0 5.2-4.1.8.8 0 0 0-.7-1.2 7.2 7.2 0 0 1-6.6-9.8.8.8 0 0 0-.6-1Z"/>
                         </svg>
                     </button>
                     <button id="openMenuBtn" type="button" class="hud-btn hud-icon-btn" aria-label="Cài đặt" title="Cài đặt">
@@ -1701,8 +1706,7 @@
             <div class="action-cluster">
                 <button id="snapshotBtn" type="button" class="hud-btn hud-icon-btn action-fab" aria-label="Chụp ảnh" title="Chụp ảnh lưu niệm (Phím C)">
                     <svg class="hud-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path fill-rule="evenodd" d="M4 7h3.17L9 5h6l1.83 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
-                        <circle cx="12" cy="13" r="1.8"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M8.5 4.5a1.5 1.5 0 0 0-1.25.75L6.15 7H4.5A2.5 2.5 0 0 0 2 9.5v8.5A2.5 2.5 0 0 0 4.5 20.5h15a2.5 2.5 0 0 0 2.5-2.5V9.5A2.5 2.5 0 0 0 19.5 7h-1.65l-1.1-1.75A1.5 1.5 0 0 0 15.5 4.5h-7ZM12 17.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
                     </svg>
                 </button>
                 <button id="openGalleryBtn" type="button" class="hud-btn hud-icon-btn action-fab" aria-label="Kho ảnh" title="Kho ảnh">
