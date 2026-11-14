@@ -140,7 +140,10 @@ export function setupCampusHud({
         checkedIn: new Set(saved?.checkedIn || ['cong-chinh']),
         quizSolved: new Set(saved?.quizSolved || []),
         detailsFound: new Set(saved?.detailsFound || []),
-        photos: Array.isArray(saved?.photos) ? saved.photos : [],
+        photos: (Array.isArray(saved?.photos) ? saved.photos : []).map((p, i) => {
+            if (!p.id) p.id = 'p_' + i + '_' + (p.time || Date.now());
+            return p;
+        }),
         lighting: initialLighting,
         quality: hasManualQuality ? saved.quality : (QUALITY_STEPS.includes(hardwareProfile?.tier) ? hardwareProfile.tier : initialDefaultQuality),
         qualityManual: hasManualQuality,
@@ -180,6 +183,12 @@ export function setupCampusHud({
     const galleryDialog = document.getElementById('galleryDialog');
     const quizDialog = document.getElementById('quizDialog');
     const menuDialog = document.getElementById('menuDialog');
+    const confirmDeleteDialog = document.getElementById('confirmDeleteDialog');
+    const confirmDeleteCancelBtn = document.getElementById('confirmDeleteCancelBtn');
+    const confirmDeleteSubmitBtn = document.getElementById('confirmDeleteSubmitBtn');
+    const gallerySelectAllBtn = document.getElementById('gallerySelectAllBtn');
+    const galleryDeleteSelectedBtn = document.getElementById('galleryDeleteSelectedBtn');
+    const galleryDeleteSelectedText = document.getElementById('galleryDeleteSelectedText');
 
     let toastTimer = null;
     const showToast = (msg, kind = 'info') => {
@@ -553,14 +562,104 @@ export function setupCampusHud({
         return 'Gần đây';
     };
 
+    // Selected photos state and pending delete set for modal confirmation
+    const selectedPhotoIds = new Set();
+    let pendingDeleteIds = new Set();
+
+    const syncGallerySelectionToolbar = () => {
+        if (!gallerySelectAllBtn || !galleryDeleteSelectedBtn) return;
+        const total = state.photos.length;
+        const selCount = selectedPhotoIds.size;
+        if (total === 0) {
+            gallerySelectAllBtn.hidden = true;
+            galleryDeleteSelectedBtn.hidden = true;
+            return;
+        }
+        gallerySelectAllBtn.hidden = false;
+        gallerySelectAllBtn.textContent = selCount === total ? 'Bỏ chọn' : 'Chọn tất cả';
+        if (selCount > 0) {
+            galleryDeleteSelectedBtn.hidden = false;
+            if (galleryDeleteSelectedText) {
+                galleryDeleteSelectedText.textContent = `Xóa (${selCount})`;
+            }
+        } else {
+            galleryDeleteSelectedBtn.hidden = true;
+        }
+    };
+
+    const openConfirmDeleteModal = (targetIds) => {
+        if (!confirmDeleteDialog) return;
+        pendingDeleteIds = new Set(targetIds);
+        const count = pendingDeleteIds.size;
+        const promptEl = document.getElementById('confirmDeletePrompt');
+        if (promptEl) {
+            promptEl.textContent = count > 1
+                ? `Bạn có chắc chắn muốn xóa ${count} ảnh đã chọn không?`
+                : 'Bạn có chắc chắn muốn xóa ảnh đã chọn không?';
+        }
+        confirmDeleteDialog.showModal();
+    };
+
+    if (gallerySelectAllBtn) {
+        gallerySelectAllBtn.addEventListener('click', () => {
+            if (selectedPhotoIds.size === state.photos.length) {
+                selectedPhotoIds.clear();
+            } else {
+                state.photos.forEach((p) => {
+                    if (p.id) selectedPhotoIds.add(p.id);
+                });
+            }
+            renderGallery();
+        });
+    }
+
+    if (galleryDeleteSelectedBtn) {
+        galleryDeleteSelectedBtn.addEventListener('click', () => {
+            if (selectedPhotoIds.size === 0) return;
+            openConfirmDeleteModal(selectedPhotoIds);
+        });
+    }
+
+    if (confirmDeleteCancelBtn) {
+        confirmDeleteCancelBtn.addEventListener('click', () => {
+            if (confirmDeleteDialog) confirmDeleteDialog.close();
+            pendingDeleteIds.clear();
+        });
+    }
+
+    if (confirmDeleteSubmitBtn) {
+        confirmDeleteSubmitBtn.addEventListener('click', () => {
+            const count = pendingDeleteIds.size;
+            if (count > 0) {
+                state.photos = state.photos.filter((p) => !pendingDeleteIds.has(p.id));
+                pendingDeleteIds.forEach((id) => selectedPhotoIds.delete(id));
+                pendingDeleteIds.clear();
+                persistState(state);
+                refreshProgressUI();
+                renderGallery();
+                showToast(count > 1 ? `Đã xóa ${count} ảnh khỏi Kho ảnh!` : 'Đã xóa ảnh khỏi Kho ảnh!', 'info');
+            }
+            if (confirmDeleteDialog) confirmDeleteDialog.close();
+        });
+    }
+
     // Populate Photo Souvenir Gallery grouped by date inside #galleryDialog
     const galleryGrid = document.getElementById('galleryGrid');
     const renderGallery = () => {
         galleryGrid.innerHTML = '';
         if (state.photos.length === 0) {
+            selectedPhotoIds.clear();
+            syncGallerySelectionToolbar();
             galleryGrid.innerHTML = '<p class="empty-msg">Chưa có ảnh lưu niệm nào. Bấm nút Chụp ảnh hoặc phím C trong lúc dạo trường để lưu ảnh vào Kho ảnh!</p>';
             return;
         }
+
+        // Ensure every photo has a stable unique ID
+        state.photos.forEach((p, idx) => {
+            if (!p.id) p.id = 'p_' + idx + '_' + (p.time || Date.now());
+        });
+        syncGallerySelectionToolbar();
+
         // Group photos chronologically by capture date
         const groups = new Map();
         state.photos.forEach((photo, idx) => {
@@ -583,9 +682,16 @@ export function setupCampusHud({
             `;
             const subGrid = section.querySelector('.gallery-grid');
             items.forEach(({ photo: p, isNewest, idx }) => {
+                const isChecked = selectedPhotoIds.has(p.id);
                 const card = document.createElement('div');
-                card.className = 'gallery-card';
+                card.className = 'gallery-card' + (isChecked ? ' is-selected' : '');
                 card.innerHTML = `
+                    <label class="gallery-check-wrap" title="Chọn ảnh để xóa">
+                        <input type="checkbox" class="gallery-check-input" data-photo-id="${p.id}" ${isChecked ? 'checked' : ''} aria-label="Chọn ảnh tại ${p.location}">
+                        <span class="gallery-checkmark" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                    </label>
                     ${isNewest ? '<span class="gallery-badge-new">MỚI</span>' : ''}
                     <img src="${p.dataUrl}" alt="Ảnh lưu niệm tại ${p.location}" class="gallery-img" width="640" height="360" loading="lazy">
                     <div class="gallery-meta">
@@ -593,9 +699,33 @@ export function setupCampusHud({
                             <strong>${p.location}</strong>
                             <span>${p.time}</span>
                         </div>
-                        <a href="${p.dataUrl}" download="husc-3d-${idx + 1}.png" class="btn-download-img">Tải PNG</a>
+                        <div class="gallery-card-actions">
+                            <a href="${p.dataUrl}" download="husc-3d-${idx + 1}.png" class="btn-download-img" title="Tải ảnh về máy">Tải ảnh</a>
+                            <button type="button" class="btn-delete-card" data-photo-id="${p.id}" title="Xóa ảnh này" aria-label="Xóa ảnh">
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        </div>
                     </div>
                 `;
+
+                const chk = card.querySelector('.gallery-check-input');
+                chk.addEventListener('change', () => {
+                    if (chk.checked) {
+                        selectedPhotoIds.add(p.id);
+                        card.classList.add('is-selected');
+                    } else {
+                        selectedPhotoIds.delete(p.id);
+                        card.classList.remove('is-selected');
+                    }
+                    syncGallerySelectionToolbar();
+                });
+
+                const delBtn = card.querySelector('.btn-delete-card');
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openConfirmDeleteModal([p.id]);
+                });
+
                 subGrid.appendChild(card);
             });
             galleryGrid.appendChild(section);
@@ -665,6 +795,7 @@ export function setupCampusHud({
             const timeKey = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             const stampedUrl = out.toDataURL('image/png');
             state.photos.unshift({
+                id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
                 dataUrl: stampedUrl,
                 location: state.nearestLocation.shortName,
                 date: dateKey,
