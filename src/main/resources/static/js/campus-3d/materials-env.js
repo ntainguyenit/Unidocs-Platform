@@ -2982,8 +2982,34 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         metalness: 0.1
     });
 
+    // Ground floor semi-circular porte-cochere canopy and 2nd floor curved balcony matching Photo 4
+    const canopyR = 4.2;
+    const canopyH = 0.25;
+    const canopyGeom = new THREE.CylinderGeometry(canopyR, canopyR, canopyH, 16, 1, false, 0, Math.PI);
+    const canopyMesh = new THREE.Mesh(canopyGeom, whiteTrimMat);
+    canopyMesh.position.set(0, 3.8, cgbD * 0.5);
+    canopyMesh.rotation.y = Math.PI;
+    cgGroup.add(canopyMesh);
+
+    // 3 White cylindrical columns supporting the canopy
+    const canopyColGeom = new THREE.CylinderGeometry(0.20, 0.20, 3.8, 12);
+    for (let c = 0; c < 3; c++) {
+        const cang = 0.35 + c * (Math.PI - 0.7) * 0.5;
+        const col = new THREE.Mesh(canopyColGeom, whiteTrimMat);
+        col.position.set(Math.cos(cang) * (canopyR - 0.4), 1.9, cgbD * 0.5 + Math.sin(cang) * (canopyR - 0.4));
+        cgGroup.add(col);
+    }
+
+    // Curved black metal railing on 2nd-floor balcony
+    const railGeom = new THREE.CylinderGeometry(canopyR - 0.1, canopyR - 0.1, 0.85, 16, 1, true, 0, Math.PI);
+    const railMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.85, roughness: 0.3, side: THREE.DoubleSide });
+    const railMesh = new THREE.Mesh(railGeom, railMat);
+    railMesh.position.set(0, 4.35, cgbD * 0.5);
+    railMesh.rotation.y = Math.PI;
+    cgGroup.add(railMesh);
+
     const ledMesh = new THREE.Mesh(new THREE.BoxGeometry(9.6, 3.8, 0.22), ledMat);
-    ledMesh.position.set(0, 6.4, cgbD * 0.5 + 0.16);
+    ledMesh.position.set(0, 6.8, cgbD * 0.5 + 0.16);
     cgGroup.add(ledMesh);
 
     // Stepped hotel / residential building terraces extending to the rear (Photos 4, 5)
@@ -3004,9 +3030,9 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         cgGroup.add(bm);
     }
 
-    // Position Corner Gabled Building at the North-East intersection apex
-    cgGroup.position.set(-118.0, 0, -62.0);
-    cgGroup.rotation.y = 2.45;
+    // Position Corner Gabled Building at the North-East intersection apex oriented towards the traffic light
+    cgGroup.position.set(-118.0, 0, -60.0);
+    cgGroup.rotation.y = -0.40;
     ensembleGroup.add(cgGroup);
 
     // 3. VIETTEL OFFICE BUILDING (Photos 3, 4)
@@ -3165,77 +3191,91 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     vpGroup.position.set(-75.0, 0, -195.0);
     ensembleGroup.add(vpGroup);
 
-    // 5. DẢI PHÂN CÁCH ĐƯỜNG ĐỐNG ĐA & CỘT ĐÈN ĐÔI TREO BĂNG RÔN CỜ ĐỎ (Photos 4, 5)
-    const medianGroup = new THREE.Group();
-    const medLen = 36.0;
-    const medW = 1.8;
-    const medH = 0.32;
+    // 5. Raised median island on Dong Da street and double streetlamp poles with red festive banners (Photos 4, 5)
+    // Precise orientation along Dong Da centerline (rotY = -0.4461)
+    // The road forward vector is (cos(-0.4461), sin(-0.4461)) = (0.9021, -0.4315)
+    // Geometry length along local X, with rotation.y = 0.4461 aligns exactly with the road centerline!
+    const medianIslandGroup = new THREE.Group();
+    const ddDef = { cx: -27.08, cz: -77.78, rotY: -0.4461 };
+    const ddUx = Math.cos(ddDef.rotY);
+    const ddUz = Math.sin(ddDef.rotY);
+    const ddRotY = -ddDef.rotY;
 
-    // Raised concrete median curb with rounded bullnose ends
-    const medCurbGeom = new THREE.BoxGeometry(medW, medH, medLen);
-    const medCurbMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.88 });
-    const medCurbMesh = new THREE.Mesh(medCurbGeom, medCurbMat);
-    medCurbMesh.position.set(0, medH * 0.5, 0);
-    medianGroup.add(medCurbMesh);
+    const medW = 1.35;
+    const medH = 0.28;
+    const medCurbMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85 });
+    const medLawnMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.90 });
+    const shrubMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.82 });
+    const shrubGeom = new THREE.SphereGeometry(0.48, 8, 6);
 
-    // Green lawn interior
-    const lawnGeom = new THREE.PlaneGeometry(medW - 0.28, medLen - 0.5);
-    const lawnMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.9 });
-    const lawnMesh = new THREE.Mesh(lawnGeom, lawnMat);
-    lawnMesh.rotation.x = -Math.PI * 0.5;
-    lawnMesh.position.set(0, medH + 0.01, 0);
-    medianGroup.add(lawnMesh);
+    // Build authentic raised median island spanning the entire length of Dong Da (from u = -82.0 to u = 176.0)
+    // Segment 1: from intersection crosswalk (u = -82.0) to Gate 38 opening (u = 38.0), length = 120.0m
+    // Segment 2: from Gate 38 opening (u = 52.0) to road terminus (u = 176.0), length = 124.0m
+    const medianSegments = [
+        { uStart: -82.0, uEnd: 38.0 },
+        { uStart: 52.0, uEnd: 176.0 }
+    ];
 
-    // Sculpted green ornamental shrubs along median island
-    const shrubGeom = new THREE.SphereGeometry(0.55, 8, 6);
-    const shrubMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.85 });
-    for (let s = -medLen * 0.4; s <= medLen * 0.4; s += 6.0) {
-        const shrub = new THREE.Mesh(shrubGeom, shrubMat);
-        shrub.position.set(0, medH + 0.48, s);
-        shrub.scale.set(0.9, 1.2, 0.9);
-        medianGroup.add(shrub);
-    }
+    medianSegments.forEach((seg) => {
+        const segLen = seg.uEnd - seg.uStart;
+        const uMid = (seg.uStart + seg.uEnd) * 0.5;
+        const cx = ddDef.cx + uMid * ddUx;
+        const cz = ddDef.cz + uMid * ddUz;
 
-    // Tall double-arm streetlamp pole (cột đèn đôi vươn cần chiếu sáng 2 làn xe)
+        const segGroup = new THREE.Group();
+
+        // Main raised concrete curb block
+        const curbGeom = new THREE.BoxGeometry(segLen, medH, medW);
+        const curbMesh = new THREE.Mesh(curbGeom, medCurbMat);
+        curbMesh.position.set(0, medH * 0.5, 0);
+        segGroup.add(curbMesh);
+
+        // Rounded bullnose cylinder caps at both ends
+        const capGeom = new THREE.CylinderGeometry(medW * 0.5, medW * 0.5, medH, 12);
+        const capWest = new THREE.Mesh(capGeom, medCurbMat);
+        capWest.position.set(-segLen * 0.5, medH * 0.5, 0);
+        segGroup.add(capWest);
+
+        const capEast = new THREE.Mesh(capGeom, medCurbMat);
+        capEast.position.set(segLen * 0.5, medH * 0.5, 0);
+        segGroup.add(capEast);
+
+        // Top green lawn surface
+        const lawnGeom = new THREE.PlaneGeometry(segLen - 0.2, medW - 0.24);
+        const lawnMesh = new THREE.Mesh(lawnGeom, medLawnMat);
+        lawnMesh.rotation.x = -Math.PI * 0.5;
+        lawnMesh.position.set(0, medH + 0.008, 0);
+        segGroup.add(lawnMesh);
+
+        // Sculpted round ornamental shrubs spaced every 7.5m along median island
+        for (let sx = -segLen * 0.46; sx <= segLen * 0.46; sx += 7.5) {
+            const shrub = new THREE.Mesh(shrubGeom, shrubMat);
+            shrub.position.set(sx, medH + 0.42, 0);
+            shrub.scale.set(1.1, 1.25, 0.95);
+            segGroup.add(shrub);
+        }
+
+        segGroup.position.set(cx, 0, cz);
+        segGroup.rotation.y = ddRotY;
+        medianIslandGroup.add(segGroup);
+    });
+
+    // Streetlamp poles with double luminaire arms and festive banners along median island
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.75, roughness: 0.35 });
+    const lumMat = new THREE.MeshBasicMaterial({ color: 0xfef9c3 });
     const poleH = 9.5;
     const poleGeom = new THREE.CylinderGeometry(0.08, 0.16, poleH, 8);
-    const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.7, roughness: 0.35 });
-    const poleMesh = new THREE.Mesh(poleGeom, poleMat);
-    poleMesh.position.set(0, poleH * 0.5, 0);
-    medianGroup.add(poleMesh);
-
-    // Double outreach arms
     const armGeom = new THREE.CylinderGeometry(0.035, 0.035, 2.2, 8);
     armGeom.rotateZ(Math.PI * 0.35);
-    const arm1 = new THREE.Mesh(armGeom, poleMat);
-    arm1.position.set(-1.0, poleH - 0.3, 0);
-    medianGroup.add(arm1);
-
-    const arm2 = new THREE.Mesh(armGeom, poleMat);
-    arm2.rotation.y = Math.PI;
-    arm2.position.set(1.0, poleH - 0.3, 0);
-    medianGroup.add(arm2);
-
-    // LED lamp head luminaires
     const lumGeom = new THREE.BoxGeometry(0.65, 0.12, 0.28);
-    const lumMat = new THREE.MeshBasicMaterial({ color: 0xfef9c3 });
-    const lum1 = new THREE.Mesh(lumGeom, lumMat);
-    lum1.position.set(-1.95, poleH - 0.55, 0);
-    medianGroup.add(lum1);
 
-    const lum2 = new THREE.Mesh(lumGeom, lumMat);
-    lum2.position.set(1.95, poleH - 0.55, 0);
-    medianGroup.add(lum2);
-
-    // Dual-sided Red Festive Propaganda Banners (CHÚC MỪNG NĂM MỚI 2024) (Photos 4, 5)
+    // Dual-sided Red Festive Propaganda Banners (Photos 4, 5)
     const banCanvas = document.createElement('canvas');
     banCanvas.width = 256;
     banCanvas.height = 512;
     const banCtx = banCanvas.getContext('2d');
-
     banCtx.fillStyle = '#dc2626';
     banCtx.fillRect(0, 0, 256, 512);
-
     banCtx.strokeStyle = '#facc15';
     banCtx.lineWidth = 6;
     banCtx.strokeRect(10, 10, 236, 492);
@@ -3259,10 +3299,8 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     banCtx.font = '900 28px "Inter", "Segoe UI", sans-serif';
     banCtx.fillText('CHÚC MỪNG', 128, 175);
     banCtx.fillText('NĂM MỚI', 128, 220);
-
     banCtx.font = '900 48px "Inter", "Segoe UI", sans-serif';
     banCtx.fillText('2024', 128, 290);
-
     banCtx.font = '700 22px "Inter", "Segoe UI", sans-serif';
     banCtx.fillText('MỪNG ĐẢNG', 128, 385);
     banCtx.fillText('MỪNG XUÂN', 128, 425);
@@ -3270,7 +3308,6 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const banTex = new THREE.CanvasTexture(banCanvas);
     banTex.colorSpace = THREE.SRGBColorSpace;
     banTex.anisotropy = Math.min(8, maxAniso);
-
     const bannerMat = new THREE.MeshStandardMaterial({
         map: banTex,
         roughness: 0.45,
@@ -3278,20 +3315,56 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         side: THREE.DoubleSide
     });
 
-    const banW = 1.15;
-    const banH = 2.6;
-    const bannerMesh1 = new THREE.Mesh(new THREE.PlaneGeometry(banW, banH), bannerMat);
-    bannerMesh1.position.set(-0.68, 5.0, 0);
-    medianGroup.add(bannerMesh1);
+    const lampPositionsU = [-70.0, -22.0, 26.0, 80.0, 135.0];
+    lampPositionsU.forEach((uPos, lIdx) => {
+        const lx = ddDef.cx + uPos * ddUx;
+        const lz = ddDef.cz + uPos * ddUz;
 
-    const bannerMesh2 = new THREE.Mesh(new THREE.PlaneGeometry(banW, banH), bannerMat);
-    bannerMesh2.position.set(0.68, 5.0, 0);
-    medianGroup.add(bannerMesh2);
+        const lGroup = new THREE.Group();
+        const poleMesh = new THREE.Mesh(poleGeom, poleMat);
+        poleMesh.position.set(0, poleH * 0.5, 0);
+        lGroup.add(poleMesh);
 
-    // Position median along Dong Da centerline
-    medianGroup.position.set(-91.0, 0, -51.0);
-    medianGroup.rotation.y = -0.4461;
-    ensembleGroup.add(medianGroup);
+        // Double outreach arms reaching across both lanes
+        const arm1 = new THREE.Mesh(armGeom, poleMat);
+        arm1.position.set(0, poleH - 0.3, -1.0);
+        arm1.rotation.y = Math.PI * 0.5;
+        lGroup.add(arm1);
+
+        const arm2 = new THREE.Mesh(armGeom, poleMat);
+        arm2.position.set(0, poleH - 0.3, 1.0);
+        arm2.rotation.y = -Math.PI * 0.5;
+        lGroup.add(arm2);
+
+        const lum1 = new THREE.Mesh(lumGeom, lumMat);
+        lum1.position.set(0, poleH - 0.55, -1.95);
+        lGroup.add(lum1);
+
+        const lum2 = new THREE.Mesh(lumGeom, lumMat);
+        lum2.position.set(0, poleH - 0.55, 1.95);
+        lGroup.add(lum2);
+
+        // Near the intersection (lIdx === 0), attach the festive banners (Photos 4, 5)
+        if (lIdx === 0) {
+            const banW = 1.15;
+            const banH = 2.6;
+            const b1 = new THREE.Mesh(new THREE.PlaneGeometry(banW, banH), bannerMat);
+            b1.position.set(0, 5.0, -0.68);
+            b1.rotation.y = Math.PI * 0.5;
+            lGroup.add(b1);
+
+            const b2 = new THREE.Mesh(new THREE.PlaneGeometry(banW, banH), bannerMat);
+            b2.position.set(0, 5.0, 0.68);
+            b2.rotation.y = -Math.PI * 0.5;
+            lGroup.add(b2);
+        }
+
+        lGroup.position.set(lx, 0, lz);
+        lGroup.rotation.y = ddRotY;
+        medianIslandGroup.add(lGroup);
+    });
+
+    ensembleGroup.add(medianIslandGroup);
 
     // 6. DÃY NHÀ PHỐ KINH DOANH & HÀNG CÂY XANH ĐƯỜNG ĐỐNG ĐA (Photo 5)
     const shGroup = new THREE.Group();
