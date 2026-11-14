@@ -210,18 +210,18 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             title: 'TUYẾN 3: ĐƯỜNG ĐỐNG ĐA · QUÉT TOÀN TUYẾN & CỔNG PHỤ 38 ĐỐNG ĐA',
             duration: 4.8,
             camCurve: new THREE.CatmullRomCurve3([
-                new THREE.Vector3(-96.0, 18.0, -118.0),
-                new THREE.Vector3(-52.0, 15.5, -108.0),
-                new THREE.Vector3(-12.0, 12.5, -104.0),
-                new THREE.Vector3(8.0, 8.8, -103.0),
-                new THREE.Vector3(12.5, 7.2, -101.5)
+                new THREE.Vector3(-78.0, 11.2, -58.5),
+                new THREE.Vector3(-48.5, 9.2, -72.5),
+                new THREE.Vector3(-19.5, 7.6, -86.5),
+                new THREE.Vector3(0.5, 6.2, -95.5),
+                new THREE.Vector3(11.2, 4.8, -97.2)
             ], false, 'centripetal', 0.5),
             lookCurve: new THREE.CatmullRomCurve3([
-                new THREE.Vector3(-68.0, 7.0, -72.0),
-                new THREE.Vector3(-28.0, 7.5, -58.0),
-                new THREE.Vector3(8.0, 6.5, -58.0),
-                new THREE.Vector3(17.58, 4.8, -88.06),
-                new THREE.Vector3(17.58, 4.2, -88.06)
+                new THREE.Vector3(-46.0, 6.2, -63.5),
+                new THREE.Vector3(-18.0, 6.0, -65.5),
+                new THREE.Vector3(6.5, 5.2, -78.5),
+                new THREE.Vector3(16.5, 4.2, -87.8),
+                new THREE.Vector3(16.5, 3.8, -87.5)
             ], false, 'centripetal', 0.5)
         },
         {

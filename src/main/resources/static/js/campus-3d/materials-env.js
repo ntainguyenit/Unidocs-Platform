@@ -1188,6 +1188,247 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     ], grassMat, true);
 }
 
+// Create textured ashlar slate stone base map for gate wall foundation
+function createSlateBaseTexture(maxAnisotropy = 4) {
+    const w = 512;
+    const h = 256;
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#1e242c';
+    ctx.fillRect(0, 0, w, h);
+    const rowH = 64;
+    const colors = ['#38414e', '#454f5f', '#4f5b6d', '#333b47', '#3d4755', '#4a5666'];
+    for (let r = 0; r < 4; r++) {
+        const y = r * rowH;
+        let x = (r % 2 === 0 ? 0 : -32);
+        while (x < w + 64) {
+            const blockW = 70 + ((x * 17 + r * 31) % 55);
+            ctx.fillStyle = colors[(Math.abs(x * 7 + r * 13)) % colors.length];
+            ctx.fillRect(x + 2, y + 2, blockW - 4, rowH - 4);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+            ctx.fillRect(x + 2, y + 2, blockW - 4, 3);
+            x += blockW;
+        }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 1);
+    tex.anisotropy = Math.min(8, maxAnisotropy);
+    return tex;
+}
+
+// Create authentic THPT Chuyên Khoa học Huế signboard texture matching Photo 1
+function createHuscHighSchoolSignTexture(maxAnisotropy = 4) {
+    const w = 1536;
+    const h = 1024;
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext('2d');
+
+    // 1. Top Section with white background and official HUSC emblem
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, w, 330);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+    ctx.fillRect(0, 326, w, 4);
+
+    drawHuscShield(ctx, 175, 165, 220);
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#0f3c86';
+    ctx.font = '800 54px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText('ĐẠI HỌC HUẾ', 320, 120);
+    ctx.font = '900 68px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText('TRƯỜNG ĐẠI HỌC KHOA HỌC', 320, 215);
+
+    // 2. Bottom Section with deep royal navy blue background
+    ctx.fillStyle = '#0f3c86';
+    ctx.fillRect(0, 330, w, h - 330);
+
+    const blueGrad = ctx.createLinearGradient(0, 330, 0, h);
+    blueGrad.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+    blueGrad.addColorStop(1, 'rgba(0, 0, 0, 0.20)');
+    ctx.fillStyle = blueGrad;
+    ctx.fillRect(0, 330, w, h - 330);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 78px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText('TRƯỜNG THPT CHUYÊN KHOA HỌC HUẾ', w * 0.5, 485);
+
+    ctx.font = '800 48px "Inter", "Segoe UI", sans-serif';
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillText('HUSC HIGH SCHOOL FOR GIFTED STUDENTS', w * 0.5, 595);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.82)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(100, 680);
+    ctx.lineTo(w - 100, 680);
+    ctx.stroke();
+
+    ctx.textAlign = 'left';
+    ctx.font = '700 32px "Inter", "Segoe UI", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('Website: http://thpt-khhue.thuathienhue.edu.vn', 110, 775);
+
+    ctx.textAlign = 'right';
+    ctx.fillText('Điện thoại: 0234 3898936', w - 110, 775);
+
+    ctx.strokeStyle = 'rgba(15, 60, 134, 0.40)';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(3, 3, w - 6, h - 6);
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = Math.min(8, maxAnisotropy);
+    return tex;
+}
+
+// Build authentic left-wing gate pier, slate foundation, beam, spotlights, and Chuyên Khoa học signboard matching Photo 1
+function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
+    const tileTex = createCeramicTileTextures(maxAniso);
+    const tileMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        map: tileTex.colorTex,
+        bumpMap: tileTex.bumpTex,
+        bumpScale: 0.022,
+        roughness: 0.32,
+        metalness: 0.05
+    });
+
+    const slateTex = createSlateBaseTexture(maxAniso);
+    const slateMat = new THREE.MeshStandardMaterial({
+        map: slateTex,
+        roughness: 0.85,
+        metalness: 0.05
+    });
+
+    const signTex = createHuscHighSchoolSignTexture(maxAniso);
+    const signMat = new THREE.MeshStandardMaterial({
+        map: signTex,
+        roughness: 0.22,
+        metalness: 0.08
+    });
+
+    const darkMetalMat = new THREE.MeshStandardMaterial({
+        color: 0x1f242d,
+        roughness: 0.45,
+        metalness: 0.75
+    });
+
+    const lampLensMat = new THREE.MeshBasicMaterial({
+        color: 0xfffae6
+    });
+
+    const group = new THREE.Group();
+
+    // 1. Ashlar slate stone base under signboard
+    const baseW = 2.82;
+    const baseH = 0.80;
+    const baseD = 0.48;
+    const baseGeom = new THREE.BoxGeometry(baseW, baseH, baseD);
+    const baseMesh = new THREE.Mesh(baseGeom, slateMat);
+    baseMesh.position.set(0, baseH * 0.5, 0);
+    baseMesh.castShadow = true;
+    baseMesh.receiveShadow = true;
+    group.add(baseMesh);
+
+    // 2. High School Signboard Panel
+    const signW = 2.80;
+    const signH = 2.05;
+    const signGeom = new THREE.PlaneGeometry(signW, signH);
+    const signMesh = new THREE.Mesh(signGeom, signMat);
+    signMesh.position.set(0, baseH + signH * 0.5, baseD * 0.5 + 0.015);
+    group.add(signMesh);
+
+    // Solid backing panel for signboard
+    const backPanelGeom = new THREE.BoxGeometry(signW, signH, 0.16);
+    const backPanelMesh = new THREE.Mesh(backPanelGeom, new THREE.MeshStandardMaterial({ color: 0x2e3440, roughness: 0.7 }));
+    backPanelMesh.position.set(0, baseH + signH * 0.5, baseD * 0.5 - 0.08);
+    backPanelMesh.castShadow = true;
+    group.add(backPanelMesh);
+
+    // 3. Ceramic Tiled Flanking Pillars
+    const pilW = 0.60;
+    const pilH = 3.35;
+    const pilD = 0.62;
+    const pilGeom = new THREE.BoxGeometry(pilW, pilH, pilD);
+
+    const leftPil = new THREE.Mesh(pilGeom, tileMat);
+    leftPil.position.set(baseW * 0.5 + pilW * 0.5, pilH * 0.5, 0.02);
+    leftPil.castShadow = true;
+    leftPil.receiveShadow = true;
+
+    const rightPil = new THREE.Mesh(pilGeom, tileMat);
+    rightPil.position.set(-(baseW * 0.5 + pilW * 0.5), pilH * 0.5, 0.02);
+    rightPil.castShadow = true;
+    rightPil.receiveShadow = true;
+    group.add(leftPil, rightPil);
+
+    // 4. Overhead Tiled Beam with eave overhang
+    const totalW = baseW + pilW * 2 + 0.04;
+    const beamH = 0.50;
+    const beamD = 0.74;
+    const beamGeom = new THREE.BoxGeometry(totalW, beamH, beamD);
+    const beamMesh = new THREE.Mesh(beamGeom, tileMat);
+    beamMesh.position.set(0, baseH + signH + beamH * 0.5, 0.06);
+    beamMesh.castShadow = true;
+    beamMesh.receiveShadow = true;
+    group.add(beamMesh);
+
+    // 5. Under-beam Spotlights illuminating signboard
+    for (const spotX of [-0.72, 0.72]) {
+        const spotGroup = new THREE.Group();
+        spotGroup.position.set(spotX, baseH + signH - 0.04, baseD * 0.5 + 0.14);
+
+        const brackGeom = new THREE.BoxGeometry(0.06, 0.08, 0.12);
+        const brackMesh = new THREE.Mesh(brackGeom, darkMetalMat);
+        brackMesh.position.set(0, 0.04, -0.06);
+
+        const lampGeom = new THREE.BoxGeometry(0.22, 0.12, 0.18);
+        const lampMesh = new THREE.Mesh(lampGeom, darkMetalMat);
+        lampMesh.rotation.x = 0.52;
+        lampMesh.position.set(0, -0.05, 0);
+
+        const lensGeom = new THREE.PlaneGeometry(0.18, 0.09);
+        const lensMesh = new THREE.Mesh(lensGeom, lampLensMat);
+        lensMesh.rotation.x = -Math.PI * 0.5 + 0.52;
+        lensMesh.position.set(0, -0.11, -0.03);
+
+        spotGroup.add(brackMesh, lampMesh, lensMesh);
+        group.add(spotGroup);
+    }
+
+    // 6. Top Decorative Railing above overhead beam
+    const railY0 = baseH + signH + beamH;
+    const barGeom = new THREE.CylinderGeometry(0.014, 0.014, totalW - 0.1, 6);
+    barGeom.rotateZ(Math.PI * 0.5);
+    for (let r = 0; r < 3; r++) {
+        const barMesh = new THREE.Mesh(barGeom, darkMetalMat);
+        barMesh.position.set(0, railY0 + 0.12 + r * 0.12, 0.06);
+        group.add(barMesh);
+    }
+    const stanchGeom = new THREE.CylinderGeometry(0.018, 0.018, 0.44, 6);
+    for (const stX of [-1.8, -0.6, 0.6, 1.8]) {
+        const stMesh = new THREE.Mesh(stanchGeom, darkMetalMat);
+        stMesh.position.set(stX, railY0 + 0.22, 0.06);
+        group.add(stMesh);
+    }
+
+    // Position group seamlessly on left wing of Gate 38 Dong Da
+    const gateAngle = 0.4461;
+    group.rotation.y = gateAngle + Math.PI;
+    group.position.set(12.95, 0, -85.93);
+
+    scene.add(group);
+}
+
 // Add signature signage, Main Gate inscription, Dong Da Gate sign, Nha A marquee, garage roofs, and billowing flags
 function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
     const animatedFlags = [];
@@ -1358,6 +1599,9 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     });
     // Double-sided banner facing outside (0.4461 + Math.PI) towards Dong Da and inside towards campus
     addBillboard(ddGateTex, 8.2, 0.95, 17.58, 5.45, -88.06, 0.4461 + Math.PI, 0, true);
+
+    // Realistic left-wing gate pier and THPT Chuyên Khoa học Huế signboard matching Photo 1
+    createDongDaLeftWingGateStructure(scene, maxAniso);
 
     const mainRoofLabel = createSignTexture(['NHÀ TRƯỜNG'], {
         w: 512, h: 128, bg: 'transparent', color: '#991b1b', fontSizes: [74], maxAnisotropy: maxAniso
@@ -1534,7 +1778,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
         const spriteTex = new THREE.CanvasTexture(c);
         spriteTex.colorSpace = THREE.SRGBColorSpace;
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: spriteTex, depthTest: true }));
-        const badgeY = loc.category === 'sport' ? 5.2 : (loc.id === 'cong-dong-da' ? 8.2 : 17.8);
+        const badgeY = loc.category === 'sport' ? 5.2 : (loc.id === 'cong-dong-da' ? 8.2 : 22.5);
         sprite.position.set(loc.rect.cx, badgeY, loc.rect.cz);
         const spriteW = loc.code.length > 7 ? 7.6 : 6.4;
         sprite.scale.set(spriteW, 2.4, 1);
@@ -1678,7 +1922,7 @@ function createAtmosphereAndProps(scene) {
         [-148, -72, 22, 14, 18], [-146, 12, 22, 18, 20], [-140, 55, 22, 12, 20],
         [-80, 118, 26, 14, 18], [-15, 120, 28, 16, 16], [52, 118, 26, 15, 22],
         [108, 48, 24, 18, 18], [98, -22, 22, 16, 20], [72, -88, 26, 15, 18],
-        [-25, -116, 28, 18, 16], [-95, -102, 24, 16, 18]
+        [-25, -116, 28, 18, 16], [-125, -118, 24, 16, 18]
     ];
     const cityInst = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), cityMat, ctxCoords.length);
     const dummy = new THREE.Object3D();
