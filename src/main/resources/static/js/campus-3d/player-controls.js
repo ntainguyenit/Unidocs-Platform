@@ -158,7 +158,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         moveBlend: 0,
         introPlaying: false,
         introTime: 0,
-        introDuration: 17.8
+        introDuration: 23.0
     };
 
     const EXPLORER_LOOK_Y = 2.15;
@@ -207,19 +207,35 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             ], false, 'centripetal', 0.5)
         },
         {
-            title: 'TUYẾN 3: ĐƯỜNG ĐỐNG ĐA · CỔNG 38 ĐỐNG ĐA & KHU NỘI VIỆN',
-            duration: 4.0,
+            title: 'TUYẾN 3: ĐƯỜNG ĐỐNG ĐA · KHU ĐỂ XE, NHÀ H, NHÀ K & CỔNG PHỤ 38 ĐỐNG ĐA',
+            duration: 4.4,
             camCurve: new THREE.CatmullRomCurve3([
-                new THREE.Vector3(-68, 16.0, -104),
-                new THREE.Vector3(-32, 13.5, -96),
-                new THREE.Vector3(8, 11.5, -88),
-                new THREE.Vector3(48, 10.0, -80)
+                new THREE.Vector3(-62, 16.5, -98),
+                new THREE.Vector3(-24, 14.0, -93),
+                new THREE.Vector3(4, 10.5, -91),
+                new THREE.Vector3(15.2, 5.8, -94.0)
             ], false, 'centripetal', 0.5),
             lookCurve: new THREE.CatmullRomCurve3([
-                new THREE.Vector3(-32, 6.0, -66),
-                new THREE.Vector3(-12, 6.5, -60),
-                new THREE.Vector3(12, 5.5, -55),
-                new THREE.Vector3(32, 4.8, -50)
+                new THREE.Vector3(-42, 6.0, -58),
+                new THREE.Vector3(-8, 7.5, -53),
+                new THREE.Vector3(26, 6.8, -55),
+                new THREE.Vector3(17.58, 5.45, -88.06)
+            ], false, 'centripetal', 0.5)
+        },
+        {
+            title: 'TÂM ĐIỂM SƠ ĐỒ · THU PHÓNG TỪ DƯỚI LÊN TOÀN CẢNH',
+            duration: 4.8,
+            camCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-12.5, 2.4, 22.0),
+                new THREE.Vector3(-18.0, 16.0, 45.0),
+                new THREE.Vector3(-32.0, 45.0, 80.0),
+                new THREE.Vector3(-48.0, 80.0, 125.0)
+            ], false, 'centripetal', 0.5),
+            lookCurve: new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-12.5, 4.8, -8.0),
+                new THREE.Vector3(-12.0, 7.5, -5.0),
+                new THREE.Vector3(-10.0, 6.0, -10.0),
+                new THREE.Vector3(-8.0, 4.0, -15.0)
             ], false, 'centripetal', 0.5)
         },
         {
