@@ -70,6 +70,13 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
     let tileTextures = null;
     const upgraded = new Set();
     campusModel.traverse((obj) => {
+        // Retract Dong Da left-side perimeter wall so it starts cleanly outside left gate pillar
+        if (obj.isMesh && obj.position && Math.abs(obj.position.x - 25.775) < 0.15 && Math.abs(obj.position.z - (-91.98)) < 0.15) {
+            obj.position.x = 27.001;
+            obj.position.z = -92.566;
+            obj.scale.x *= 0.426;
+        }
+
         if (!obj.isMesh || !obj.material) return;
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
         for (const m of mats) {
@@ -1291,7 +1298,7 @@ function createHuscHighSchoolSignTexture(maxAnisotropy = 4) {
 }
 
 // Build authentic wide left-wing gate pier, slate foundation, beam, spotlights, and Chuyên Khoa học signboard matching Photo 1
-function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
+function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = null) {
     const tileTex = createCeramicTileTextures(maxAniso);
     const tileMat = new THREE.MeshStandardMaterial({
         color: 0xffffff,
@@ -1323,7 +1330,7 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
     });
 
     const lampLensMat = new THREE.MeshBasicMaterial({
-        color: 0xfffae6
+        color: 0xffffff
     });
 
     const group = new THREE.Group();
@@ -1354,9 +1361,9 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
     backPanelMesh.castShadow = true;
     group.add(backPanelMesh);
 
-    // 3. Ceramic Tiled Flanking Pillars
+    // 3. Ceramic Tiled Flanking Pillars supporting overhead beam from below
     const pilW = 0.60;
-    const pilH = 3.35;
+    const pilH = baseH + signH;
     const pilD = 0.62;
     const pilGeom = new THREE.BoxGeometry(pilW, pilH, pilD);
 
@@ -1371,10 +1378,10 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
     rightPil.receiveShadow = true;
     group.add(leftPil, rightPil);
 
-    // 4. Overhead Tiled Beam with eave overhang
+    // 4. Overhead Tiled Beam resting cleanly on top of pillars with eave overhang
     const totalW = baseW + pilW * 2 + 0.04;
     const beamH = 0.50;
-    const beamD = 0.74;
+    const beamD = 0.76;
     const beamGeom = new THREE.BoxGeometry(totalW, beamH, beamD);
     const beamMesh = new THREE.Mesh(beamGeom, tileMat);
     beamMesh.position.set(0, baseH + signH + beamH * 0.5, 0.06);
@@ -1382,43 +1389,114 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4) {
     beamMesh.receiveShadow = true;
     group.add(beamMesh);
 
-    // 5. Under-beam Spotlights illuminating signboard
-    for (const spotX of [-1.40, 1.40]) {
+    // 5. Under-beam Spotlights shining bright warm light day and night
+    const glowCanvas = document.createElement('canvas');
+    glowCanvas.width = 128;
+    glowCanvas.height = 128;
+    const gCtx = glowCanvas.getContext('2d');
+    const radGrad = gCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    radGrad.addColorStop(0, 'rgba(255, 246, 218, 0.60)');
+    radGrad.addColorStop(0.45, 'rgba(255, 235, 185, 0.20)');
+    radGrad.addColorStop(1, 'rgba(255, 235, 185, 0)');
+    gCtx.fillStyle = radGrad;
+    gCtx.fillRect(0, 0, 128, 128);
+    const glowTex = new THREE.CanvasTexture(glowCanvas);
+    const glowMat = new THREE.MeshBasicMaterial({
+        map: glowTex,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    const coneGeom = new THREE.ConeGeometry(0.48, 1.30, 16, 1, true);
+    coneGeom.translate(0, -0.65, 0);
+    coneGeom.rotateX(0.42);
+    const coneMat = new THREE.MeshBasicMaterial({
+        color: 0xfff6d4,
+        transparent: true,
+        opacity: 0.30,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+        depthWrite: false
+    });
+
+    for (const spotX of [-0.85, 1.25]) {
         const spotGroup = new THREE.Group();
-        spotGroup.position.set(spotX, baseH + signH - 0.04, baseD * 0.5 + 0.14);
+        spotGroup.position.set(spotX, baseH + signH, 0.38);
 
-        const brackGeom = new THREE.BoxGeometry(0.06, 0.08, 0.12);
+        const brackGeom = new THREE.BoxGeometry(0.06, 0.06, 0.12);
         const brackMesh = new THREE.Mesh(brackGeom, darkMetalMat);
-        brackMesh.position.set(0, 0.04, -0.06);
+        brackMesh.position.set(0, -0.03, -0.02);
 
-        const lampGeom = new THREE.BoxGeometry(0.22, 0.12, 0.18);
+        const lampGeom = new THREE.BoxGeometry(0.24, 0.10, 0.16);
         const lampMesh = new THREE.Mesh(lampGeom, darkMetalMat);
-        lampMesh.rotation.x = 0.52;
-        lampMesh.position.set(0, -0.05, 0);
+        lampMesh.rotation.x = 0.65;
+        lampMesh.position.set(0, -0.08, 0.02);
 
-        const lensGeom = new THREE.PlaneGeometry(0.18, 0.09);
+        const lensGeom = new THREE.PlaneGeometry(0.20, 0.10);
         const lensMesh = new THREE.Mesh(lensGeom, lampLensMat);
-        lensMesh.rotation.x = -Math.PI * 0.5 + 0.52;
-        lensMesh.position.set(0, -0.11, -0.03);
+        lensMesh.rotation.x = -Math.PI * 0.5 + 0.65;
+        lensMesh.position.set(0, -0.13, 0.01);
 
-        spotGroup.add(brackMesh, lampMesh, lensMesh);
+        const spotLight = new THREE.PointLight(0xfff3d0, 4.2, 7.5, 1.2);
+        spotLight.position.set(0, -0.12, 0);
+
+        const coneMesh = new THREE.Mesh(coneGeom, coneMat);
+
+        spotGroup.add(brackMesh, lampMesh, lensMesh, spotLight, coneMesh);
         group.add(spotGroup);
+
+        const glowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.6), glowMat);
+        glowMesh.position.set(spotX, baseH + signH - 0.45, baseD * 0.5 + 0.022);
+        group.add(glowMesh);
     }
 
-    // 6. Top Decorative Railing above overhead beam
+    // 6. Top Decorative Railing and 4 dynamic colored flags on 4 poles above overhead beam
     const railY0 = baseH + signH + beamH;
     const barGeom = new THREE.CylinderGeometry(0.014, 0.014, totalW - 0.1, 6);
     barGeom.rotateZ(Math.PI * 0.5);
     for (let r = 0; r < 3; r++) {
         const barMesh = new THREE.Mesh(barGeom, darkMetalMat);
-        barMesh.position.set(0, railY0 + 0.12 + r * 0.12, 0.06);
+        barMesh.position.set(0, railY0 + 0.10 + r * 0.12, 0.06);
         group.add(barMesh);
     }
-    const stanchGeom = new THREE.CylinderGeometry(0.018, 0.018, 0.44, 6);
-    for (const stX of [-2.6, -1.3, 0, 1.3, 2.6]) {
-        const stMesh = new THREE.Mesh(stanchGeom, darkMetalMat);
-        stMesh.position.set(stX, railY0 + 0.22, 0.06);
-        group.add(stMesh);
+
+    const flagPoleX = [-2.1, -0.7, 0.7, 2.1];
+    const poleH = 0.92;
+    const poleGeom = new THREE.CylinderGeometry(0.020, 0.022, poleH, 8);
+    const ballGeom = new THREE.SphereGeometry(0.042, 8, 8);
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.25, metalness: 0.85 });
+    const flagColors = [0xdc2626, 0xf59e0b, 0x2563eb, 0x16a34a];
+    const flagW = 0.72;
+    const flagH = 0.46;
+    const clothGeom = new THREE.PlaneGeometry(flagW, flagH, 6, 2);
+    clothGeom.translate(flagW * 0.5, 0, 0);
+
+    for (let i = 0; i < 4; i++) {
+        const px = flagPoleX[i];
+        const poleMesh = new THREE.Mesh(poleGeom, darkMetalMat);
+        poleMesh.position.set(px, railY0 + poleH * 0.5, 0.06);
+        group.add(poleMesh);
+
+        const ballMesh = new THREE.Mesh(ballGeom, goldMat);
+        ballMesh.position.set(px, railY0 + poleH + 0.03, 0.06);
+        group.add(ballMesh);
+
+        const flagMat = new THREE.MeshStandardMaterial({
+            color: flagColors[i],
+            side: THREE.DoubleSide,
+            roughness: 0.65,
+            metalness: 0.05
+        });
+        const flagMesh = new THREE.Mesh(clothGeom.clone(), flagMat);
+        flagMesh.position.set(px, railY0 + poleH - 0.26, 0.06);
+        flagMesh.userData.phase = i * 1.5;
+        flagMesh.userData.isGateFlag = true;
+        group.add(flagMesh);
+
+        if (animatedFlags) {
+            animatedFlags.push(flagMesh);
+        }
     }
 
     // Position group seamlessly on authentic left wing of Gate 38 Dong Da
@@ -1601,7 +1679,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     addBillboard(ddGateTex, 8.2, 0.95, 17.58, 5.45, -88.06, 0.4461 + Math.PI, 0, true);
 
     // Authentic wide left-wing gate pier and THPT Chuyên Khoa học Huế signboard matching Photo 1
-    createDongDaLeftWingGateStructure(scene, maxAniso);
+    createDongDaLeftWingGateStructure(scene, maxAniso, animatedFlags);
 
     const myThuatTex = createSignTexture(['PHÒNG HỌC MỸ THUẬT'], {
         w: 640, h: 112, bg: '#1f2937', border: '#facc15', color: '#fde047', fontSizes: [42], maxAnisotropy: maxAniso
@@ -2413,7 +2491,12 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
 
         for (const flag of flagController.animatedFlags) {
             const p = flag.userData.phase;
-            flag.rotation.y = Math.sin(elapsedSec * 4.2 + p) * 0.16;
+            if (flag.userData.isGateFlag) {
+                flag.rotation.y = Math.sin(elapsedSec * 4.4 + p) * 0.26;
+                flag.rotation.z = Math.sin(elapsedSec * 3.4 + p) * 0.05;
+            } else {
+                flag.rotation.y = Math.sin(elapsedSec * 4.2 + p) * 0.16;
+            }
         }
 
         const pulse = 1.0 + Math.sin(elapsedSec * 3.0) * 0.06;
