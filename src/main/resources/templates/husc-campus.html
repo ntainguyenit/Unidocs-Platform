@@ -647,10 +647,23 @@
         .hud-middle-left {
             margin-top: 0.45rem;
             align-self: flex-start;
-            max-inline-size: min(234px, 72dvw);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.35rem;
             pointer-events: auto;
         }
-        .quest-card { padding: 0.48rem 0.65rem; }
+        .quest-icon-btn {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+        .quest-card {
+            padding: 0.48rem 0.65rem;
+            min-inline-size: 200px;
+            max-inline-size: min(234px, 72dvw);
+        }
+        .quest-card.is-collapsed {
+            display: none !important;
+        }
         .quest-header {
             display: flex;
             align-items: center;
@@ -668,10 +681,16 @@
             color: #e2e8f0;
             border-radius: 0.45rem;
             font-size: 0.72rem;
-            padding: 0.25rem 0.55rem;
+            font-weight: 700;
+            padding: 0.2rem 0.45rem;
             white-space: nowrap;
             flex-shrink: 0;
             cursor: pointer;
+            line-height: 1;
+        }
+        .quest-toggle-btn:hover {
+            background: rgba(239, 68, 68, 0.35);
+            color: #ffffff;
         }
         .quest-list {
             display: flex;
@@ -679,7 +698,6 @@
             gap: 0.28rem;
             margin-top: 0.45rem;
         }
-        .quest-card.is-collapsed .quest-list { display: none; }
         .quest-row {
             display: flex;
             align-items: center;
@@ -1793,7 +1811,7 @@
                     <div class="minimap-column">
                         <a th:href="@{/}" href="/" id="backHomeLink" class="back-home-link" aria-label="Quay về trang chủ UniDocs" title="Quay về trang chủ UniDocs">
                             <span class="back-home-icon" aria-hidden="true">&lsaquo;</span>
-                            <span class="back-home-label">Quay về trang chủ UniDocs</span>
+                            <span class="back-home-label">Quay về</span>
                         </a>
                         <div class="minimap-container">
                             <button id="minimapBtn" type="button" class="minimap-wrap" aria-label="Mở bản đồ khuôn viên 2D">
@@ -1804,7 +1822,6 @@
                             <span class="minimap-dir minimap-dir-s" aria-hidden="true">N</span>
                             <span class="minimap-dir minimap-dir-w" aria-hidden="true">T</span>
                         </div>
-                        <div id="currentZoneLabel" class="minimap-zone-label">77 Nguyễn Huệ · Gần Cổng Chính</div>
                     </div>
                 </div>
 
@@ -1847,12 +1864,19 @@
                 </div>
             </div>
 
-            <!-- Mid-Left: Collapsible Open-World Quest Tracker -->
+            <!-- Mid-Left: Compact Question Mark Quest Tracker -->
             <div class="hud-middle-left">
-                <section id="questCard" class="hud-pill quest-card is-collapsed" aria-label="Bảng nhiệm vụ khám phá trường">
+                <button id="questToggleBtn" type="button" class="hud-btn hud-icon-btn quest-icon-btn" aria-label="Nhiệm vụ Khám phá" title="Khám phá" aria-expanded="false">
+                    <svg class="hud-action-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+                <section id="questCard" class="hud-pill quest-card is-collapsed" aria-label="Bảng nhiệm vụ khám phá trường" hidden>
                     <div class="quest-header">
                         <h2>Khám phá:</h2>
-                        <button id="questToggleBtn" type="button" class="quest-toggle-btn" aria-expanded="false">Mở rộng</button>
+                        <button id="questCloseBtn" type="button" class="quest-toggle-btn" aria-label="Đóng bảng nhiệm vụ">✕</button>
                     </div>
                     <div class="quest-list">
                         <button id="questRowCheckin" type="button" class="quest-row">

@@ -291,19 +291,26 @@ export function setupCampusHud({
         playerController.skipIntroFlycam();
     });
 
-    // Quest tracker panel collapse toggle defaulting to collapsed so view stays clear
+    // Quest tracker compact question mark button toggle defaulting to collapsed so view stays clear
     const questToggleBtn = document.getElementById('questToggleBtn');
+    const questCloseBtn = document.getElementById('questCloseBtn');
     const questCard = document.getElementById('questCard');
     if (questToggleBtn && questCard) {
-        const syncQuestToggleState = (collapsed) => {
-            questCard.classList.toggle('is-collapsed', collapsed);
-            questToggleBtn.setAttribute('aria-expanded', String(!collapsed));
-            questToggleBtn.textContent = collapsed ? 'Mở rộng' : 'Thu gọn';
+        const syncQuestToggleState = (open) => {
+            questCard.classList.toggle('is-collapsed', !open);
+            questCard.hidden = !open;
+            questToggleBtn.setAttribute('aria-expanded', String(open));
         };
-        syncQuestToggleState(true);
+        syncQuestToggleState(false);
         questToggleBtn.addEventListener('click', () => {
-            syncQuestToggleState(!questCard.classList.contains('is-collapsed'));
+            const isOpen = !questCard.classList.contains('is-collapsed') && !questCard.hidden;
+            syncQuestToggleState(!isOpen);
         });
+        if (questCloseBtn) {
+            questCloseBtn.addEventListener('click', () => {
+                syncQuestToggleState(false);
+            });
+        }
     }
 
     // Build and refresh Interactive 2D Overview Map + Teleport Buttons inside #mapDialog
@@ -1347,7 +1354,7 @@ export function setupCampusHud({
         const zoneText = `77 Nguyễn Huệ · Gần ${nearest.shortName}`;
         if (zoneText !== lastZoneText) {
             lastZoneText = zoneText;
-            currentZoneLabel.textContent = zoneText;
+            if (currentZoneLabel) currentZoneLabel.textContent = zoneText;
         }
 
         // Detect interactive proximity prompt (Teleport pad -> Unchecked Building)

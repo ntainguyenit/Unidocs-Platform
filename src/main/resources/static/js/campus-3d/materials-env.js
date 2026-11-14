@@ -7,6 +7,7 @@ import { createRoadTrafficSystem } from './traffic-system.js';
 import { createSmartIntersectionSystem } from './traffic-lights.js';
 import { createAirspaceSystem } from './airspace-system.js';
 import { createRooftopFireworks } from './fireworks-system.js';
+import { createPedestrianSystem } from './pedestrian-system.js';
 
 // Create crisp white 2:1 horizontal rectangular ceramic tile color & bump maps matching real Gate Tower
 function createCeramicTileTextures(maxAnisotropy = 4) {
@@ -1968,6 +1969,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     const teleportBeacons = createTeleportBeacons(scene, hardwareProfile);
     const rooftopFireworks = createRooftopFireworks(scene, hardwareProfile);
     const airspaceSystem = createAirspaceSystem(scene, hardwareProfile);
+    const updatePedestrians = createPedestrianSystem(scene, hardwareProfile);
     const {
         skyUniforms,
         syncCloudInstances,
@@ -2139,6 +2141,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         airspaceSystem.update(dt, elapsedSec);
         const signalState = intersectionSignals.updateSignals(dt);
         updateTraffic(dt, playerState, signalState);
+        if (updatePedestrians) updatePedestrians(dt, elapsedSec);
 
         envFrameCount += 1;
         cloudAccumDt += dt;

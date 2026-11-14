@@ -66,11 +66,15 @@ class Campus3DIntegrationTest {
                 .andExpect(content().string(containsString("<span class=\"minimap-dir minimap-dir-e\" aria-hidden=\"true\">Đ</span>")))
                 .andExpect(content().string(containsString("<span class=\"minimap-dir minimap-dir-s\" aria-hidden=\"true\">N</span>")))
                 .andExpect(content().string(containsString("<span class=\"minimap-dir minimap-dir-w\" aria-hidden=\"true\">T</span>")))
-                .andExpect(content().string(containsString("class=\"minimap-zone-label\"")))
+                .andExpect(content().string(not(containsString("id=\"currentZoneLabel\""))))
+                .andExpect(content().string(not(containsString("class=\"minimap-zone-label\""))))
                 .andExpect(content().string(containsString("Quay về trang chủ UniDocs")))
+                .andExpect(content().string(containsString(">Quay về</span>")))
                 .andExpect(content().string(not(containsString("ĐHKH HUẾ · HUSC"))))
                 .andExpect(content().string(not(containsString("Tìm chi tiết đặc trưng"))))
                 .andExpect(content().string(not(containsString("questDetailText"))))
+                .andExpect(content().string(containsString("id=\"questToggleBtn\"")))
+                .andExpect(content().string(containsString("quest-icon-btn")))
                 .andExpect(content().string(containsString("<h2>Khám phá:</h2>")))
                 .andExpect(content().string(containsString("id=\"snapshotFrameOverlay\"")))
                 .andExpect(content().string(containsString("class=\"snapshot-blur-curtain\"")))
@@ -154,6 +158,7 @@ class Campus3DIntegrationTest {
         mockMvc.perform(get("/js/campus-3d/player-controls.js")).andExpect(status().isOk());
         mockMvc.perform(get("/js/campus-3d/student-avatar.js")).andExpect(status().isOk());
         mockMvc.perform(get("/js/campus-3d/traffic-system.js")).andExpect(status().isOk());
+        mockMvc.perform(get("/js/campus-3d/pedestrian-system.js")).andExpect(status().isOk());
         mockMvc.perform(get("/js/campus-3d/traffic-lights.js")).andExpect(status().isOk());
         mockMvc.perform(get("/js/campus-3d/hud-ui.js")).andExpect(status().isOk());
     }
