@@ -240,6 +240,17 @@ export function setupCampusHud({
     refreshProgressUI();
 
     let introEndedAtMs = 0;
+    const introSubTitle = introBanner ? introBanner.querySelector('.intro-title-card p') : null;
+
+    // Smoothly update Intro Scene Subtitle with subtle crossfade
+    const setIntroSubTitle = (title) => {
+        if (!introSubTitle || introSubTitle.textContent === title) return;
+        introSubTitle.classList.add('scene-fade');
+        setTimeout(() => {
+            introSubTitle.textContent = title;
+            introSubTitle.classList.remove('scene-fade');
+        }, 220);
+    };
 
     // Update Intro Overlay visibility during flycam sweep vs interactive gameplay
     const syncIntroVisibility = (isIntroPlaying) => {
@@ -1361,6 +1372,7 @@ export function setupCampusHud({
 
     return {
         syncIntroVisibility,
+        setIntroSubTitle,
         executeContextAction,
         triggerSnapshot,
         toggleCameraMode,

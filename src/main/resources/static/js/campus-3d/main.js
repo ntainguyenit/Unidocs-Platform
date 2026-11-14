@@ -246,7 +246,8 @@ async function bootstrapCampus3D() {
         },
         onInteract: () => hudController && hudController.executeContextAction(),
         onSnapshot: () => hudController && hudController.triggerSnapshot(),
-        onToggleCamera: () => hudController && hudController.toggleCameraMode()
+        onToggleCamera: () => hudController && hudController.toggleCameraMode(),
+        onIntroSceneChange: (title) => hudController && hudController.setIntroSubTitle(title)
     });
 
     // Synchronous on-demand snapshot capture keeping preserveDrawingBuffer=false

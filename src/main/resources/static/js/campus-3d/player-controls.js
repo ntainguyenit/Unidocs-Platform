@@ -158,14 +158,23 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         moveBlend: 0,
         introPlaying: false,
         introTime: 0,
-        introDuration: 4.6
+        introDuration: 14.5
     };
 
     const EXPLORER_LOOK_Y = 2.15;
     const keys = { w: false, a: false, s: false, d: false };
     const joyVector = { x: 0, y: 0 };
 
-    // Precomputed monotonic panoramic flycam intro splines gliding continuously into third-person gate arrival
+    // Multi-shot cinematic scenes with dynamic titles
+    const INTRO_SCENES = [
+        { startU: 0.0, endU: 0.26, title: 'GÓC NHÌN TOÀN CẢNH' },
+        { startU: 0.26, endU: 0.50, title: 'KHUÔN VIÊN & SÂN TRƯỜNG TỪ DƯỚI LÊN' },
+        { startU: 0.50, endU: 0.78, title: 'TOÀ NHÀ TRUNG TÂM · QUAY 360°' },
+        { startU: 0.78, endU: 1.0, title: 'CỔNG CHÍNH 77 NGUYỄN HUỆ · BẮT ĐẦU' }
+    ];
+    let currentSceneTitle = INTRO_SCENES[0].title;
+
+    // Precomputed cinematic multi-shot flycam splines with overhead zoom down, ground zoom up, 360 orbit, and gate landing
     const endHoriz = Math.cos(state.camPitch) * state.camDist;
     const endVert = Math.sin(state.camPitch) * state.camDist + 0.35;
     const endCamX = CAMPUS_START_POSE.x + Math.sin(state.camYaw) * endHoriz;
@@ -173,22 +182,50 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
     const endCamZ = CAMPUS_START_POSE.z + Math.cos(state.camYaw) * endHoriz;
 
     const introCamCurve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-42, 118, 152),
-        new THREE.Vector3(-30, 78, 132),
-        new THREE.Vector3(-20, 41, 111.5),
-        new THREE.Vector3(-14.2, 16.0, 96.6),
-        new THREE.Vector3(-12.8, 7.0, 90.0),
+        // Phase 1: High overhead bird-eye view zooming down across campus
+        new THREE.Vector3(-42, 118, 155),
+        new THREE.Vector3(-32, 80, 130),
+        new THREE.Vector3(-24, 46, 100),
+        new THREE.Vector3(-18, 22, 74),
+        // Phase 2: Ground-level courtyard sweep soaring upward from below
+        new THREE.Vector3(-25, 3.2, 52),
+        new THREE.Vector3(-13, 7.8, 36),
+        new THREE.Vector3(-4, 18.5, 26),
+        // Phase 3: 360-degree orbital sweep around central building Nhà A
+        new THREE.Vector3(-13, 23.0, 48),
+        new THREE.Vector3(24, 25.0, 12),
+        new THREE.Vector3(-13, 27.0, -26),
+        new THREE.Vector3(-48, 25.0, 8),
+        new THREE.Vector3(-34, 21.0, 46),
+        // Phase 4: Sweeping through Main Gate 77 Nguyen Hue and landing behind avatar
+        new THREE.Vector3(-13, 14.5, 112),
+        new THREE.Vector3(-12.8, 7.2, 95),
+        new THREE.Vector3(-12.6, 4.0, 89),
         new THREE.Vector3(endCamX, endCamY, endCamZ)
-    ]);
+    ], false, 'centripetal', 0.5);
 
     const introTargetCurve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-10, 4.5, -10),
-        new THREE.Vector3(-10.8, 3.8, 18),
-        new THREE.Vector3(-11.4, 3.1, 46),
-        new THREE.Vector3(-12.0, 2.5, 65),
-        new THREE.Vector3(-12.4, 2.25, 74.5),
+        // Phase 1: Focusing on central building from overhead
+        new THREE.Vector3(-13, 9, 10),
+        new THREE.Vector3(-13, 8, 14),
+        new THREE.Vector3(-13, 6, 18),
+        new THREE.Vector3(-13, 4.5, 22),
+        // Phase 2: Looking UP at facade, roof sign, flags, and sky from ground level
+        new THREE.Vector3(-13, 15.0, 10),
+        new THREE.Vector3(-13, 16.5, 10),
+        new THREE.Vector3(-13, 13.0, 10),
+        // Phase 3: Locked onto central building during 360-degree orbit
+        new THREE.Vector3(-13, 11.0, 10),
+        new THREE.Vector3(-13, 11.0, 10),
+        new THREE.Vector3(-13, 11.0, 10),
+        new THREE.Vector3(-13, 11.0, 10),
+        new THREE.Vector3(-13, 10.0, 12),
+        // Phase 4: Leading through main gate to student avatar
+        new THREE.Vector3(-12.5, 4.0, 72.5),
+        new THREE.Vector3(-12.5, 2.8, 75.5),
+        new THREE.Vector3(-12.5, 2.2, 78.0),
         new THREE.Vector3(CAMPUS_START_POSE.x, EXPLORER_LOOK_Y, CAMPUS_START_POSE.z)
-    ]);
+    ], false, 'centripetal', 0.5);
 
     const _introPos = new THREE.Vector3();
     const _introLook = new THREE.Vector3();
@@ -210,6 +247,10 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
     const prepareIntroStartFrame = () => {
         orbitControls.enabled = false;
         sampleIntroPose(0);
+        currentSceneTitle = INTRO_SCENES[0].title;
+        if (onCallbacks.onIntroSceneChange) {
+            onCallbacks.onIntroSceneChange(currentSceneTitle);
+        }
     };
 
     // Place camera cleanly at third-person arrival pose matching update() target height
@@ -236,7 +277,11 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         }
         state.introPlaying = true;
         state.introTime = 0;
+        currentSceneTitle = INTRO_SCENES[0].title;
         orbitControls.enabled = false;
+        if (onCallbacks.onIntroSceneChange) {
+            onCallbacks.onIntroSceneChange(currentSceneTitle);
+        }
     };
 
     const skipIntroFlycam = () => {
@@ -318,7 +363,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (isLeft(e)) keys.a = true;
         if (isRight(e)) keys.d = true;
 
-        if (state.introPlaying && (e.code === 'Space' || e.key === 'Escape')) {
+        if (state.introPlaying && (e.code === 'Space' || e.key === 'Escape' || isForward(e) || isBackward(e) || isLeft(e) || isRight(e))) {
             e.preventDefault();
             skipIntroFlycam();
             return;
@@ -406,13 +451,37 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         if (state.introPlaying) {
             state.introTime += Math.min(safeDt, 0.14);
             const linearT = Math.min(1.0, state.introTime / state.introDuration);
-            // Smooth C2 quintic ease-in-out converging to exact end pose at u=1.0
-            const eased = linearT * linearT * linearT * (linearT * (linearT * 6 - 15) + 10);
+            // Smooth ease-in at start, steady cruise across scenes, smooth ease-out into avatar landing
+            let eased;
+            if (linearT < 0.08) {
+                const p = linearT / 0.08;
+                eased = 0.08 * (p * p * (3 - 2 * p));
+            } else if (linearT > 0.92) {
+                const p = (linearT - 0.92) / 0.08;
+                eased = 0.92 + 0.08 * (p * p * (3 - 2 * p));
+            } else {
+                eased = linearT;
+            }
             const safeU = Math.max(0.0, Math.min(1.0, eased));
             introCamCurve.getPointAt(safeU, _introPos);
             introTargetCurve.getPointAt(safeU, _introLook);
             camera.position.copy(_introPos);
             camera.lookAt(_introLook);
+
+            // Synchronize dynamic scene title with HUD subtitle
+            for (let i = 0; i < INTRO_SCENES.length; i++) {
+                const sc = INTRO_SCENES[i];
+                if (safeU >= sc.startU && safeU < sc.endU) {
+                    if (sc.title !== currentSceneTitle) {
+                        currentSceneTitle = sc.title;
+                        if (onCallbacks.onIntroSceneChange) {
+                            onCallbacks.onIntroSceneChange(currentSceneTitle);
+                        }
+                    }
+                    break;
+                }
+            }
+
             if (linearT >= 1.0) {
                 skipIntroFlycam();
             }
