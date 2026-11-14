@@ -130,37 +130,39 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
 
     // Detonate aerial shell into a 3D spherical starburst of slender radiant rays
     const triggerDetonation = (bx, by, bz, palette) => {
-        const starCount = isLowTier ? 80 : 150;
-        const flashCount = isLowTier ? 12 : 24;
+        const starCount = isLowTier ? 90 : 160;
+        const flashCount = isLowTier ? 16 : 28;
 
-        // Instantaneous high-intensity center burst flash needle rays
+        // Instantaneous high-intensity center burst flash needle rays radiating uniformly
         for (let f = 0; f < flashCount; f++) {
             const st = obtainStreak();
             st.active = true;
             st.type = 'flash';
             st.x = bx; st.y = by; st.z = bz;
-            const theta = Math.random() * Math.PI * 2;
+            const theta = Math.random() * Math.PI * 2.0;
             const phi = Math.acos(2.0 * Math.random() - 1.0);
-            const flashLen = 1.8 + Math.random() * 2.2;
-            const dx = Math.sin(phi) * Math.cos(theta);
+            const flashLen = 1.4 + Math.random() * 1.8;
+            const sinPhi = Math.sin(phi);
+            const dx = sinPhi * Math.cos(theta);
             const dy = Math.cos(phi);
-            const dz = Math.sin(phi) * Math.sin(theta);
+            const dz = sinPhi * Math.sin(theta);
             st.tx = bx - dx * flashLen;
             st.ty = by - dy * flashLen;
             st.tz = bz - dz * flashLen;
-            st.vx = dx * 18.0;
-            st.vy = dy * 18.0;
-            st.vz = dz * 18.0;
+            st.vx = dx * 16.0;
+            st.vy = dy * 16.0;
+            st.vz = dz * 16.0;
             st.cr = 1.0; st.cg = 1.0; st.cb = 1.0;
             st.r = palette.main.r; st.g = palette.main.g; st.b = palette.main.b;
             st.life = 0;
             st.maxLife = 0.08 + Math.random() * 0.04;
-            st.trailTime = 0.08;
+            st.trailTime = 0.06;
             st.sparkleSpeed = 50;
         }
 
-        // Spherical distribution using golden spiral for uniform ray spacing
-        const baseSpeed = 10.5 + Math.random() * 4.5;
+        // Spherical distribution using Fibonacci lattice for true isotropic circular symmetry
+        const baseSpeed = 13.5 + Math.random() * 2.5;
+        const GOLDEN_ANGLE = Math.PI * (3.0 - Math.sqrt(5.0));
         for (let i = 0; i < starCount; i++) {
             const st = obtainStreak();
             st.active = true;
@@ -168,14 +170,21 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
             st.x = bx; st.y = by; st.z = bz;
             st.tx = bx; st.ty = by; st.tz = bz;
 
-            // Golden spiral coordinates over 3D unit sphere
-            const phi = Math.acos(1.0 - 2.0 * (i + 0.5) / starCount);
-            const theta = Math.PI * (1.0 + Math.sqrt(5.0)) * i;
-            const speed = baseSpeed * (0.84 + Math.random() * 0.32);
+            // Fibonacci spiral points evenly spaced across the entire sphere
+            const y = 1.0 - (i / (starCount - 1)) * 2.0;
+            const radiusAtY = Math.sqrt(Math.max(0.0, 1.0 - y * y));
+            const theta = GOLDEN_ANGLE * i;
+            const dirX = Math.cos(theta) * radiusAtY;
+            const dirY = y;
+            const dirZ = Math.sin(theta) * radiusAtY;
 
-            st.vx = Math.sin(phi) * Math.cos(theta) * speed;
-            st.vy = Math.cos(phi) * speed * 0.95 + 1.2;
-            st.vz = Math.sin(phi) * Math.sin(theta) * speed;
+            // Concentric spherical dual-layer: 75% outer shell, 25% inner core
+            const isCore = (i % 4 === 0);
+            const layerSpeed = isCore ? (baseSpeed * 0.55) : (baseSpeed * (0.95 + Math.random() * 0.10));
+
+            st.vx = dirX * layerSpeed;
+            st.vy = dirY * layerSpeed;
+            st.vz = dirZ * layerSpeed;
 
             // Color assignment based on chosen palette
             let colorSet;
@@ -189,9 +198,9 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
             st.r = colorSet.main.r; st.g = colorSet.main.g; st.b = colorSet.main.b;
 
             st.life = 0;
-            st.maxLife = 1.45 + Math.random() * 0.65;
-            st.trailTime = 0.12 + Math.random() * 0.04;
-            st.sparkleSpeed = 32.0 + Math.random() * 18.0;
+            st.maxLife = 1.35 + Math.random() * 0.45;
+            st.trailTime = 0.08 + Math.random() * 0.03;
+            st.sparkleSpeed = 28.0 + Math.random() * 16.0;
         }
     };
 
@@ -275,9 +284,9 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
             }
         }
 
-        const GRAVITY = 6.8;
+        const GRAVITY = 2.8;
         const ROCKET_GRAVITY = 7.5;
-        const DRAG = 0.962;
+        const STAR_DRAG = 0.978;
 
         for (let i = 0; i < MAX_STREAKS; i++) {
             const s = streaks[i];
@@ -378,17 +387,20 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
                 }
 
             } else if (s.type === 'star') {
-                s.vx *= DRAG;
-                s.vz *= DRAG;
+                // Isotropic air drag applied equally to all axes preserving circular roundness
+                const dragFactor = Math.pow(STAR_DRAG, safeDt * 60.0);
+                s.vx *= dragFactor;
+                s.vy *= dragFactor;
+                s.vz *= dragFactor;
                 s.vy -= GRAVITY * safeDt;
 
                 s.x += s.vx * safeDt;
                 s.y += s.vy * safeDt;
                 s.z += s.vz * safeDt;
 
-                // Tapered streak tail lagging behind trajectory vector
-                const speed = Math.sqrt(s.vx * s.vx + s.vy * s.vy + s.vz * s.vz);
-                const dynTrailTime = Math.min(s.trailTime, 0.04 + speed * 0.007);
+                // Tapered streak tail radiating outward along radial velocity vector
+                const speed = Math.hypot(s.vx, s.vy, s.vz);
+                const dynTrailTime = Math.min(s.trailTime, 0.022 + speed * 0.005);
                 s.tx = s.x - s.vx * dynTrailTime;
                 s.ty = s.y - s.vy * dynTrailTime;
                 s.tz = s.z - s.vz * dynTrailTime;
