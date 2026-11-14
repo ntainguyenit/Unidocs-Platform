@@ -5,19 +5,19 @@ import * as THREE from 'three';
 function createJetAircraftModel() {
     const root = new THREE.Group();
 
-    // Curved fuselage profile revolved around central axis for smooth aerodynamic contour
+    // Curved fuselage profile revolved around central axis with nose at +Z and tail at -Z
     const fuselageProfile = [
-        new THREE.Vector2(0.0, -10.0),
-        new THREE.Vector2(0.34, -9.4),
-        new THREE.Vector2(0.70, -8.0),
-        new THREE.Vector2(0.92, -6.5),
+        new THREE.Vector2(0.0, -10.5),
+        new THREE.Vector2(0.22, -10.0),
+        new THREE.Vector2(0.58, -8.5),
+        new THREE.Vector2(0.86, -6.5),
         new THREE.Vector2(0.98, -2.5),
-        new THREE.Vector2(1.0, 2.0),
-        new THREE.Vector2(0.96, 5.8),
-        new THREE.Vector2(0.80, 8.4),
-        new THREE.Vector2(0.44, 10.4),
-        new THREE.Vector2(0.12, 11.2),
-        new THREE.Vector2(0.0, 11.3)
+        new THREE.Vector2(1.0, 1.8),
+        new THREE.Vector2(0.96, 5.5),
+        new THREE.Vector2(0.80, 7.8),
+        new THREE.Vector2(0.48, 9.6),
+        new THREE.Vector2(0.16, 10.3),
+        new THREE.Vector2(0.0, 10.5)
     ];
     const fuselageGeom = new THREE.LatheGeometry(fuselageProfile, 16);
     fuselageGeom.rotateX(Math.PI * 0.5);
@@ -32,10 +32,10 @@ function createJetAircraftModel() {
     fuselageMesh.castShadow = false;
     root.add(fuselageMesh);
 
-    // Streamlined curved cockpit visor glass
+    // Streamlined curved cockpit visor glass near the forward nose (+Z)
     const visorGeom = new THREE.CylinderGeometry(0.72, 0.90, 1.4, 14, 1, false, Math.PI * 0.72, Math.PI * 0.56);
     visorGeom.rotateZ(Math.PI * 0.5);
-    visorGeom.translate(0, 0.48, -7.2);
+    visorGeom.translate(0, 0.48, 7.2);
     const visorMat = new THREE.MeshStandardMaterial({
         color: 0x0f172a,
         roughness: 0.08,
@@ -44,12 +44,12 @@ function createJetAircraftModel() {
     const visorMesh = new THREE.Mesh(visorGeom, visorMat);
     root.add(visorMesh);
 
-    // Aerodynamic swept wings with beveled edges and upward curved winglets
+    // Aerodynamic swept wings with beveled edges angled back towards the tail (-Z)
     const wingShape = new THREE.Shape();
-    wingShape.moveTo(-0.95, -0.6);
-    wingShape.lineTo(-9.4, 4.4);
-    wingShape.lineTo(-9.2, 5.5);
-    wingShape.lineTo(-0.95, 3.8);
+    wingShape.moveTo(-0.95, 1.8);
+    wingShape.lineTo(-9.4, -3.3);
+    wingShape.lineTo(-9.2, -4.4);
+    wingShape.lineTo(-0.95, -1.6);
     wingShape.closePath();
 
     const wingExtrudeSettings = {
@@ -67,12 +67,12 @@ function createJetAircraftModel() {
     leftWingMesh.position.set(0, -0.12, 0);
     root.add(leftWingMesh);
 
-    // Symmetrical right wing
+    // Symmetrical right swept wing
     const rightWingShape = new THREE.Shape();
-    rightWingShape.moveTo(0.95, -0.6);
-    rightWingShape.lineTo(9.4, 4.4);
-    rightWingShape.lineTo(9.2, 5.5);
-    rightWingShape.lineTo(0.95, 3.8);
+    rightWingShape.moveTo(0.95, 1.8);
+    rightWingShape.lineTo(9.4, -3.3);
+    rightWingShape.lineTo(9.2, -4.4);
+    rightWingShape.lineTo(0.95, -1.6);
     rightWingShape.closePath();
 
     const rightWingGeom = new THREE.ExtrudeGeometry(rightWingShape, wingExtrudeSettings);
@@ -86,16 +86,16 @@ function createJetAircraftModel() {
     const wingletGeom = new THREE.BoxGeometry(0.12, 0.85, 1.1);
     wingletGeom.translate(0, 0.42, 0);
     const leftWinglet = new THREE.Mesh(wingletGeom, aviationWhiteMat);
-    leftWinglet.position.set(-9.35, -0.05, 4.8);
+    leftWinglet.position.set(-9.35, -0.05, -3.8);
     leftWinglet.rotation.z = -0.18;
     root.add(leftWinglet);
 
     const rightWinglet = new THREE.Mesh(wingletGeom, aviationWhiteMat);
-    rightWinglet.position.set(9.35, -0.05, 4.8);
+    rightWinglet.position.set(9.35, -0.05, -3.8);
     rightWinglet.rotation.z = 0.18;
     root.add(rightWinglet);
 
-    // Twin turbofan jet engines mounted on wing pylons
+    // Twin turbofan jet engines mounted on wing pylons with rear exhausts facing -Z
     const engineNacelleGeom = new THREE.CylinderGeometry(0.46, 0.42, 2.6, 14);
     engineNacelleGeom.rotateX(Math.PI * 0.5);
     engineNacelleGeom.computeVertexNormals();
@@ -108,21 +108,21 @@ function createJetAircraftModel() {
         const engGroup = new THREE.Group();
         const nacelle = new THREE.Mesh(engineNacelleGeom, aviationWhiteMat);
         const intake = new THREE.Mesh(engineIntakeGeom, darkEngineMat);
-        intake.position.set(0, 0, -1.1);
+        intake.position.set(0, 0, 1.1);
         engGroup.add(nacelle);
         engGroup.add(intake);
-        engGroup.position.set(x, -0.62, 1.4);
+        engGroup.position.set(x, -0.62, -0.8);
         return engGroup;
     };
     root.add(createTurbofan(-3.4));
     root.add(createTurbofan(3.4));
 
-    // Vertical swept tail fin stabilizer
+    // Vertical swept tail fin stabilizer at the rear fuselage
     const finShape = new THREE.Shape();
-    finShape.moveTo(0, 8.4);
-    finShape.lineTo(0, 10.8);
-    finShape.lineTo(3.4, 11.2);
-    finShape.lineTo(3.2, 9.6);
+    finShape.moveTo(0, -6.8);
+    finShape.lineTo(0, -9.8);
+    finShape.lineTo(3.4, -10.2);
+    finShape.lineTo(3.2, -8.6);
     finShape.closePath();
     const finGeom = new THREE.ExtrudeGeometry(finShape, { depth: 0.14, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03 });
     finGeom.rotateY(-Math.PI * 0.5);
@@ -131,12 +131,12 @@ function createJetAircraftModel() {
     finMesh.position.set(0, 0.72, 0);
     root.add(finMesh);
 
-    // Horizontal tail stabilizers
+    // Horizontal tail stabilizers at the rear fuselage
     const hTailShape = new THREE.Shape();
-    hTailShape.moveTo(0, 9.2);
-    hTailShape.lineTo(-3.4, 11.0);
-    hTailShape.lineTo(-3.2, 11.6);
-    hTailShape.lineTo(0, 10.8);
+    hTailShape.moveTo(0, -8.2);
+    hTailShape.lineTo(-3.4, -10.4);
+    hTailShape.lineTo(-3.2, -11.0);
+    hTailShape.lineTo(0, -9.8);
     hTailShape.closePath();
     const leftHTailGeom = new THREE.ExtrudeGeometry(hTailShape, { depth: 0.10, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02 });
     leftHTailGeom.rotateX(Math.PI * 0.5);
@@ -146,10 +146,10 @@ function createJetAircraftModel() {
     root.add(leftHTail);
 
     const hTailRightShape = new THREE.Shape();
-    hTailRightShape.moveTo(0, 9.2);
-    hTailRightShape.lineTo(3.4, 11.0);
-    hTailRightShape.lineTo(3.2, 11.6);
-    hTailRightShape.lineTo(0, 10.8);
+    hTailRightShape.moveTo(0, -8.2);
+    hTailRightShape.lineTo(3.4, -10.4);
+    hTailRightShape.lineTo(3.2, -11.0);
+    hTailRightShape.lineTo(0, -9.8);
     hTailRightShape.closePath();
     const rightHTailGeom = new THREE.ExtrudeGeometry(hTailRightShape, { depth: 0.10, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02 });
     rightHTailGeom.rotateX(Math.PI * 0.5);
@@ -161,15 +161,15 @@ function createJetAircraftModel() {
     // Navigation and anti-collision strobe beacon lights
     const navLightGeom = new THREE.SphereGeometry(0.12, 6, 6);
     const redLight = new THREE.Mesh(navLightGeom, new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-    redLight.position.set(-9.4, 0.85, 4.8);
+    redLight.position.set(-9.4, 0.85, -3.8);
     root.add(redLight);
 
     const greenLight = new THREE.Mesh(navLightGeom, new THREE.MeshBasicMaterial({ color: 0x22c55e }));
-    greenLight.position.set(9.4, 0.85, 4.8);
+    greenLight.position.set(9.4, 0.85, -3.8);
     root.add(greenLight);
 
     const strobeLight = new THREE.Mesh(navLightGeom, new THREE.MeshBasicMaterial({ color: 0xffffff }));
-    strobeLight.position.set(0, 4.2, 10.8);
+    strobeLight.position.set(0, 4.2, -9.8);
     root.add(strobeLight);
 
     return { root, strobeLight };
@@ -258,12 +258,18 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
     const contrail = createContrailRibbonMesh(SEGMENT_COUNT);
     scene.add(contrail.mesh);
 
-    // Flight paths crossing diagonally across campus sky at high altitude
+    // Diverse low-altitude flight paths crossing directly above campus just above flocking birds
     const FLIGHT_PATHS = [
-        { start: new THREE.Vector3(-280, 115, -170), end: new THREE.Vector3(280, 115, 170) },
-        { start: new THREE.Vector3(-260, 122, 180), end: new THREE.Vector3(260, 122, -180) },
-        { start: new THREE.Vector3(280, 110, -140), end: new THREE.Vector3(-280, 110, 140) },
-        { start: new THREE.Vector3(-220, 118, -240), end: new THREE.Vector3(220, 118, 240) }
+        // Path 1: Southwest to Northeast diagonal crossing the central courtyard
+        { start: new THREE.Vector3(-190, 52, 140), end: new THREE.Vector3(190, 52, -140) },
+        // Path 2: South to North directly above the main 77 Nguyen Hue gate and central building
+        { start: new THREE.Vector3(-13, 56, 180), end: new THREE.Vector3(-13, 56, -180) },
+        // Path 3: Southeast to Northwest diagonal across the campus sky
+        { start: new THREE.Vector3(180, 54, 130), end: new THREE.Vector3(-180, 54, -130) },
+        // Path 4: West to East lateral flyover over the main plaza and courtyard
+        { start: new THREE.Vector3(-190, 50, 15), end: new THREE.Vector3(190, 50, 15) },
+        // Path 5: Northeast to Southwest return diagonal
+        { start: new THREE.Vector3(170, 53, -140), end: new THREE.Vector3(-170, 53, 140) }
     ];
 
     let pathIdx = 0;
@@ -271,15 +277,15 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
     let flightSpeed = 22.0;
     let pathLength = 1.0;
     let isActive = false;
-    let spawnTimer = 4.0;
+    let spawnTimer = 0.5;
     let sampleTimer = 0;
 
     const currentStart = new THREE.Vector3();
     const currentEnd = new THREE.Vector3();
     const currentDir = new THREE.Vector3();
     const curPos = new THREE.Vector3();
-    const leftExhaustLocal = new THREE.Vector3(-3.4, -0.62, 2.4);
-    const rightExhaustLocal = new THREE.Vector3(3.4, -0.62, 2.4);
+    const leftExhaustLocal = new THREE.Vector3(-3.4, -0.62, -2.1);
+    const rightExhaustLocal = new THREE.Vector3(3.4, -0.62, -2.1);
     const leftWorld = new THREE.Vector3();
     const rightWorld = new THREE.Vector3();
     const normal = new THREE.Vector3();
@@ -325,7 +331,7 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
             if (flightProgress >= 1.0) {
                 isActive = false;
                 aircraft.visible = false;
-                spawnTimer = 16.0 + Math.random() * 18.0;
+                spawnTimer = 1.2 + Math.random() * 1.5;
             } else {
                 curPos.lerpVectors(currentStart, currentEnd, flightProgress);
                 aircraft.position.copy(curPos);
