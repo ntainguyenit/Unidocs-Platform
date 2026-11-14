@@ -447,7 +447,15 @@ export const TREE_PLACEMENTS = [
     { x: 16.0, z: 75.5, scale: 1.14, kind: 'canopy' },
     { x: 38.0, z: 75.5, scale: 1.10, kind: 'canopy' },
     { x: 60.0, z: 75.5, scale: 1.12, kind: 'canopy' },
-    { x: -108.5, z: 48.0, scale: 1.12, kind: 'canopy' },
-    { x: -109.5, z: 16.0, scale: 1.14, kind: 'canopy' },
-    { x: -110.5, z: -15.0, scale: 1.10, kind: 'canopy' }
+    { x: -106.1, z: 48.0, scale: 1.12, kind: 'canopy' },
+    { x: -107.4, z: 16.0, scale: 1.14, kind: 'canopy' },
+    { x: -108.6, z: -15.0, scale: 1.10, kind: 'canopy' },
+
+    // West sidewalk along Ly Thuong Kiet synchronized with East sidewalk canopy trees
+    { x: -127.0, z: -14.0, scale: 1.10, kind: 'canopy' },
+    { x: -127.0, z: 0.0, scale: 1.10, kind: 'canopy' },
+    { x: -127.0, z: 14.0, scale: 1.10, kind: 'canopy' },
+    { x: -127.0, z: 28.0, scale: 1.10, kind: 'canopy' },
+    { x: -127.0, z: 42.0, scale: 1.10, kind: 'canopy' },
+    { x: -127.0, z: 54.0, scale: 1.10, kind: 'canopy' }
 ];

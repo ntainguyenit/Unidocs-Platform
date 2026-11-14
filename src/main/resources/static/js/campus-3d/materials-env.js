@@ -1098,22 +1098,8 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     addStreetLabels(roadDefs.ltk, 'ĐƯỜNG LÝ THƯỜNG KIỆT', [-28, 10]);
     addStreetLabels(roadDefs.dd, 'ĐƯỜNG ĐỐNG ĐA', [-54, 34]);
 
-    // Flush corner sidewalk aprons and campus-perimeter sidewalks strictly outside outer road curbstones
+    // Flush campus-perimeter sidewalks strictly outside outer road curbstones
     const sidewalkGeoms = [];
-    const pushCornerSidewalkApron = (r1, v1Out, leg1, r2, v2Out, leg2) => {
-        const c = lineIntersectPt(r1, v1Out, r2, v2Out);
-        const p1 = uvToWorld(r1, c.u1 + leg1, v1Out);
-        const p2 = uvToWorld(r2, c.u2 + leg2, v2Out);
-        const p3 = [p1[0] + p2[0] - c.x, p1[1] + p2[1] - c.z];
-        sidewalkGeoms.push(buildGroundPoly([[c.x, c.z], p1, p3, p2], 0.005, 1.25));
-    };
-
-    pushCornerSidewalkApron(roadDefs.nh, -nhHalfW, -8.5, roadDefs.ltk, -ltkHalfW, +8.5);
-    pushCornerSidewalkApron(roadDefs.nh, +nhHalfW, -8.5, roadDefs.ltk, -ltkHalfW, -8.5);
-    pushCornerSidewalkApron(roadDefs.nh, +nhHalfW, +8.5, roadDefs.ltk, +ltkHalfW, -8.5);
-    pushCornerSidewalkApron(roadDefs.dd, +ddHalfW, -8.5, roadDefs.ltk, -ltkHalfW, -8.5);
-    pushCornerSidewalkApron(roadDefs.dd, -ddHalfW, -8.5, roadDefs.ltk, -ltkHalfW, +9.0);
-    pushCornerSidewalkApron(roadDefs.dd, -ddHalfW, +8.5, roadDefs.ltk, +ltkHalfW, +8.5);
 
     const nhNePt = lineIntersectPt(roadDefs.nh, -nhHalfW, roadDefs.ltk, +ltkHalfW);
     const ddSePt = lineIntersectPt(roadDefs.dd, +ddHalfW, roadDefs.ltk, +ltkHalfW);
@@ -1141,17 +1127,26 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         [ddSeCampus.x, ddSeCampus.z]
     ], 0.005, 1.25));
 
-    // Outer sidewalk along West side of Ly Thuong Kiet opposite campus matching Photo 2 & 3
-    const ltkOuterSW = uvToWorld(roadDefs.ltk, roadDefs.ltk.uMin, -ltkHalfW);
-    const ltkOuterNW = uvToWorld(roadDefs.ltk, roadDefs.ltk.uMax, -ltkHalfW);
-    const ltkOuterSW_far = uvToWorld(roadDefs.ltk, roadDefs.ltk.uMin, -ltkHalfW - 3.8);
-    const ltkOuterNW_far = uvToWorld(roadDefs.ltk, roadDefs.ltk.uMax, -ltkHalfW - 3.8);
-    sidewalkGeoms.push(buildGroundPoly([
-        [ltkOuterSW[0], ltkOuterSW[1]],
-        [ltkOuterNW[0], ltkOuterNW[1]],
-        [ltkOuterNW_far[0], ltkOuterNW_far[1]],
-        [ltkOuterSW_far[0], ltkOuterSW_far[1]]
-    ], 0.005, 1.25));
+    // Outer sidewalk along West side of Ly Thuong Kiet split cleanly outside road carriageways
+    const pushLtkOuterSegment = (uStart, uEnd) => {
+        const swNearStart = uvToWorld(roadDefs.ltk, uStart, -ltkHalfW);
+        const swNearEnd = uvToWorld(roadDefs.ltk, uEnd, -ltkHalfW);
+        const swFarEnd = uvToWorld(roadDefs.ltk, uEnd, -ltkHalfW - 4.5);
+        const swFarStart = uvToWorld(roadDefs.ltk, uStart, -ltkHalfW - 4.5);
+        sidewalkGeoms.push(buildGroundPoly([
+            [swNearStart[0], swNearStart[1]],
+            [swNearEnd[0], swNearEnd[1]],
+            [swFarEnd[0], swFarEnd[1]],
+            [swFarStart[0], swFarStart[1]]
+        ], 0.005, 1.25));
+    };
+
+    // Segment 1: south of Nguyen Hue junction
+    pushLtkOuterSegment(roadDefs.ltk.uMin, ltkSwNh.outer.u1);
+    // Segment 2: between Nguyen Hue and Dong Da junctions
+    pushLtkOuterSegment(ltkNwNh.outer.u1, ltkSwDd.outer.u1);
+    // Segment 3: north of Dong Da junction
+    pushLtkOuterSegment(ltkNwDd.outer.u1, roadDefs.ltk.uMax);
 
     const { colorTex: sidewalkColorTex, bumpTex: sidewalkBumpTex } = createTerrazzoSidewalkTextures(maxAniso);
     const sidewalkMesh = new THREE.Mesh(
@@ -2718,15 +2713,6 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     glCanopyMesh.position.set(glD * 0.5 + 1.75, 4.2, 0);
     glGroup.add(glCanopyMesh);
 
-    // Sidewalk cafe terrace in front of Goldland Plaza
-    const cafeTerraceGeom = new THREE.PlaneGeometry(9.0, glW + 2.0);
-    const cafeTerraceMat = new THREE.MeshStandardMaterial({ color: 0xcfd6df, roughness: 0.75 });
-    const cafeTerraceMesh = new THREE.Mesh(cafeTerraceGeom, cafeTerraceMat);
-    cafeTerraceMesh.rotation.x = -Math.PI * 0.5;
-    cafeTerraceMesh.position.set(glD * 0.5 + 4.5, 0.012, 0);
-    cafeTerraceMesh.receiveShadow = true;
-    glGroup.add(cafeTerraceMesh);
-
     // 6 Outdoor cafe umbrellas (Highlands Coffee) in rich dark espresso brown (Photos 1 & 3)
     const umbrellaMat = new THREE.MeshStandardMaterial({ color: 0x582f1e, roughness: 0.72 });
     const darkPoleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
@@ -3040,8 +3026,8 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
 
     // 3. VIETTEL OFFICE BUILDING (Photos 3, 4)
     const vtGroup = new THREE.Group();
-    const vtW = 18.0;
-    const vtD = 16.0;
+    const vtW = 16.0;
+    const vtD = 15.0;
     const vtH = 28.0;
 
     // Procedural Viettel facade texture: 9 stories of cyan-blue reflective glass ribbon windows
@@ -3114,42 +3100,104 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     vLogoMesh.position.set(0, vtH + 1.1, vtD * 0.5 + 0.25);
     vtGroup.add(vLogoMesh);
 
-    vtGroup.position.set(-108.0, 0, -98.0);
+    // Position Viettel Building set back behind the sidewalk along Ly Thuong Kiet
+    vtGroup.position.set(-96.0, 0, -104.0);
+    vtGroup.rotation.y = -0.04;
     ensembleGroup.add(vtGroup);
 
-    // 4. MELIA VINPEARL HUE SKYSCRAPER 33 TẦNG (Photos 1, 4, 5)
+    // 4. MELIA VINPEARL HUE SKYSCRAPER 33 TẦNG (Photos 1, 2)
     const vpGroup = new THREE.Group();
-    const vpW = 24.0;
-    const vpD = 20.0;
-    const vpH = 88.0;
 
-    // Procedural dark sapphire curtain wall texture for Melia Vinpearl
+    // Vincom Plaza 5-storey retail podium at base (Photo 2)
+    const vpPodiumW = 42.0;
+    const vpPodiumD = 36.0;
+    const vpPodiumH = 18.0;
+
+    // Procedural light limestone texture with entrance portal for Vincom Plaza podium
+    const vpPodiumCanvas = document.createElement('canvas');
+    vpPodiumCanvas.width = 512;
+    vpPodiumCanvas.height = 256;
+    const vpPctx = vpPodiumCanvas.getContext('2d');
+    vpPctx.fillStyle = '#f1f5f9';
+    vpPctx.fillRect(0, 0, 512, 256);
+
+    // Warm limestone stone joint lines
+    vpPctx.strokeStyle = '#cbd5e1';
+    vpPctx.lineWidth = 2;
+    for (let py = 32; py < 256; py += 32) {
+        vpPctx.beginPath();
+        vpPctx.moveTo(0, py);
+        vpPctx.lineTo(512, py);
+        vpPctx.stroke();
+    }
+    // Vertical facade fins
+    for (let px = 24; px < 512; px += 32) {
+        vpPctx.beginPath();
+        vpPctx.moveTo(px, 0);
+        vpPctx.lineTo(px, 256);
+        vpPctx.stroke();
+    }
+    // Ground level grand glass entrance
+    vpPctx.fillStyle = '#0369a1';
+    vpPctx.fillRect(160, 160, 192, 96);
+    // Gold lettering "VINCOM PLAZA"
+    vpPctx.fillStyle = '#d97706';
+    vpPctx.font = 'bold 22px sans-serif';
+    vpPctx.textAlign = 'center';
+    vpPctx.fillText('VINCOM PLAZA', 256, 145);
+
+    const vpPodiumTex = new THREE.CanvasTexture(vpPodiumCanvas);
+    vpPodiumTex.colorSpace = THREE.SRGBColorSpace;
+    vpPodiumTex.anisotropy = Math.min(8, maxAniso);
+    const vpPodiumMat = new THREE.MeshStandardMaterial({
+        map: vpPodiumTex,
+        roughness: 0.65,
+        metalness: 0.15
+    });
+
+    const vpPodiumMesh = new THREE.Mesh(new THREE.BoxGeometry(vpPodiumW, vpPodiumH, vpPodiumD), vpPodiumMat);
+    vpPodiumMesh.position.set(0, vpPodiumH * 0.5, 0);
+    vpPodiumMesh.castShadow = true;
+    vpPodiumMesh.receiveShadow = true;
+    vpGroup.add(vpPodiumMesh);
+
+    // Main 33-storey skyscraper tower with glossy vibrant blue glass curtain wall (Photo 2)
+    const vpTowerW = 26.0;
+    const vpTowerD = 22.0;
+    const vpTowerH = 96.0;
+
+    // Procedural glossy blue glass curtain wall texture
     const vpCanvas = document.createElement('canvas');
     vpCanvas.width = 512;
     vpCanvas.height = 1024;
     const vpCtx = vpCanvas.getContext('2d');
 
-    vpCtx.fillStyle = '#090e17';
+    vpCtx.fillStyle = '#0284c7';
     vpCtx.fillRect(0, 0, 512, 1024);
 
-    // 33 horizontal floors of dark reflective glass
+    // 33 distinct horizontal floors with vibrant blue gradient and silver mullions
     const vpFloors = 33;
     const vpFloorH = 1024 / vpFloors;
     for (let f = 0; f < vpFloors; f++) {
         const fy = f * vpFloorH;
-        const vpGlassGrad = vpCtx.createLinearGradient(0, fy, 0, fy + vpFloorH);
-        vpGlassGrad.addColorStop(0, '#0f223a');
-        vpGlassGrad.addColorStop(0.5, '#132f50');
-        vpGlassGrad.addColorStop(1, '#091524');
-        vpCtx.fillStyle = vpGlassGrad;
-        vpCtx.fillRect(4, fy + 3, 504, vpFloorH - 5);
+        const vGlassGrad = vpCtx.createLinearGradient(0, fy, 0, fy + vpFloorH);
+        vGlassGrad.addColorStop(0.0, '#38bdf8');
+        vGlassGrad.addColorStop(0.3, '#0ea5e9');
+        vGlassGrad.addColorStop(0.7, '#0284c7');
+        vGlassGrad.addColorStop(1.0, '#0369a1');
+        vpCtx.fillStyle = vGlassGrad;
+        vpCtx.fillRect(3, fy + 2, 506, vpFloorH - 4);
 
-        // White vertical accent mullions
-        vpCtx.strokeStyle = 'rgba(255, 255, 255, 0.40)';
-        vpCtx.lineWidth = 1.6;
+        // Horizontal spandrel glass divider
+        vpCtx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        vpCtx.fillRect(0, fy, 512, 2.5);
+
+        // Vertical silver reflective mullions
+        vpCtx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+        vpCtx.lineWidth = 1.8;
         for (let m = 16; m < 512; m += 24) {
             vpCtx.beginPath();
-            vpCtx.moveTo(m, fy + 3);
+            vpCtx.moveTo(m, fy + 2);
             vpCtx.lineTo(m, fy + vpFloorH - 2);
             vpCtx.stroke();
         }
@@ -3161,37 +3209,68 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
 
     const vpMat = new THREE.MeshStandardMaterial({
         map: vpTex,
-        roughness: 0.15,
-        metalness: 0.85
+        roughness: 0.08,
+        metalness: 0.90
     });
 
-    // Lower tower shaft (height = 76m)
-    const vpShaftH = 76.0;
-    const vpBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(vpW, vpShaftH, vpD), vpMat);
-    vpBodyMesh.position.set(0, vpShaftH * 0.5, 0);
-    vpBodyMesh.castShadow = true;
-    vpGroup.add(vpBodyMesh);
+    const vpTowerMesh = new THREE.Mesh(new THREE.BoxGeometry(vpTowerW, vpTowerH, vpTowerD), vpMat);
+    vpTowerMesh.position.set(0, vpPodiumH + vpTowerH * 0.5, 0);
+    vpTowerMesh.castShadow = true;
+    vpTowerMesh.receiveShadow = true;
+    vpGroup.add(vpTowerMesh);
 
-    // Signature 45-degree slanted cutaway glass crown (Photos 1, 4, 5)
+    // Iconic chevron triangular notch crown on top 4 floors (Photo 2)
     const crownShape = new THREE.Shape();
-    crownShape.moveTo(-vpW * 0.5, 0);
-    crownShape.lineTo(vpW * 0.5, 0);
-    crownShape.lineTo(vpW * 0.5, 12.0);
-    crownShape.lineTo(-vpW * 0.5, 2.0);
+    crownShape.moveTo(-vpTowerW * 0.5, 0);
+    crownShape.lineTo(vpTowerW * 0.5, 0);
+    crownShape.lineTo(vpTowerW * 0.5, 12.0);
+    crownShape.lineTo(0, 4.0);
+    crownShape.lineTo(-vpTowerW * 0.5, 12.0);
     crownShape.closePath();
 
-    const crownGeom = new THREE.ExtrudeGeometry(crownShape, { depth: vpD, bevelEnabled: false });
-    crownGeom.translate(0, vpShaftH, -vpD * 0.5);
-    const crownMesh = new THREE.Mesh(crownGeom, vpMat);
+    const crownGeom = new THREE.ExtrudeGeometry(crownShape, { depth: vpTowerD, bevelEnabled: false });
+    crownGeom.translate(0, vpPodiumH + vpTowerH, -vpTowerD * 0.5);
+    const crownMat = new THREE.MeshStandardMaterial({
+        color: 0x075985,
+        roughness: 0.08,
+        metalness: 0.92
+    });
+    const crownMesh = new THREE.Mesh(crownGeom, crownMat);
     vpGroup.add(crownMesh);
 
-    // Red aviation warning beacon on the pinnacle
+    // Illuminated golden "MELIA VINPEARL" logo sign on crown parapet
+    const vpLogoCanvas = document.createElement('canvas');
+    vpLogoCanvas.width = 512;
+    vpLogoCanvas.height = 128;
+    const vpLctx = vpLogoCanvas.getContext('2d');
+    vpLctx.fillStyle = '#0369a1';
+    vpLctx.fillRect(0, 0, 512, 128);
+    vpLctx.fillStyle = '#fef08a';
+    vpLctx.font = 'bold 44px sans-serif';
+    vpLctx.textAlign = 'center';
+    vpLctx.textBaseline = 'middle';
+    vpLctx.fillText('MELIÁ VINPEARL', 256, 64);
+    const vpLogoTex = new THREE.CanvasTexture(vpLogoCanvas);
+    vpLogoTex.colorSpace = THREE.SRGBColorSpace;
+    const vpLogoMat = new THREE.MeshStandardMaterial({
+        map: vpLogoTex,
+        roughness: 0.25,
+        metalness: 0.5,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.25
+    });
+    const vpLogoMesh = new THREE.Mesh(new THREE.PlaneGeometry(18.0, 4.5), vpLogoMat);
+    vpLogoMesh.position.set(0, vpPodiumH + vpTowerH + 9.0, vpTowerD * 0.5 + 0.1);
+    vpGroup.add(vpLogoMesh);
+
+    // Red flashing aviation warning beacon on the pinnacle
     const vpBeaconMesh = new THREE.Mesh(beaconSphereGeom, beaconMat);
-    vpBeaconMesh.position.set(vpW * 0.5 - 1.0, vpShaftH + 12.5, 0);
+    vpBeaconMesh.position.set(0, vpPodiumH + vpTowerH + 13.0, 0);
     vpGroup.add(vpBeaconMesh);
 
-    // Position Melia Vinpearl Hue in the iconic background skyline
-    vpGroup.position.set(-75.0, 0, -195.0);
+    // Position Melia Vinpearl Hue at the center axis of the terminus of Dong Da street
+    vpGroup.position.set(149.7, 0, -162.3);
+    vpGroup.rotation.y = 2.6955;
     ensembleGroup.add(vpGroup);
 
     // 5. Raised median island on Dong Da street and double streetlamp poles with red festive banners (Photos 4, 5)
@@ -3926,13 +4005,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     curbBarMesh.position.set(-124.6, 0.12, 19.0);
     ltkWestSidewalkGroup.add(curbBarMesh);
 
-    // Mature urban shade trees with authentic wooden tripod/pyramid support braces (Photos 1, 3)
-    const treeTrunkGeom = new THREE.CylinderGeometry(0.20, 0.28, 4.6, 8);
-    const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x452311, roughness: 0.92 });
-    const treeFoliageGeom = new THREE.SphereGeometry(2.4, 8, 6);
-    const treeFoliageMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.82 });
-
-    // Wooden tree brace stakes for urban storm protection (Photos 1, 3)
+    // Wooden tree brace stakes for urban storm protection around the 6 synchronized trees (Photos 1, 3)
     const stakeGeom = new THREE.CylinderGeometry(0.035, 0.035, 2.4, 6);
     const collarGeom = new THREE.BoxGeometry(0.04, 0.08, 0.85);
     const woodBraceMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.85 });
@@ -3940,15 +4013,6 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const treeZPositions = [-14.0, 0.0, 14.0, 28.0, 42.0, 54.0];
     treeZPositions.forEach((tz) => {
         const trGroup = new THREE.Group();
-        const trunk = new THREE.Mesh(treeTrunkGeom, treeTrunkMat);
-        trunk.position.set(0, 2.3, 0);
-        trGroup.add(trunk);
-
-        const crown = new THREE.Mesh(treeFoliageGeom, treeFoliageMat);
-        crown.position.set(0, 5.2, 0);
-        crown.scale.set(1.2, 0.95, 1.2);
-        crown.castShadow = true;
-        trGroup.add(crown);
 
         // 4 Wooden support stakes angled around the trunk
         for (let s = 0; s < 4; s++) {
