@@ -202,8 +202,8 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             lookCurve: new THREE.CatmullRomCurve3([
                 new THREE.Vector3(-78, 6.5, 45),
                 new THREE.Vector3(-72, 7.0, 25),
-                new THREE.Vector3(-65, 8.0, 5),
-                new THREE.Vector3(-55, 9.0, -15)
+                new THREE.Vector3(-68, 7.5, 5),
+                new THREE.Vector3(-78, 8.0, -25.5)
             ], false, 'centripetal', 0.5)
         },
         {

@@ -496,6 +496,192 @@ function createMergedGroundQuads(scene, quads, material, receiveShadow = false) 
     return mesh;
 }
 
+// Create authentic Vietnamese fan-pattern Terrazzo sidewalk tile texture (Gạch Terrazzo rẻ quạt 400x400)
+function createTerrazzoSidewalkTextures(maxAnisotropy = 4) {
+    const size = 512;
+    const c = document.createElement('canvas');
+    c.width = size;
+    c.height = size;
+    const ctx = c.getContext('2d');
+
+    const tileSize = 256;
+    const grout = 4;
+
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(0, 0, size, size);
+
+    const tileShades = ['#cbd5e1', '#c2ccd6', '#d1d8e0', '#c8d1da'];
+
+    for (let ty = 0; ty < 2; ty++) {
+        for (let tx = 0; tx < 2; tx++) {
+            const ox = tx * tileSize;
+            const oy = ty * tileSize;
+            const w = tileSize - grout;
+            const h = tileSize - grout;
+
+            const shadeIdx = (ty * 2 + tx) % tileShades.length;
+            ctx.fillStyle = tileShades[shadeIdx];
+            ctx.fillRect(ox + grout, oy + grout, w, h);
+
+            // Stippled granite aggregate specks
+            for (let s = 0; s < 95; s++) {
+                const sx = ox + grout + Math.random() * w;
+                const sy = oy + grout + Math.random() * h;
+                const sr = 1 + Math.random() * 2;
+                ctx.fillStyle = Math.random() > 0.4 ? 'rgba(255, 255, 255, 0.55)' : 'rgba(30, 41, 59, 0.35)';
+                ctx.beginPath();
+                ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Concentric Fan / Scallop Arcs (Rẻ quạt) from 4 corners of each tile
+            const corners = [
+                { x: ox + grout, y: oy + grout, start: 0, end: Math.PI * 0.5 },
+                { x: ox + tileSize, y: oy + grout, start: Math.PI * 0.5, end: Math.PI },
+                { x: ox + tileSize, y: oy + tileSize, start: Math.PI, end: Math.PI * 1.5 },
+                { x: ox + grout, y: oy + tileSize, start: Math.PI * 1.5, end: Math.PI * 2 }
+            ];
+
+            const radii = [42, 84, 126, 168, 210];
+            corners.forEach((cr) => {
+                radii.forEach((r) => {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(ox + grout, oy + grout, w, h);
+                    ctx.clip();
+
+                    ctx.strokeStyle = 'rgba(71, 85, 105, 0.42)';
+                    ctx.lineWidth = 3.0;
+                    ctx.beginPath();
+                    ctx.arc(cr.x, cr.y, r, cr.start, cr.end);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+                    ctx.lineWidth = 1.4;
+                    ctx.beginPath();
+                    ctx.arc(cr.x, cr.y, r + 1.8, cr.start, cr.end);
+                    ctx.stroke();
+
+                    ctx.restore();
+                });
+            });
+        }
+    }
+
+    const colorTex = new THREE.CanvasTexture(c);
+    colorTex.colorSpace = THREE.SRGBColorSpace;
+    colorTex.wrapS = THREE.RepeatWrapping;
+    colorTex.wrapT = THREE.RepeatWrapping;
+    colorTex.anisotropy = Math.min(8, maxAnisotropy);
+
+    const bc = document.createElement('canvas');
+    bc.width = size;
+    bc.height = size;
+    const bctx = bc.getContext('2d');
+    bctx.fillStyle = '#808080';
+    bctx.fillRect(0, 0, size, size);
+
+    bctx.fillStyle = '#202020';
+    for (let i = 0; i <= 2; i++) {
+        bctx.fillRect(i * tileSize - 2, 0, 4, size);
+        bctx.fillRect(0, i * tileSize - 2, size, 4);
+    }
+
+    bctx.strokeStyle = '#404040';
+    bctx.lineWidth = 3.0;
+    for (let ty = 0; ty < 2; ty++) {
+        for (let tx = 0; tx < 2; tx++) {
+            const ox = tx * tileSize;
+            const oy = ty * tileSize;
+            const corners = [
+                { x: ox, y: oy, start: 0, end: Math.PI * 0.5 },
+                { x: ox + tileSize, y: oy, start: Math.PI * 0.5, end: Math.PI },
+                { x: ox + tileSize, y: oy + tileSize, start: Math.PI, end: Math.PI * 1.5 },
+                { x: ox, y: oy + tileSize, start: Math.PI * 1.5, end: Math.PI * 2 }
+            ];
+            corners.forEach((cr) => {
+                [42, 84, 126, 168, 210].forEach((r) => {
+                    bctx.beginPath();
+                    bctx.arc(cr.x, cr.y, r, cr.start, cr.end);
+                    bctx.stroke();
+                });
+            });
+        }
+    }
+
+    const bumpTex = new THREE.CanvasTexture(bc);
+    bumpTex.wrapS = THREE.RepeatWrapping;
+    bumpTex.wrapT = THREE.RepeatWrapping;
+    bumpTex.anisotropy = Math.min(8, maxAnisotropy);
+
+    return { colorTex, bumpTex };
+}
+
+// Create authentic Vietnamese beveled granite/concrete curbstone texture (Bó vỉa vát cong 1m/viên)
+function createCurbstoneTextures(maxAnisotropy = 4) {
+    const w = 256;
+    const h = 128;
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext('2d');
+
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, '#78828e');
+    grad.addColorStop(0.12, '#8d97a3');
+    grad.addColorStop(0.44, '#b4bcc6');
+    grad.addColorStop(0.48, '#e2e8f0');
+    grad.addColorStop(0.54, '#adb6c0');
+    grad.addColorStop(1.0, '#bcc4cd');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    for (let i = 0; i < 150; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 255, 255, 0.45)' : 'rgba(30, 41, 59, 0.25)';
+        ctx.fillRect(x, y, 1 + Math.random() * 2, 1 + Math.random() * 2);
+    }
+
+    ctx.fillStyle = '#2d3748';
+    ctx.fillRect(0, 0, 4, h);
+    ctx.fillRect(w - 4, 0, 4, h);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.50)';
+    ctx.fillRect(4, 0, 2, h);
+
+    const colorTex = new THREE.CanvasTexture(c);
+    colorTex.colorSpace = THREE.SRGBColorSpace;
+    colorTex.wrapS = THREE.RepeatWrapping;
+    colorTex.wrapT = THREE.ClampToEdgeWrapping;
+    colorTex.anisotropy = Math.min(8, maxAnisotropy);
+
+    const bc = document.createElement('canvas');
+    bc.width = w;
+    bc.height = h;
+    const bctx = bc.getContext('2d');
+
+    const bgrad = bctx.createLinearGradient(0, 0, 0, h);
+    bgrad.addColorStop(0, '#303030');
+    bgrad.addColorStop(0.45, '#c0c0c0');
+    bgrad.addColorStop(0.48, '#ffffff');
+    bgrad.addColorStop(0.55, '#d0d0d0');
+    bgrad.addColorStop(1.0, '#d0d0d0');
+    bctx.fillStyle = bgrad;
+    bctx.fillRect(0, 0, w, h);
+
+    bctx.fillStyle = '#050505';
+    bctx.fillRect(0, 0, 4, h);
+    bctx.fillRect(w - 4, 0, 4, h);
+
+    const bumpTex = new THREE.CanvasTexture(bc);
+    bumpTex.wrapS = THREE.RepeatWrapping;
+    bumpTex.wrapT = THREE.ClampToEdgeWrapping;
+    bumpTex.anisotropy = Math.min(8, maxAnisotropy);
+
+    return { colorTex, bumpTex };
+}
+
 // Create crisp schematic-matched gardens, paved plaza, asphalt streets, and sports pitches
 function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
     const tier = hardwareProfile.tier || 'high';
@@ -612,8 +798,8 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         return { x: c1x + u1 * d1x, z: c1z + u1 * d1z, u1, u2 };
     };
 
-    // Build flat upward-facing ground polygon geometry strictly in XZ plane
-    const buildGroundPoly = (pts, yLevel) => {
+    // Build flat upward-facing ground polygon geometry strictly in XZ plane with planar UVs
+    const buildGroundPoly = (pts, yLevel, uvScale = 1.25) => {
         let area = 0;
         for (let i = 0; i < pts.length; i++) {
             const [x1, z1] = pts[i];
@@ -632,7 +818,15 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         geom.translate(0, yLevel, 0);
         const out = geom.index ? geom.toNonIndexed() : geom;
         if (out !== geom) geom.dispose();
-        if (out.attributes.uv) out.deleteAttribute('uv');
+
+        // Planar world XZ UVs for seamless procedural paving
+        const pos = out.attributes.position;
+        const uvs = new Float32Array(pos.count * 2);
+        for (let i = 0; i < pos.count; i++) {
+            uvs[i * 2] = pos.getX(i) * uvScale;
+            uvs[i * 2 + 1] = pos.getZ(i) * uvScale;
+        }
+        out.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
         return out;
     };
 
@@ -656,17 +850,48 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     const ltkHalfW = roadDefs.ltk.d * 0.5;
     const ddHalfW = roadDefs.dd.d * 0.5;
 
-    // Mitered curbstones strictly stopping at intersection mouths so zero gray band crosses any junction
+    // Beveled curbstones (bó vỉa vát cong 1m/viên) with authentic 3D slant profile and expansion joints matching Photo 4
     const curbGeoms = [];
+    const buildCurbQuad = (p0Out, p1Out, p1In, p0In, u0 = 0, u1 = 1) => {
+        const yGutter = -0.008;
+        const yTop = 0.008;
+        const positions = new Float32Array([
+            p0Out[0], yGutter, p0Out[1],
+            p1Out[0], yGutter, p1Out[1],
+            p1In[0],  yTop,    p1In[1],
+
+            p0Out[0], yGutter, p0Out[1],
+            p1In[0],  yTop,    p1In[1],
+            p0In[0],  yTop,    p0In[1]
+        ]);
+        const uvs = new Float32Array([
+            u0, 0.0,
+            u1, 0.0,
+            u1, 1.0,
+
+            u0, 0.0,
+            u1, 1.0,
+            u0, 1.0
+        ]);
+        const geom = new THREE.BufferGeometry();
+        geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geom.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+        geom.computeVertexNormals();
+        return geom;
+    };
+
     const pushMiteredCurb = (pStartOuter, pStartInner, pEndOuter, pEndInner) => {
-        curbGeoms.push(buildGroundPoly([pStartOuter, pEndOuter, pEndInner, pStartInner], -0.015));
+        const len = Math.hypot(pEndOuter[0] - pStartOuter[0], pEndOuter[1] - pStartOuter[1]);
+        curbGeoms.push(buildCurbQuad(pStartOuter, pEndOuter, pEndInner, pStartInner, 0, len));
     };
     const pushRoadSideCurb = (road, vOuter, vInner, uStart, uEnd, startHit = null, endHit = null) => {
         const p0Out = startHit ? [startHit.outer.x, startHit.outer.z] : uvToWorld(road, uStart, vOuter);
         const p0In = startHit ? [startHit.inner.x, startHit.inner.z] : uvToWorld(road, uStart, vInner);
         const p1Out = endHit ? [endHit.outer.x, endHit.outer.z] : uvToWorld(road, uEnd, vOuter);
         const p1In = endHit ? [endHit.inner.x, endHit.inner.z] : uvToWorld(road, uEnd, vInner);
-        pushMiteredCurb(p0Out, p0In, p1Out, p1In);
+        const u0 = startHit ? (startHit.outer.u1 || uStart) : uStart;
+        const u1 = endHit ? (endHit.outer.u1 || uEnd) : uEnd;
+        curbGeoms.push(buildCurbQuad(p0Out, p1Out, p1In, p0In, u0, u1));
     };
 
     const curbHitPair = (mainRoad, vOut, vIn, crossRoad, vCross) => ({
@@ -713,9 +938,19 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     pushRoadSideCurb(roadDefs.dd, +ddHalfW, +ddCurbIn, roadDefs.dd.uMin, 0, null, ddWestS);
     pushRoadSideCurb(roadDefs.dd, +ddHalfW, +ddCurbIn, 0, roadDefs.dd.uMax, ddEastS, null);
 
+    const { colorTex: curbColorTex, bumpTex: curbBumpTex } = createCurbstoneTextures(maxAniso);
     const curbMesh = new THREE.Mesh(
         mergeGeometries(curbGeoms, false),
-        new THREE.MeshStandardMaterial({ color: 0xa7b0ba, roughness: 0.88, polygonOffset: true, polygonOffsetFactor: -1 })
+        new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            map: curbColorTex,
+            bumpMap: curbBumpTex,
+            bumpScale: 0.022,
+            roughness: 0.78,
+            metalness: 0.04,
+            polygonOffset: true,
+            polygonOffsetFactor: -1
+        })
     );
     curbGeoms.forEach((g) => g.dispose());
     curbMesh.receiveShadow = true;
@@ -723,44 +958,65 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     curbMesh.updateMatrix();
     scene.add(curbMesh);
 
-    // Batched crisp opaque white road markings: lane dashes outside junctions, oncoming stop lines, and zebra crosswalks
-    const markingQuads = [];
-    const pushMarkingRect = (road, uCenter, vCenter, lenAlongU, widthAlongV) => {
+    // Batched crisp yellow centerline markings and white stop lines/crosswalks/parking dashed lines
+    const yellowMarkingQuads = [];
+    const whiteMarkingQuads = [];
+
+    const pushMarkingRect = (targetArray, road, uCenter, vCenter, lenAlongU, widthAlongV) => {
         const [wx, wz] = uvToWorld(road, uCenter, vCenter);
-        markingQuads.push({ x: wx, y: -0.006, z: wz, w: lenAlongU, h: widthAlongV, rz: -road.rotY });
+        targetArray.push({ x: wx, y: -0.005, z: wz, w: lenAlongU, h: widthAlongV, rz: -road.rotY });
     };
-    const pushDashedStretch = (road, uFrom, uTo) => {
-        const dashLen = 2.6;
-        const step = 5.4;
+
+    const pushYellowCenterline = (road, uFrom, uTo) => {
+        const dashLen = 3.0;
+        const step = 6.4;
         for (let u = uFrom + dashLen * 0.5; u + dashLen * 0.5 <= uTo + 0.001; u += step) {
-            pushMarkingRect(road, u, 0, dashLen, 0.42);
+            pushMarkingRect(yellowMarkingQuads, road, u, 0, dashLen, 0.38);
         }
     };
+
+    const pushWhiteEdgeDashes = (road, uFrom, uTo, vOffset) => {
+        const dashLen = 2.0;
+        const step = 4.2;
+        for (let u = uFrom + dashLen * 0.5; u + dashLen * 0.5 <= uTo + 0.001; u += step) {
+            pushMarkingRect(whiteMarkingQuads, road, u, vOffset, dashLen, 0.22);
+        }
+    };
+
     const pushZebraCrosswalk = (road, uCenter, barLen, maxHalfSpan, numBars = 8) => {
         const span = maxHalfSpan * 2.0;
         const barWidth = 0.62;
         const pitch = span / numBars;
         for (let i = 0; i < numBars; i++) {
             const v = -maxHalfSpan + pitch * (i + 0.5);
-            pushMarkingRect(road, uCenter, v, barLen, barWidth);
+            pushMarkingRect(whiteMarkingQuads, road, uCenter, v, barLen, barWidth);
         }
     };
+
     const pushStopLine = (road, uStop, vSign, asphaltHalfW) => {
         const innerV = 0.36;
         const outerV = asphaltHalfW - 0.30;
         const centerV = vSign * ((innerV + outerV) * 0.5);
-        pushMarkingRect(road, uStop, centerV, 0.45, outerV - innerV);
+        pushMarkingRect(whiteMarkingQuads, road, uStop, centerV, 0.45, outerV - innerV);
     };
 
-    // Dashed centerlines stop strictly 2.0m before every intersection stop line and skip Gate 77 crosswalk
-    pushDashedStretch(roadDefs.nh, -168.0, -119.0);
-    pushDashedStretch(roadDefs.nh, -88.4, -7.5);
-    pushDashedStretch(roadDefs.nh, 1.5, 168.0);
-    pushDashedStretch(roadDefs.ltk, -128.0, -85.55);
-    pushDashedStretch(roadDefs.ltk, -53.55, 31.0);
-    pushDashedStretch(roadDefs.ltk, 69.2, 128.0);
-    pushDashedStretch(roadDefs.dd, -176.0, -120.7);
-    pushDashedStretch(roadDefs.dd, -81.9, 176.0);
+    // Dashed yellow centerlines dividing opposing traffic strictly stopping 2.0m before junctions (Photo 2 & 3)
+    pushYellowCenterline(roadDefs.nh, -168.0, -119.0);
+    pushYellowCenterline(roadDefs.nh, -88.4, -7.5);
+    pushYellowCenterline(roadDefs.nh, 1.5, 168.0);
+    pushYellowCenterline(roadDefs.ltk, -128.0, -85.55);
+    pushYellowCenterline(roadDefs.ltk, -53.55, 31.0);
+    pushYellowCenterline(roadDefs.ltk, 69.2, 128.0);
+    pushYellowCenterline(roadDefs.dd, -176.0, -120.7);
+    pushYellowCenterline(roadDefs.dd, -81.9, 176.0);
+
+    // White parking/outer lane dashed lines along Ly Thuong Kiet matching Photo 2, 3, 4
+    pushWhiteEdgeDashes(roadDefs.ltk, -128.0, -85.55, -5.8);
+    pushWhiteEdgeDashes(roadDefs.ltk, -128.0, -85.55, +5.8);
+    pushWhiteEdgeDashes(roadDefs.ltk, -53.55, 31.0, -5.8);
+    pushWhiteEdgeDashes(roadDefs.ltk, -53.55, 31.0, +5.8);
+    pushWhiteEdgeDashes(roadDefs.ltk, 69.2, 128.0, -5.8);
+    pushWhiteEdgeDashes(roadDefs.ltk, 69.2, 128.0, +5.8);
 
     // 8 oncoming stop lines confined strictly between road center divider and inner curb edge
     pushStopLine(roadDefs.nh, -90.4, -1, nhCurbIn);
@@ -783,16 +1039,26 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     pushZebraCrosswalk(roadDefs.ltk, 35.7, 2.8, ltkCurbIn - 0.35, 8);
     pushZebraCrosswalk(roadDefs.nh, -3.0, 5.4, nhCurbIn - 0.35, 8);
 
-    const markingsMat = new THREE.MeshStandardMaterial({
-        color: 0xf4f7fb,
-        roughness: 0.72,
+    const yellowMarkingsMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        roughness: 0.65,
+        metalness: 0.0,
+        emissive: 0xb45309,
+        emissiveIntensity: 0.16,
+        polygonOffset: true,
+        polygonOffsetFactor: -2
+    });
+    const whiteMarkingsMat = new THREE.MeshStandardMaterial({
+        color: 0xf8fafc,
+        roughness: 0.68,
         metalness: 0.0,
         emissive: 0x334155,
         emissiveIntensity: 0.10,
         polygonOffset: true,
         polygonOffsetFactor: -2
     });
-    createMergedGroundQuads(scene, markingQuads, markingsMat, true);
+    createMergedGroundQuads(scene, yellowMarkingQuads, yellowMarkingsMat, true);
+    createMergedGroundQuads(scene, whiteMarkingQuads, whiteMarkingsMat, true);
 
     // Street name painted text decals cleanly positioned along approach lanes outside junctions
     const addStreetLabels = (road, labelText, offsets) => {
@@ -839,7 +1105,7 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         const p1 = uvToWorld(r1, c.u1 + leg1, v1Out);
         const p2 = uvToWorld(r2, c.u2 + leg2, v2Out);
         const p3 = [p1[0] + p2[0] - c.x, p1[1] + p2[1] - c.z];
-        sidewalkGeoms.push(buildGroundPoly([[c.x, c.z], p1, p3, p2], 0.005));
+        sidewalkGeoms.push(buildGroundPoly([[c.x, c.z], p1, p3, p2], 0.005, 1.25));
     };
 
     pushCornerSidewalkApron(roadDefs.nh, -nhHalfW, -8.5, roadDefs.ltk, -ltkHalfW, +8.5);
@@ -861,23 +1127,43 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         uvToWorld(roadDefs.nh, 94.0, -nhHalfW),
         uvToWorld(roadDefs.nh, 94.0, -13.1),
         uvToWorld(roadDefs.nh, nhNePt.u1, -13.1)
-    ], 0.005));
+    ], 0.005, 1.25));
     sidewalkGeoms.push(buildGroundPoly([
         [nhNePt.x, nhNePt.z],
         [ddSePt.x, ddSePt.z],
         [ddSeCampus.x, ddSeCampus.z],
         [nhNeCampus.x, nhNeCampus.z]
-    ], 0.005));
+    ], 0.005, 1.25));
     sidewalkGeoms.push(buildGroundPoly([
         [ddSePt.x, ddSePt.z],
         uvToWorld(roadDefs.dd, ddEndU, +ddHalfW),
         uvToWorld(roadDefs.dd, ddEndU, +10.1),
         [ddSeCampus.x, ddSeCampus.z]
-    ], 0.005));
+    ], 0.005, 1.25));
 
+    // Outer sidewalk along West side of Ly Thuong Kiet opposite campus matching Photo 2 & 3
+    const ltkOuterSW = uvToWorld(roadDefs.ltk, roadDefs.ltk.uMin, -ltkHalfW);
+    const ltkOuterNW = uvToWorld(roadDefs.ltk, roadDefs.ltk.uMax, -ltkHalfW);
+    const ltkOuterSW_far = uvToWorld(roadDefs.ltk, roadDefs.ltk.uMin, -ltkHalfW - 3.8);
+    const ltkOuterNW_far = uvToWorld(roadDefs.ltk, roadDefs.ltk.uMax, -ltkHalfW - 3.8);
+    sidewalkGeoms.push(buildGroundPoly([
+        [ltkOuterSW[0], ltkOuterSW[1]],
+        [ltkOuterNW[0], ltkOuterNW[1]],
+        [ltkOuterNW_far[0], ltkOuterNW_far[1]],
+        [ltkOuterSW_far[0], ltkOuterSW_far[1]]
+    ], 0.005, 1.25));
+
+    const { colorTex: sidewalkColorTex, bumpTex: sidewalkBumpTex } = createTerrazzoSidewalkTextures(maxAniso);
     const sidewalkMesh = new THREE.Mesh(
         mergeGeometries(sidewalkGeoms, false),
-        new THREE.MeshStandardMaterial({ color: 0xb7c0c9, roughness: 0.90 })
+        new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            map: sidewalkColorTex,
+            bumpMap: sidewalkBumpTex,
+            bumpScale: 0.016,
+            roughness: 0.82,
+            metalness: 0.02
+        })
     );
     sidewalkGeoms.forEach((g) => g.dispose());
     sidewalkMesh.receiveShadow = true;
@@ -1507,6 +1793,396 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
     scene.add(group);
 }
 
+// Create authentic Nha D West Facade, entrance canopy, and perimeter fence viewed from Ly Thuong Kiet (Photo 1)
+function createNhaDWestFacade(scene, maxAniso = 4) {
+    const group = new THREE.Group();
+
+    // 1. Generate high-resolution Nha D West Facade PBR color & bump textures matching Photo 1
+    const sizeW = 1024;
+    const sizeH = 1344;
+    const canvas = document.createElement('canvas');
+    canvas.width = sizeW;
+    canvas.height = sizeH;
+    const ctx = canvas.getContext('2d');
+
+    // Base off-white exterior architectural finish on flanking columns
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, sizeW, sizeH);
+
+    // Subtle formwork seams on left and right columns
+    ctx.strokeStyle = 'rgba(203, 213, 225, 0.40)';
+    ctx.lineWidth = 1.5;
+    for (let y = 100; y < sizeH; y += 120) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(190, y);
+        ctx.moveTo(834, y);
+        ctx.lineTo(sizeW, y);
+        ctx.stroke();
+    }
+
+    // Central recessed bay clad in dark bronze-brown horizontal ceramic tiles
+    const bayX = 190;
+    const bayW = 644;
+    ctx.fillStyle = '#453027';
+    ctx.fillRect(bayX, 0, bayW, sizeH);
+
+    // Fine horizontal tile joint lines
+    const tileH = 16;
+    for (let y = 0; y < sizeH; y += tileH) {
+        ctx.strokeStyle = 'rgba(25, 17, 13, 0.55)';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(bayX, y);
+        ctx.lineTo(bayX + bayW, y);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(bayX, y + 1.8);
+        ctx.lineTo(bayX + bayW, y + 1.8);
+        ctx.stroke();
+    }
+
+    // Top Header Signboard on dark bronze tiles: Official HUSC shield emblem + university names matching Photo 1
+    const signY0 = 26;
+    const signH = 145;
+
+    // Draw official HUSC shield emblem on the left
+    drawHuscShield(ctx, bayX + 82, signY0 + signH * 0.5, 114);
+
+    // Signboard text lines
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.70)';
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 2;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+
+    ctx.font = '700 38px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText('ĐẠI HỌC HUẾ', bayX + 162, signY0 + 44);
+
+    ctx.font = '800 46px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText('TRƯỜNG ĐẠI HỌC KHOA HỌC', bayX + 162, signY0 + 98);
+    ctx.restore();
+
+    // 4 Upper floors: wide 4-pane dark reflective ribbon windows + white concrete spandrel beams
+    const winX = bayX + 30;
+    const winW = bayW - 60;
+    const winH = 175;
+    const floorY = [205, 440, 675, 910];
+
+    for (let f = 0; f < 4; f++) {
+        const fy = floorY[f];
+
+        // Horizontal white concrete spandrel beam separating floors
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(bayX, fy - 26, bayW, 26);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+        ctx.fillRect(bayX, fy - 4, bayW, 4);
+
+        // Dark bronze window frame outer border
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(winX - 6, fy - 4, winW + 12, winH + 8);
+
+        // 4 casement window panes per floor
+        const paneW = (winW - 18) / 4;
+        for (let p = 0; p < 4; p++) {
+            const px = winX + p * (paneW + 6);
+
+            // Dark tinted glass gradient with sky reflection
+            const glassGrad = ctx.createLinearGradient(px, fy, px, fy + winH);
+            glassGrad.addColorStop(0, '#1e293b');
+            glassGrad.addColorStop(0.35, '#0f172a');
+            glassGrad.addColorStop(1, '#090d16');
+            ctx.fillStyle = glassGrad;
+            ctx.fillRect(px, fy, paneW, winH);
+
+            // Diagonal sky reflection streak
+            ctx.fillStyle = 'rgba(186, 230, 253, 0.14)';
+            ctx.beginPath();
+            ctx.moveTo(px, fy + 40);
+            ctx.lineTo(px + paneW * 0.7, fy);
+            ctx.lineTo(px + paneW, fy);
+            ctx.lineTo(px + paneW * 0.3, fy + winH);
+            ctx.lineTo(px, fy + winH);
+            ctx.closePath();
+            ctx.fill();
+
+            // Upper transom sash divider
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(px, fy + 44);
+            ctx.lineTo(px + paneW, fy + 44);
+            ctx.stroke();
+
+            // Inner glass rim highlight
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+            ctx.lineWidth = 1.2;
+            ctx.strokeRect(px + 2, fy + 2, paneW - 4, winH - 4);
+        }
+    }
+
+    // Ground Floor entrance lobby: glass curtain wall, double entrance doors, and handles
+    const lobbyY = 1145;
+    const lobbyH = sizeH - lobbyY;
+
+    // White horizontal spandrel beam above ground floor
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillRect(bayX, lobbyY - 26, bayW, 26);
+
+    // Dark charcoal lobby outer structural frame
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(winX - 6, lobbyY - 4, winW + 12, lobbyH - 8);
+
+    // Warm interior lobby ambient glow through glass
+    const lobbyGrad = ctx.createLinearGradient(winX, lobbyY, winX, lobbyY + lobbyH);
+    lobbyGrad.addColorStop(0, 'rgba(30, 41, 59, 0.95)');
+    lobbyGrad.addColorStop(0.55, 'rgba(51, 65, 85, 0.88)');
+    lobbyGrad.addColorStop(1, 'rgba(15, 23, 42, 0.98)');
+    ctx.fillStyle = lobbyGrad;
+    ctx.fillRect(winX, lobbyY, winW, lobbyH - 14);
+
+    // Center double glass doors
+    const doorW = 120;
+    const doorX = winX + (winW - doorW) * 0.5;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+    ctx.fillRect(doorX, lobbyY + 8, doorW, lobbyH - 22);
+
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(doorX, lobbyY + 8, doorW * 0.5, lobbyH - 22);
+    ctx.strokeRect(doorX + doorW * 0.5, lobbyY + 8, doorW * 0.5, lobbyH - 22);
+
+    // Stainless steel vertical door handles
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillRect(doorX + doorW * 0.5 - 10, lobbyY + 68, 4, 46);
+    ctx.fillRect(doorX + doorW * 0.5 + 6, lobbyY + 68, 4, 46);
+
+    // Base planter curb with lush green shrubbery along building foundation
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(bayX - 20, sizeH - 18, bayW + 40, 18);
+    for (let i = 0; i < 90; i++) {
+        const gx = bayX - 16 + Math.random() * (bayW + 32);
+        const gy = sizeH - 12 + Math.random() * 12;
+        const gr = 4 + Math.random() * 6;
+        ctx.fillStyle = Math.random() > 0.4 ? '#166534' : '#15803d';
+        ctx.beginPath();
+        ctx.arc(gx, gy, gr, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    const facadeColorTex = new THREE.CanvasTexture(canvas);
+    facadeColorTex.colorSpace = THREE.SRGBColorSpace;
+    facadeColorTex.anisotropy = Math.min(8, maxAniso);
+
+    // Facade bump texture for crisp brick grout and window frame relief
+    const bumpCanvas = document.createElement('canvas');
+    bumpCanvas.width = sizeW;
+    bumpCanvas.height = sizeH;
+    const bctx = bumpCanvas.getContext('2d');
+    bctx.fillStyle = '#808080';
+    bctx.fillRect(0, 0, sizeW, sizeH);
+
+    // Recessed dark tile zone
+    bctx.fillStyle = '#6a6a6a';
+    bctx.fillRect(bayX, 0, bayW, sizeH);
+    bctx.fillStyle = '#303030';
+    for (let y = 0; y < sizeH; y += tileH) {
+        bctx.fillRect(bayX, y, bayW, 2);
+    }
+
+    // Windows bump
+    bctx.fillStyle = '#202020';
+    for (let f = 0; f < 4; f++) {
+        bctx.fillRect(winX - 6, floorY[f] - 4, winW + 12, winH + 8);
+    }
+    bctx.fillRect(winX - 6, lobbyY - 4, winW + 12, lobbyH - 8);
+
+    const facadeBumpTex = new THREE.CanvasTexture(bumpCanvas);
+    facadeBumpTex.anisotropy = Math.min(8, maxAniso);
+
+    // Main Facade Mesh mounted on West face of Nha D
+    const facadeW = 11.6;
+    const facadeH = 15.2;
+    const facadeGeom = new THREE.PlaneGeometry(facadeW, facadeH);
+    const facadeMat = new THREE.MeshStandardMaterial({
+        map: facadeColorTex,
+        bumpMap: facadeBumpTex,
+        bumpScale: 0.018,
+        roughness: 0.42,
+        metalness: 0.10
+    });
+    const facadeMesh = new THREE.Mesh(facadeGeom, facadeMat);
+    facadeMesh.position.set(0, facadeH * 0.5, 0);
+    facadeMesh.receiveShadow = true;
+    group.add(facadeMesh);
+
+    // 2. 3D Cantilevered Glass & Steel Entrance Canopy (Mái sảnh kính) matching Photo 1
+    const canopyW = 6.6;
+    const canopyD = 1.6;
+    const canopyH = 0.08;
+    const canopyY = 3.65;
+    const canopyZ = canopyD * 0.5;
+
+    // Canopy dark metal frame
+    const canopyFrameGeom = new THREE.BoxGeometry(canopyW, canopyH, canopyD);
+    const darkMetalMat = new THREE.MeshStandardMaterial({
+        color: 0x334155,
+        roughness: 0.35,
+        metalness: 0.80
+    });
+    const canopyFrameMesh = new THREE.Mesh(canopyFrameGeom, darkMetalMat);
+    canopyFrameMesh.position.set(0, canopyY, canopyZ);
+    group.add(canopyFrameMesh);
+
+    // Translucent laminated glass panel
+    const glassGeom = new THREE.BoxGeometry(canopyW - 0.2, 0.024, canopyD - 0.2);
+    const canopyGlassMat = new THREE.MeshStandardMaterial({
+        color: 0x94a3b8,
+        transparent: true,
+        opacity: 0.72,
+        roughness: 0.12,
+        metalness: 0.15
+    });
+    const glassMesh = new THREE.Mesh(glassGeom, canopyGlassMat);
+    glassMesh.position.set(0, canopyY + 0.035, canopyZ);
+    group.add(glassMesh);
+
+    // 4 Diagonal stainless steel tension tie rods supporting the canopy from wall anchors above
+    const tieX = [-2.6, -0.88, 0.88, 2.6];
+    const rodLength = Math.hypot(canopyD - 0.1, 1.25);
+    const rodAngle = Math.atan2(canopyD - 0.1, 1.25);
+    const rodGeom = new THREE.CylinderGeometry(0.018, 0.018, rodLength, 8);
+    rodGeom.rotateX(rodAngle);
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.25, metalness: 0.90 });
+
+    for (let i = 0; i < 4; i++) {
+        const rod = new THREE.Mesh(rodGeom, steelMat);
+        rod.position.set(tieX[i], canopyY + 0.625, (canopyD - 0.1) * 0.5);
+        group.add(rod);
+
+        // Wall anchor clevis mount
+        const clevisGeom = new THREE.BoxGeometry(0.08, 0.14, 0.12);
+        const clevis = new THREE.Mesh(clevisGeom, darkMetalMat);
+        clevis.position.set(tieX[i], canopyY + 1.25, 0.06);
+        group.add(clevis);
+    }
+
+    // Ground entrance terrace steps
+    const stepGeom = new THREE.BoxGeometry(7.2, 0.22, 1.8);
+    const stepMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.78, metalness: 0.05 });
+    const stepMesh = new THREE.Mesh(stepGeom, stepMat);
+    stepMesh.position.set(0, 0.11, 0.9);
+    stepMesh.receiveShadow = true;
+    group.add(stepMesh);
+
+    // Position entire Nha D West Facade assembly onto building West wall
+    const bldgYaw = 0.06;
+    const halfLen = 11.15;
+    const facadePosX = -74.0 - halfLen * Math.cos(bldgYaw);
+    const facadePosZ = -25.5 - halfLen * Math.sin(bldgYaw);
+
+    group.position.set(facadePosX, 0, facadePosZ);
+    group.rotation.y = -Math.PI * 0.5 + bldgYaw;
+    scene.add(group);
+
+    // 3. Perimeter boundary fence with corrugated galvanized metal panels & concrete pillars (Photo 1)
+    const fenceGroup = new THREE.Group();
+    const fenceZCenter = -25.5;
+    const fenceX = -105.8;
+    const fenceSpanZ = 16.0;
+
+    // Concrete base curb
+    const fenceBaseGeom = new THREE.BoxGeometry(0.40, 0.45, fenceSpanZ);
+    const concreteMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.88, metalness: 0.02 });
+    const fenceBaseMesh = new THREE.Mesh(fenceBaseGeom, concreteMat);
+    fenceBaseMesh.position.set(0, 0.225, 0);
+    fenceGroup.add(fenceBaseMesh);
+
+    // Square concrete support pillars with beveled caps
+    const pillarGeom = new THREE.BoxGeometry(0.55, 2.65, 0.55);
+    const pillarCapGeom = new THREE.ConeGeometry(0.42, 0.22, 4);
+    pillarCapGeom.rotateY(Math.PI * 0.25);
+    const pillarZ = [-8.0, 0, 8.0];
+
+    for (let p of pillarZ) {
+        const pillar = new THREE.Mesh(pillarGeom, concreteMat);
+        pillar.position.set(0, 1.325, p);
+        pillar.castShadow = true;
+        pillar.receiveShadow = true;
+        fenceGroup.add(pillar);
+
+        const cap = new THREE.Mesh(pillarCapGeom, concreteMat);
+        cap.position.set(0, 2.65 + 0.11, p);
+        fenceGroup.add(cap);
+    }
+
+    // Corrugated galvanized metal sheet panel (Tôn lượn sóng)
+    const cSize = 256;
+    const cCanvas = document.createElement('canvas');
+    cCanvas.width = cSize;
+    cCanvas.height = cSize;
+    const cctx = cCanvas.getContext('2d');
+    cctx.fillStyle = '#94a3b8';
+    cctx.fillRect(0, 0, cSize, cSize);
+
+    // Vertical corrugated sin wave shading
+    const wavePitch = 16;
+    for (let x = 0; x < cSize; x += wavePitch) {
+        const waveGrad = cctx.createLinearGradient(x, 0, x + wavePitch, 0);
+        waveGrad.addColorStop(0, '#64748b');
+        waveGrad.addColorStop(0.45, '#cbd5e1');
+        waveGrad.addColorStop(0.55, '#f1f5f9');
+        waveGrad.addColorStop(1.0, '#475569');
+        cctx.fillStyle = waveGrad;
+        cctx.fillRect(x, 0, wavePitch, cSize);
+    }
+
+    const corrugatedTex = new THREE.CanvasTexture(cCanvas);
+    corrugatedTex.colorSpace = THREE.SRGBColorSpace;
+    corrugatedTex.wrapS = THREE.RepeatWrapping;
+    corrugatedTex.wrapT = THREE.RepeatWrapping;
+    corrugatedTex.repeat.set(12, 1);
+    corrugatedTex.anisotropy = Math.min(8, maxAniso);
+
+    const corrugateMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        map: corrugatedTex,
+        roughness: 0.38,
+        metalness: 0.75
+    });
+
+    const fencePanel1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.95, 7.35), corrugateMat);
+    fencePanel1.position.set(0, 0.45 + 0.975, -3.95);
+    fencePanel1.castShadow = true;
+    fenceGroup.add(fencePanel1);
+
+    const fencePanel2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.95, 7.35), corrugateMat);
+    fencePanel2.position.set(0, 0.45 + 0.975, 3.95);
+    fencePanel2.castShadow = true;
+    fenceGroup.add(fencePanel2);
+
+    // Lush landscaping bushes peeking behind the fence matching Photo 1
+    const bushGeom = new THREE.SphereGeometry(0.85, 6, 6);
+    const bushMat = new THREE.MeshStandardMaterial({ color: 0x1e3a1e, roughness: 0.88 });
+    for (let b = 0; b < 8; b++) {
+        const bush = new THREE.Mesh(bushGeom, bushMat);
+        const bz = -6.5 + b * 1.8;
+        bush.position.set(0.65, 0.85, bz);
+        bush.scale.set(0.9, 1.2, 1.1);
+        fenceGroup.add(bush);
+    }
+
+    fenceGroup.position.set(fenceX, 0, fenceZCenter);
+    scene.add(fenceGroup);
+}
+
 // Add signature signage, Main Gate inscription, Dong Da Gate sign, Nha A marquee, garage roofs, and billowing flags
 function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
     const animatedFlags = [];
@@ -1680,6 +2356,9 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
 
     // Authentic wide left-wing gate pier and THPT Chuyên Khoa học Huế signboard matching Photo 1
     createDongDaLeftWingGateStructure(scene, maxAniso, animatedFlags);
+
+    // Authentic Building D West facade, canopy, and fence viewed from Ly Thuong Kiet (Photo 1)
+    createNhaDWestFacade(scene, maxAniso);
 
     const myThuatTex = createSignTexture(['PHÒNG HỌC MỸ THUẬT'], {
         w: 640, h: 112, bg: '#1f2937', border: '#facc15', color: '#fde047', fontSizes: [42], maxAnisotropy: maxAniso
