@@ -172,6 +172,15 @@ function createLeafClusterTexture(size = 512, maxAnisotropy = 4) {
     return tex;
 }
 
+// Cache shared leaf cluster texture so campus trees and median shrubs use identical botanical leaves
+let cachedLeafTexture = null;
+function getSharedLeafClusterTexture(size = 512, maxAnisotropy = 4) {
+    if (!cachedLeafTexture) {
+        cachedLeafTexture = createLeafClusterTexture(size, maxAnisotropy);
+    }
+    return cachedLeafTexture;
+}
+
 // Create branching tree trunk geometry (merged main trunk plus upper limbs)
 function createBranchingTrunkGeometry() {
     const parts = [];
@@ -250,6 +259,101 @@ function createCanopyCardClusterGeometry(cardCount = 34, cardSize = 3.2) {
     return merged;
 }
 
+// Build dense multi-tier botanical shrub card cluster geometry for median dividers
+function createDenseShrubCardClusterGeometry(cardTier = 'high', baseCardSize = 0.84) {
+    const cards = [];
+    const dummy = new THREE.Object3D();
+    const shrubCenter = new THREE.Vector3(0, 0.40, 0);
+
+    let seed = 317;
+    const rand = () => {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+    };
+
+    const n1 = cardTier === 'low' ? 4 : (cardTier === 'medium' ? 5 : 6);
+    const n2 = cardTier === 'low' ? 5 : (cardTier === 'medium' ? 6 : 7);
+    const n3 = cardTier === 'low' ? 3 : (cardTier === 'medium' ? 4 : 5);
+
+    // Tier 1: Lower perimeter cards spreading outward close to lawn surface
+    for (let i = 0; i < n1; i++) {
+        const theta = (i / n1) * Math.PI * 2 + 0.22;
+        const rad = 0.32 + rand() * 0.08;
+        const x = Math.cos(theta) * rad * 1.08;
+        const y = 0.26 + (rand() - 0.5) * 0.06;
+        const z = Math.sin(theta) * rad * 0.95;
+
+        const cardW = baseCardSize * (0.92 + rand() * 0.20);
+        const cardH = baseCardSize * (0.86 + rand() * 0.18);
+        const card = new THREE.PlaneGeometry(cardW, cardH);
+
+        dummy.position.set(x, y, z);
+        dummy.lookAt(x * 2.2, y + 0.35, z * 2.2);
+        dummy.rotateZ(rand() * Math.PI * 2);
+        dummy.updateMatrix();
+
+        card.applyMatrix4(dummy.matrix);
+        cards.push(card);
+    }
+
+    // Tier 2: Mid-height cards tilted outward and upward creating dense volume
+    for (let i = 0; i < n2; i++) {
+        const theta = (i / n2) * Math.PI * 2 + 0.58;
+        const rad = 0.26 + rand() * 0.08;
+        const x = Math.cos(theta) * rad * 1.05;
+        const y = 0.46 + (rand() - 0.5) * 0.08;
+        const z = Math.sin(theta) * rad * 0.95;
+
+        const cardW = baseCardSize * (0.96 + rand() * 0.20);
+        const cardH = baseCardSize * (0.90 + rand() * 0.20);
+        const card = new THREE.PlaneGeometry(cardW, cardH);
+
+        dummy.position.set(x, y, z);
+        dummy.lookAt(x * 2.0, y + 0.55, z * 2.0);
+        dummy.rotateZ(rand() * Math.PI * 2);
+        dummy.updateMatrix();
+
+        card.applyMatrix4(dummy.matrix);
+        cards.push(card);
+    }
+
+    // Tier 3: Crown dome cards overlapping across the top for a rounded botanical canopy
+    for (let i = 0; i < n3; i++) {
+        const theta = (i / n3) * Math.PI * 2 + 0.85;
+        const rad = 0.12 + rand() * 0.06;
+        const x = Math.cos(theta) * rad;
+        const y = 0.62 + (rand() - 0.5) * 0.06;
+        const z = Math.sin(theta) * rad;
+
+        const cardW = baseCardSize * (0.92 + rand() * 0.16);
+        const cardH = baseCardSize * (0.86 + rand() * 0.16);
+        const card = new THREE.PlaneGeometry(cardW, cardH);
+
+        dummy.position.set(x, y, z);
+        dummy.lookAt(x * 1.5, y + 1.1, z * 1.5);
+        dummy.rotateZ(rand() * Math.PI * 2);
+        dummy.updateMatrix();
+
+        card.applyMatrix4(dummy.matrix);
+        cards.push(card);
+    }
+
+    const merged = mergeGeometries(cards, false);
+    cards.forEach((c) => c.dispose());
+
+    // Radially outward normals for soft botanical ambient lighting
+    const pos = merged.attributes.position;
+    const norm = merged.attributes.normal;
+    const v = new THREE.Vector3();
+    for (let k = 0; k < pos.count; k++) {
+        v.fromBufferAttribute(pos, k).sub(shrubCenter).normalize();
+        norm.setXYZ(k, v.x, Math.max(0.18, v.y), v.z);
+    }
+    norm.needsUpdate = true;
+
+    return merged;
+}
+
 // Create instanced GPU-animated foliage and trunks across campus lawns
 function createCampusVegetation(scene, windUniform, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
     const canopyTrees = TREE_PLACEMENTS.filter((t) => t.kind === 'canopy');
@@ -257,7 +361,7 @@ function createCampusVegetation(scene, windUniform, hardwareProfile = { tier: 'h
     const tier = hardwareProfile.tier || 'high';
     const maxAniso = hardwareProfile.maxAnisotropy || 4;
 
-    const leafTex = createLeafClusterTexture(tier === 'low' ? 256 : 512, maxAniso);
+    const leafTex = getSharedLeafClusterTexture(tier === 'low' ? 256 : 512, maxAniso);
     const trunkGeom = createBranchingTrunkGeometry();
     const cardCount = tier === 'low' ? 16 : (tier === 'medium' ? 24 : 34);
     const cardSize = tier === 'low' ? 3.55 : (tier === 'medium' ? 3.35 : 3.2);
@@ -3297,8 +3401,44 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const medH = 0.28;
     const medCurbMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85 });
     const medLawnMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.90 });
-    const shrubMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.82 });
-    const shrubGeom = new THREE.SphereGeometry(0.48, 8, 6);
+
+    const tier = hardwareProfile.tier || 'high';
+    const shrubLeafTex = getSharedLeafClusterTexture(tier === 'low' ? 256 : 512, maxAniso);
+    const shrubCardTier = tier === 'low' ? 'low' : (tier === 'medium' ? 'medium' : 'high');
+    const shrubLeafGeom = createDenseShrubCardClusterGeometry(shrubCardTier, 0.84);
+
+    // Identical leaf material to campus trees with alphaTest cutout but without wind vertex displacement
+    const shrubLeafMat = new THREE.MeshStandardMaterial({
+        map: shrubLeafTex,
+        alphaTest: 0.42,
+        side: THREE.DoubleSide,
+        roughness: 0.68,
+        metalness: 0.02
+    });
+
+    const shrubLeafDepthMat = new THREE.MeshDepthMaterial({
+        depthPacking: THREE.RGBADepthPacking,
+        map: shrubLeafTex,
+        alphaTest: 0.42
+    });
+
+    // Dark green organic core sphere ensuring maximum botanical density ("rậm rạp")
+    const shrubCoreMat = new THREE.MeshStandardMaterial({
+        color: 0x14532d,
+        roughness: 0.92,
+        metalness: 0.02
+    });
+    const shrubCoreGeom = new THREE.SphereGeometry(0.38, 8, 6);
+    shrubCoreGeom.scale(1.06, 0.88, 0.95);
+    shrubCoreGeom.translate(0, 0.40, 0);
+
+    const shrubStemMat = new THREE.MeshStandardMaterial({
+        color: 0x5d4129,
+        roughness: 0.92,
+        metalness: 0.02
+    });
+    const shrubStemGeom = new THREE.CylinderGeometry(0.06, 0.10, 0.30, 6);
+    shrubStemGeom.translate(0, 0.15, 0);
 
     // Build authentic raised median island spanning the entire length of Dong Da (from u = -82.0 to u = 176.0)
     // Segment 1: from intersection crosswalk (u = -82.0) to Gate 38 opening (u = 38.0), length = 120.0m
@@ -3339,12 +3479,41 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         lawnMesh.position.set(0, medH + 0.008, 0);
         segGroup.add(lawnMesh);
 
-        // Sculpted round ornamental shrubs spaced every 7.5m along median island
+        // Sculpted dense botanical ornamental shrubs spaced every 7.5m along median island
         for (let sx = -segLen * 0.46; sx <= segLen * 0.46; sx += 7.5) {
-            const shrub = new THREE.Mesh(shrubGeom, shrubMat);
-            shrub.position.set(sx, medH + 0.42, 0);
-            shrub.scale.set(1.1, 1.25, 0.95);
-            segGroup.add(shrub);
+            const shrubGroup = new THREE.Group();
+            shrubGroup.position.set(sx, medH, 0);
+
+            // Woody root stem rooted firmly in median lawn
+            const stem = new THREE.Mesh(shrubStemGeom, shrubStemMat);
+            stem.castShadow = true;
+            stem.receiveShadow = true;
+            shrubGroup.add(stem);
+
+            // Inner dark green foliage volume core ensuring maximum botanical density ("rậm rạp")
+            const core = new THREE.Mesh(shrubCoreGeom, shrubCoreMat);
+            core.castShadow = true;
+            core.receiveShadow = true;
+            shrubGroup.add(core);
+
+            // Outer botanical leaf cluster cards using the exact campus tree leaf texture (static, no wind motion)
+            const leaves = new THREE.Mesh(shrubLeafGeom, shrubLeafMat);
+            if (tier === 'high') {
+                leaves.customDepthMaterial = shrubLeafDepthMat;
+                leaves.castShadow = true;
+            }
+            leaves.receiveShadow = true;
+            shrubGroup.add(leaves);
+
+            // Organic scale and yaw variation per shrub
+            const sIdx = Math.floor((sx + 200) * 1.7);
+            const rotY = (sIdx * 1.37) % (Math.PI * 2);
+            const scaleY = 0.95 + ((sIdx * 31) % 15) * 0.01;
+            const scaleXZ = 0.96 + ((sIdx * 47) % 12) * 0.01;
+            shrubGroup.rotation.y = rotY;
+            shrubGroup.scale.set(scaleXZ, scaleY, scaleXZ);
+
+            segGroup.add(shrubGroup);
         }
 
         segGroup.position.set(cx, 0, cz);
