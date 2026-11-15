@@ -110,55 +110,84 @@ const HAIR_PALETTE = [
     0x451a03  // Dark espresso brown
 ];
 
-// Pedestrian roster distributing walkers along sidewalks of all 3 streets
+// Check whether pedestrian walk signal is active and has adequate safety duration
+function isPedestrianWalkAllowed(cfg, signalState) {
+    if (!signalState) return false;
+    const interKey = cfg.signalIntersection || 'nh';
+    const axisKey = cfg.signalAxis || 'ew';
+    const inter = signalState[interKey];
+    if (!inter) return false;
+    const vehicleState = inter[axisKey + 'State'];
+    const remainingSec = inter[axisKey + 'Sec'] ?? 0;
+    // Walk is allowed only when vehicles are stopped on RED and countdown has >= 10s remaining
+    return vehicleState === 'red' && remainingSec >= 10;
+}
+
+// Pedestrian roster distributing walkers along sidewalks of all 3 streets and active zebra crosswalks
 const PEDESTRIAN_CONFIGS = [
     // 1. Nguyen Hue South Sidewalk (commercial side across from school gate)
-    { id: 'nh-s-1', road: 'nh', u: -120, v: 10.3, uMin: -138, uMax: 138, dir: 1, speed: 1.35, headwear: 'cap', shirt: 0, pants: 0, bag: true },
-    { id: 'nh-s-2', road: 'nh', u: -75, v: 10.7, uMin: -138, uMax: 138, dir: -1, speed: 1.22, headwear: 'non_la', shirt: 5, pants: 1, bag: false },
-    { id: 'nh-s-3', road: 'nh', u: -30, v: 10.2, uMin: -138, uMax: 138, dir: 1, speed: 1.40, headwear: 'hair', shirt: 2, pants: 2, bag: true },
-    { id: 'nh-s-4', road: 'nh', u: 15, v: 10.6, uMin: -138, uMax: 138, dir: -1, speed: 1.28, headwear: 'hair', shirt: 4, pants: 0, bag: false },
-    { id: 'nh-s-5', road: 'nh', u: 55, v: 10.3, uMin: -138, uMax: 138, dir: 1, speed: 1.32, headwear: 'non_la', shirt: 6, pants: 3, bag: false },
-    { id: 'nh-s-6', road: 'nh', u: 95, v: 10.8, uMin: -138, uMax: 138, dir: -1, speed: 1.25, headwear: 'cap', shirt: 1, pants: 1, bag: true },
-    { id: 'nh-s-7', road: 'nh', u: 130, v: 10.4, uMin: -138, uMax: 138, dir: -1, speed: 1.38, headwear: 'hair', shirt: 3, pants: 0, bag: false },
+    { id: 'nh-s-1', road: 'nh', u: -70, v: 10.4, uMin: -85, uMax: 130, dir: 1, speed: 1.30, headwear: 'cap', shirt: 0, pants: 0, bag: true },
+    { id: 'nh-s-2', road: 'nh', u: -30, v: 10.6, uMin: -85, uMax: 130, dir: -1, speed: 1.25, headwear: 'non_la', shirt: 5, pants: 1, bag: false },
+    { id: 'nh-s-3', road: 'nh', u: 15, v: 10.3, uMin: -85, uMax: 130, dir: 1, speed: 1.35, headwear: 'hair', shirt: 2, pants: 2, bag: true },
+    { id: 'nh-s-4', road: 'nh', u: 60, v: 10.7, uMin: -85, uMax: 130, dir: -1, speed: 1.22, headwear: 'hair', shirt: 4, pants: 0, bag: false },
+    { id: 'nh-s-5', road: 'nh', u: 105, v: 10.4, uMin: -85, uMax: 130, dir: 1, speed: 1.32, headwear: 'non_la', shirt: 6, pants: 3, bag: false },
 
     // 2. Nguyen Hue North Sidewalk (campus gate, tree promenade, and front fence)
-    { id: 'nh-n-1', road: 'nh', u: -110, v: -10.4, uMin: -130, uMax: 130, dir: 1, speed: 1.30, headwear: 'hair', shirt: 0, pants: 0, bag: true },
-    { id: 'nh-n-2', road: 'nh', u: -70, v: -10.2, uMin: -130, uMax: 130, dir: -1, speed: 1.26, headwear: 'cap', shirt: 1, pants: 1, bag: true },
-    { id: 'nh-n-3', road: 'nh', u: -35, v: -10.6, uMin: -130, uMax: 130, dir: 1, speed: 1.36, headwear: 'non_la', shirt: 5, pants: 2, bag: false },
-    { id: 'nh-n-4', road: 'nh', u: -5, v: -10.3, uMin: -130, uMax: 130, dir: -1, speed: 1.20, headwear: 'hair', shirt: 0, pants: 0, bag: true },
-    { id: 'nh-n-5', road: 'nh', u: 35, v: -10.7, uMin: -130, uMax: 130, dir: 1, speed: 1.42, headwear: 'hair', shirt: 7, pants: 3, bag: false },
-    { id: 'nh-n-6', road: 'nh', u: 75, v: -10.3, uMin: -130, uMax: 130, dir: -1, speed: 1.24, headwear: 'cap', shirt: 2, pants: 1, bag: true },
-    { id: 'nh-n-7', road: 'nh', u: 115, v: -10.5, uMin: -130, uMax: 130, dir: 1, speed: 1.34, headwear: 'hair', shirt: 8, pants: 0, bag: false },
+    { id: 'nh-n-1', road: 'nh', u: -65, v: -10.4, uMin: -85, uMax: 125, dir: 1, speed: 1.28, headwear: 'hair', shirt: 0, pants: 0, bag: true },
+    { id: 'nh-n-2', road: 'nh', u: -25, v: -10.2, uMin: -85, uMax: 125, dir: -1, speed: 1.32, headwear: 'cap', shirt: 1, pants: 1, bag: true },
+    { id: 'nh-n-3', road: 'nh', u: 20, v: -10.6, uMin: -85, uMax: 125, dir: 1, speed: 1.24, headwear: 'non_la', shirt: 5, pants: 2, bag: false },
+    { id: 'nh-n-4', road: 'nh', u: 70, v: -10.3, uMin: -85, uMax: 125, dir: -1, speed: 1.36, headwear: 'hair', shirt: 7, pants: 3, bag: false },
+    { id: 'nh-n-5', road: 'nh', u: 110, v: -10.5, uMin: -85, uMax: 125, dir: 1, speed: 1.20, headwear: 'hair', shirt: 8, pants: 0, bag: false },
 
-    // 3. Nguyen Hue Zebra Crosswalk at Main Gate (pedestrians crossing road safely)
-    { id: 'nh-cw-1', road: 'nh-cross', u: -2.2, v: -9.8, vMin: -10.3, vMax: 10.3, dir: 1, speed: 1.18, headwear: 'hair', shirt: 0, pants: 0, bag: true },
-    { id: 'nh-cw-2', road: 'nh-cross', u: -2.8, v: 9.5, vMin: -10.3, vMax: 10.3, dir: -1, speed: 1.22, headwear: 'cap', shirt: 3, pants: 1, bag: false },
+    // 3. Ly Thuong Kiet Middle East Sidewalk (flanking sports pitch and university tree fence)
+    { id: 'ltk-me-1', road: 'ltk', u: -40, v: 9.5, uMin: -50, uMax: 28, dir: 1, speed: 1.28, headwear: 'hair', shirt: 0, pants: 0, bag: true },
+    { id: 'ltk-me-2', road: 'ltk', u: -10, v: 9.7, uMin: -50, uMax: 28, dir: -1, speed: 1.34, headwear: 'cap', shirt: 2, pants: 2, bag: false },
+    { id: 'ltk-me-3', road: 'ltk', u: 18, v: 9.4, uMin: -50, uMax: 28, dir: 1, speed: 1.26, headwear: 'hair', shirt: 4, pants: 1, bag: true },
 
-    // 4. Ly Thuong Kiet East Sidewalk (flanking soccer pitch and university tree fence)
-    { id: 'ltk-e-1', road: 'ltk', u: -70, v: -9.5, uMin: -85, uMax: 75, dir: 1, speed: 1.30, headwear: 'hair', shirt: 0, pants: 0, bag: true },
-    { id: 'ltk-e-2', road: 'ltk', u: -35, v: -9.8, uMin: -85, uMax: 75, dir: -1, speed: 1.25, headwear: 'cap', shirt: 2, pants: 2, bag: false },
-    { id: 'ltk-e-3', road: 'ltk', u: 0, v: -9.3, uMin: -85, uMax: 75, dir: 1, speed: 1.38, headwear: 'hair', shirt: 4, pants: 1, bag: true },
-    { id: 'ltk-e-4', road: 'ltk', u: 35, v: -9.6, uMin: -85, uMax: 75, dir: -1, speed: 1.22, headwear: 'non_la', shirt: 5, pants: 3, bag: false },
-    { id: 'ltk-e-5', road: 'ltk', u: 65, v: -9.4, uMin: -85, uMax: 75, dir: 1, speed: 1.34, headwear: 'hair', shirt: 1, pants: 0, bag: true },
+    // 4. Ly Thuong Kiet Middle West Sidewalk (flanking Techcombank, DongA Bank, commercial promenade)
+    { id: 'ltk-mw-1', road: 'ltk', u: -35, v: -9.5, uMin: -50, uMax: 28, dir: -1, speed: 1.30, headwear: 'hair', shirt: 6, pants: 1, bag: false },
+    { id: 'ltk-mw-2', road: 'ltk', u: -5, v: -9.7, uMin: -50, uMax: 28, dir: 1, speed: 1.22, headwear: 'cap', shirt: 7, pants: 0, bag: true },
+    { id: 'ltk-mw-3', road: 'ltk', u: 15, v: -9.3, uMin: -50, uMax: 28, dir: -1, speed: 1.35, headwear: 'non_la', shirt: 5, pants: 2, bag: false },
 
-    // 5. Ly Thuong Kiet West Sidewalk (opposite residential sidewalk)
-    { id: 'ltk-w-1', road: 'ltk', u: -60, v: 9.5, uMin: -85, uMax: 80, dir: -1, speed: 1.28, headwear: 'hair', shirt: 6, pants: 1, bag: false },
-    { id: 'ltk-w-2', road: 'ltk', u: -20, v: 9.7, uMin: -85, uMax: 80, dir: 1, speed: 1.35, headwear: 'cap', shirt: 7, pants: 0, bag: true },
-    { id: 'ltk-w-3', road: 'ltk', u: 25, v: 9.3, uMin: -85, uMax: 80, dir: -1, speed: 1.20, headwear: 'non_la', shirt: 5, pants: 2, bag: false },
-    { id: 'ltk-w-4', road: 'ltk', u: 60, v: 9.6, uMin: -85, uMax: 80, dir: 1, speed: 1.32, headwear: 'hair', shirt: 9, pants: 3, bag: false },
+    // 5. Ly Thuong Kiet North Sidewalk (north of Dong Da junction, in front of Viettel building)
+    { id: 'ltk-nw-1', road: 'ltk', u: 80, v: -9.5, uMin: 72, uMax: 125, dir: 1, speed: 1.30, headwear: 'hair', shirt: 1, pants: 0, bag: true },
+    { id: 'ltk-nw-2', road: 'ltk', u: 110, v: -9.7, uMin: 72, uMax: 125, dir: -1, speed: 1.25, headwear: 'cap', shirt: 3, pants: 1, bag: false },
+    { id: 'ltk-ne-1', road: 'ltk', u: 90, v: 9.5, uMin: 72, uMax: 125, dir: 1, speed: 1.32, headwear: 'non_la', shirt: 9, pants: 3, bag: false },
 
-    // 6. Dong Da Campus Sidewalk (Gate 38, Nha H, and student motorbike lot)
-    { id: 'dd-c-1', road: 'dd', u: -90, v: 9.3, uMin: -105, uMax: 105, dir: 1, speed: 1.32, headwear: 'hair', shirt: 0, pants: 0, bag: true },
-    { id: 'dd-c-2', road: 'dd', u: -50, v: 9.5, uMin: -105, uMax: 105, dir: -1, speed: 1.26, headwear: 'cap', shirt: 1, pants: 1, bag: true },
-    { id: 'dd-c-3', road: 'dd', u: -10, v: 9.2, uMin: -105, uMax: 105, dir: 1, speed: 1.40, headwear: 'hair', shirt: 3, pants: 2, bag: false },
-    { id: 'dd-c-4', road: 'dd', u: 40, v: 9.6, uMin: -105, uMax: 105, dir: -1, speed: 1.22, headwear: 'non_la', shirt: 5, pants: 3, bag: false },
-    { id: 'dd-c-5', road: 'dd', u: 85, v: 9.4, uMin: -105, uMax: 105, dir: 1, speed: 1.36, headwear: 'hair', shirt: 2, pants: 0, bag: true },
+    // 6. Dong Da South-East Sidewalk (Gate 38, Nha H, and student motorbike lot)
+    { id: 'dd-c-1', road: 'dd', u: -60, v: 9.4, uMin: -76, uMax: 145, dir: 1, speed: 1.32, headwear: 'hair', shirt: 0, pants: 0, bag: true },
+    { id: 'dd-c-2', road: 'dd', u: -20, v: 9.6, uMin: -76, uMax: 145, dir: -1, speed: 1.26, headwear: 'cap', shirt: 1, pants: 1, bag: true },
+    { id: 'dd-c-3', road: 'dd', u: 25, v: 9.3, uMin: -76, uMax: 145, dir: 1, speed: 1.38, headwear: 'hair', shirt: 3, pants: 2, bag: false },
+    { id: 'dd-c-4', road: 'dd', u: 75, v: 9.5, uMin: -76, uMax: 145, dir: -1, speed: 1.24, headwear: 'non_la', shirt: 5, pants: 3, bag: false },
+    { id: 'dd-c-5', road: 'dd', u: 120, v: 9.4, uMin: -76, uMax: 145, dir: 1, speed: 1.30, headwear: 'hair', shirt: 2, pants: 0, bag: true },
 
     // 7. Dong Da North-West Sidewalk (opposite sidewalk flanking residential area)
-    { id: 'dd-w-1', road: 'dd', u: -80, v: -9.3, uMin: -105, uMax: 105, dir: -1, speed: 1.24, headwear: 'non_la', shirt: 4, pants: 1, bag: false },
-    { id: 'dd-w-2', road: 'dd', u: -30, v: -9.5, uMin: -105, uMax: 105, dir: 1, speed: 1.34, headwear: 'cap', shirt: 6, pants: 0, bag: true },
-    { id: 'dd-w-3', road: 'dd', u: 20, v: -9.2, uMin: -105, uMax: 105, dir: -1, speed: 1.28, headwear: 'hair', shirt: 8, pants: 2, bag: false },
-    { id: 'dd-w-4', road: 'dd', u: 70, v: -9.6, uMin: -105, uMax: 105, dir: 1, speed: 1.30, headwear: 'hair', shirt: 7, pants: 3, bag: true }
+    { id: 'dd-w-1', road: 'dd', u: -50, v: -9.4, uMin: -76, uMax: 145, dir: -1, speed: 1.25, headwear: 'non_la', shirt: 4, pants: 1, bag: false },
+    { id: 'dd-w-2', road: 'dd', u: -10, v: -9.6, uMin: -76, uMax: 145, dir: 1, speed: 1.34, headwear: 'cap', shirt: 6, pants: 0, bag: true },
+    { id: 'dd-w-3', road: 'dd', u: 45, v: -9.3, uMin: -76, uMax: 145, dir: -1, speed: 1.28, headwear: 'hair', shirt: 8, pants: 2, bag: false },
+    { id: 'dd-w-4', road: 'dd', u: 95, v: -9.5, uMin: -76, uMax: 145, dir: 1, speed: 1.36, headwear: 'hair', shirt: 7, pants: 3, bag: true },
+
+    // 8. Zebra Crosswalk across Dong Da at LTK Junction (governed by Dong Da EW traffic signal)
+    { id: 'dd-cw-1', road: 'dd', isCrosswalk: true, u: -86.6, v: -9.2, vMin: -9.2, vMax: 9.2, curbDist: 8.0, dir: 1, speed: 1.22, signalIntersection: 'dd', signalAxis: 'ew', headwear: 'cap', shirt: 0, pants: 1, bag: true },
+    { id: 'dd-cw-2', road: 'dd', isCrosswalk: true, u: -86.6, v: 9.2, vMin: -9.2, vMax: 9.2, curbDist: 8.0, dir: -1, speed: 1.26, signalIntersection: 'dd', signalAxis: 'ew', headwear: 'hair', shirt: 2, pants: 0, bag: false },
+
+    // 9. Zebra Crosswalk across LTK South of Dong Da Junction (governed by LTK NS traffic signal)
+    { id: 'ltk-cw-s1', road: 'ltk', isCrosswalk: true, u: 35.7, v: -9.5, vMin: -9.5, vMax: 9.5, curbDist: 8.4, dir: 1, speed: 1.24, signalIntersection: 'dd', signalAxis: 'ns', headwear: 'non_la', shirt: 5, pants: 2, bag: false },
+    { id: 'ltk-cw-s2', road: 'ltk', isCrosswalk: true, u: 35.7, v: 9.5, vMin: -9.5, vMax: 9.5, curbDist: 8.4, dir: -1, speed: 1.28, signalIntersection: 'dd', signalAxis: 'ns', headwear: 'hair', shirt: 1, pants: 0, bag: true },
+
+    // 10. Zebra Crosswalk across LTK North of Dong Da Junction (governed by LTK NS traffic signal)
+    { id: 'ltk-cw-n1', road: 'ltk', isCrosswalk: true, u: 64.5, v: -9.5, vMin: -9.5, vMax: 9.5, curbDist: 8.4, dir: 1, speed: 1.20, signalIntersection: 'dd', signalAxis: 'ns', headwear: 'hair', shirt: 3, pants: 1, bag: true },
+    { id: 'ltk-cw-n2', road: 'ltk', isCrosswalk: true, u: 64.5, v: 9.5, vMin: -9.5, vMax: 9.5, curbDist: 8.4, dir: -1, speed: 1.25, signalIntersection: 'dd', signalAxis: 'ns', headwear: 'cap', shirt: 7, pants: 3, bag: false },
+
+    // 11. Zebra Crosswalk across Nguyen Hue at Main Campus Gate 77 (governed by Nguyen Hue EW signal)
+    { id: 'nh-cw-1', road: 'nh', isCrosswalk: true, u: -3.0, v: -10.3, vMin: -10.3, vMax: 10.3, curbDist: 8.6, dir: 1, speed: 1.22, signalIntersection: 'nh', signalAxis: 'ew', headwear: 'hair', shirt: 0, pants: 0, bag: true },
+    { id: 'nh-cw-2', road: 'nh', isCrosswalk: true, u: -3.0, v: 10.3, vMin: -10.3, vMax: 10.3, curbDist: 8.6, dir: -1, speed: 1.20, signalIntersection: 'nh', signalAxis: 'ew', headwear: 'cap', shirt: 8, pants: 2, bag: false },
+
+    // 12. Zebra Crosswalk across Nguyen Hue East of LTK Junction (governed by Nguyen Hue EW signal)
+    { id: 'nh-cw-ltk', road: 'nh', isCrosswalk: true, u: -93.2, v: -10.3, vMin: -10.3, vMax: 10.3, curbDist: 8.6, dir: 1, speed: 1.25, signalIntersection: 'nh', signalAxis: 'ew', headwear: 'non_la', shirt: 6, pants: 1, bag: false },
+
+    // 13. Zebra Crosswalk across LTK North of Nguyen Hue Junction (governed by LTK NS signal)
+    { id: 'ltk-cw-nh', road: 'ltk', isCrosswalk: true, u: -58.3, v: -9.5, vMin: -9.5, vMax: 9.5, curbDist: 8.4, dir: 1, speed: 1.22, signalIntersection: 'nh', signalAxis: 'ns', headwear: 'hair', shirt: 4, pants: 0, bag: true }
 ];
 
 // Initialize and manage pedestrian crowd system across 3 campus streets
@@ -257,11 +286,13 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
         rightLeg.castShadow = castShadows;
         root.add(rightLeg);
 
-        const road = cfg.road === 'nh-cross' ? ROAD_SPECS.nh : ROAD_SPECS[cfg.road];
+        const road = ROAD_SPECS[cfg.road];
         const initPos = uvToWorld(road, cfg.u, cfg.v);
         let initYaw = 0;
-        if (cfg.road === 'nh-cross') {
-            initYaw = cfg.dir > 0 ? Math.PI : 0;
+        if (cfg.isCrosswalk) {
+            const px = -Math.sin(road.rotY) * cfg.dir;
+            const pz = Math.cos(road.rotY) * cfg.dir;
+            initYaw = Math.atan2(-px, -pz);
         } else {
             const ux = Math.cos(road.rotY) * cfg.dir;
             const uz = Math.sin(road.rotY) * cfg.dir;
@@ -287,6 +318,7 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
             lastZ: initPos[1],
             targetYaw: initYaw,
             isWaiting: false,
+            hasCrossedThisPhase: false,
             walkPhase: Math.random() * Math.PI * 2
         };
     }
@@ -298,12 +330,9 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
         return p;
     });
 
-    // Advance walking motion, reciprocal limb swing, and traffic signal compliance
+    // Advance walking motion, reciprocal limb swing, and strict traffic signal compliance
     return function updatePedestrians(dt, elapsedSec = 0, signalState = null) {
         if (dt <= 0 || dt > 0.2) return;
-
-        // Pedestrian crosswalk signal for Nguyen Hue (green walk when vehicles stop at red)
-        const isNhPedestrianGreen = signalState && signalState.nh && signalState.nh.ewState === 'red';
 
         for (let i = 0; i < pedestrians.length; i++) {
             const p = pedestrians[i];
@@ -312,37 +341,50 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
             let worldX = p.lastX;
             let worldZ = p.lastZ;
 
-            if (cfg.road === 'nh-cross') {
-                const road = ROAD_SPECS.nh;
-                const atNorthCurb = p.v <= -8.8 && p.dir > 0;
-                const atSouthCurb = p.v >= 8.8 && p.dir < 0;
+            if (cfg.isCrosswalk) {
+                const road = ROAD_SPECS[cfg.road];
+                const curbDist = cfg.curbDist || 8.4;
+                const walkAllowed = isPedestrianWalkAllowed(cfg, signalState);
 
-                // Wait at sidewalk curb when vehicle traffic light is green or yellow
-                if ((atNorthCurb || atSouthCurb) && !isNhPedestrianGreen) {
-                    p.isWaiting = true;
-                } else {
-                    p.isWaiting = false;
+                // Reset phase completion latch when vehicle light is green or yellow
+                if (!walkAllowed) {
+                    p.hasCrossedThisPhase = false;
                 }
 
-                if (!p.isWaiting) {
+                // Check whether pedestrian is waiting at starting curb
+                const atStartCurb = (p.dir > 0 && p.v <= -curbDist) || (p.dir < 0 && p.v >= curbDist);
+
+                if (atStartCurb && (!walkAllowed || p.hasCrossedThisPhase)) {
+                    p.isWaiting = true;
+                    p.v = p.dir > 0 ? cfg.vMin : cfg.vMax;
+                } else {
+                    p.isWaiting = false;
                     p.v += p.dir * p.speed * dt;
+
+                    // Reached opposing curb safely
                     if (p.v >= cfg.vMax) {
                         p.v = cfg.vMax;
                         p.dir = -1;
+                        p.isWaiting = true;
+                        p.hasCrossedThisPhase = true;
                     } else if (p.v <= cfg.vMin) {
                         p.v = cfg.vMin;
                         p.dir = 1;
+                        p.isWaiting = true;
+                        p.hasCrossedThisPhase = true;
                     }
                 }
 
-                const pos = uvToWorld(road, p.u, p.v);
+                const pos = uvToWorld(road, cfg.u, p.v);
                 worldX = pos[0];
                 worldZ = pos[1];
 
-                // Crosswalk orientation strictly facing travel direction
-                p.targetYaw = p.dir > 0 ? Math.PI : 0;
+                // Face strictly across road in direction of crossing
+                const px = -Math.sin(road.rotY) * p.dir;
+                const pz = Math.cos(road.rotY) * p.dir;
+                p.targetYaw = Math.atan2(-px, -pz);
             } else {
-                // Sidewalk walkers patrolling along street orientation
+                // Sidewalk walkers patrolling strictly within sidewalk bounds
                 p.isWaiting = false;
                 const road = ROAD_SPECS[cfg.road];
                 p.u += p.dir * p.speed * dt;

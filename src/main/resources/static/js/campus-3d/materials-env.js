@@ -2945,10 +2945,10 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     ledCtx.fillText('HUẾ · THÀNH PHỐ DI SẢN', 256, 82);
 
     ledCtx.fillStyle = '#fde047';
-    ledCtx.font = '800 28px "Inter", "Segoe UI", sans-serif';
+    ledCtx.font = '800 24px "Inter", "Segoe UI", sans-serif';
     ledCtx.shadowColor = '#eab308';
     ledCtx.shadowBlur = 10;
-    ledCtx.fillText('FESTIVAL HUẾ 2024', 256, 138);
+    ledCtx.fillText('WELCOME TO HUE FESTIVAL', 256, 138);
 
     ledCtx.fillStyle = '#f8fafc';
     ledCtx.font = '700 20px "Inter", "Segoe UI", sans-serif';
