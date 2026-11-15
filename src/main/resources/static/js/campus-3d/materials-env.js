@@ -3951,32 +3951,47 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     ltkWestSidewalkGroup.add(curbBarMesh);
 
     // Wooden tree brace stakes for urban storm protection around the 6 synchronized trees (Photos 1, 3)
-    const stakeGeom = new THREE.CylinderGeometry(0.035, 0.035, 2.4, 6);
-    const collarGeom = new THREE.BoxGeometry(0.04, 0.08, 0.85);
-    const woodBraceMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.85 });
+    const stakeLen = 1.90;
+    const stakeGeom = new THREE.CylinderGeometry(0.038, 0.045, stakeLen, 8);
+    const collarGeom = new THREE.BoxGeometry(0.05, 0.08, 0.82);
+    const woodBraceMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.82, metalness: 0.05 });
 
     const treeZPositions = [-14.0, 0.0, 14.0, 28.0, 42.0, 54.0];
+    const upVector = new THREE.Vector3(0, 1, 0);
+    const rBot = 0.82;
+    const rTop = 0.38;
+    const yBot = 0.02;
+    const yTop = 1.70;
+
     treeZPositions.forEach((tz) => {
         const trGroup = new THREE.Group();
 
-        // 4 Wooden support stakes angled around the trunk
+        // 4 Wooden support stakes planted firmly into ground and angled inward to prop trunk
         for (let s = 0; s < 4; s++) {
             const sang = (s / 4) * Math.PI * 2;
+            const dirX = Math.cos(sang);
+            const dirZ = Math.sin(sang);
+
+            const botPt = new THREE.Vector3(dirX * rBot, yBot, dirZ * rBot);
+            const topPt = new THREE.Vector3(dirX * rTop, yTop, dirZ * rTop);
+            const midPt = new THREE.Vector3().addVectors(botPt, topPt).multiplyScalar(0.5);
+            const axisDir = new THREE.Vector3().subVectors(topPt, botPt).normalize();
+
             const stake = new THREE.Mesh(stakeGeom, woodBraceMat);
-            stake.position.set(Math.cos(sang) * 0.45, 1.15, Math.sin(sang) * 0.45);
-            stake.rotation.z = Math.cos(sang) * -0.18;
-            stake.rotation.x = Math.sin(sang) * 0.18;
+            stake.position.copy(midPt);
+            stake.quaternion.setFromUnitVectors(upVector, axisDir);
+            stake.castShadow = true;
             trGroup.add(stake);
         }
 
         // Horizontal wooden cross-collar securing the stakes around the trunk
         const c1 = new THREE.Mesh(collarGeom, woodBraceMat);
-        c1.position.set(0, 1.4, 0);
+        c1.position.set(0, 1.65, 0);
         trGroup.add(c1);
 
         const c2 = new THREE.Mesh(collarGeom, woodBraceMat);
         c2.rotation.y = Math.PI * 0.5;
-        c2.position.set(0, 1.4, 0);
+        c2.position.set(0, 1.65, 0);
         trGroup.add(c2);
 
         trGroup.position.set(-127.0, 0, tz);
@@ -3994,15 +4009,6 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         bike.rotation.y = Math.PI * 0.5 + 0.15;
         ltkWestSidewalkGroup.add(bike);
     });
-
-    // Parked white sedan car along sidewalk edge (Photo 3)
-    const carGeom = new THREE.BoxGeometry(1.9, 1.45, 4.4);
-    const carMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, metalness: 0.7 });
-    const carMesh = new THREE.Mesh(carGeom, carMat);
-    carMesh.position.set(-122.8, 0.73, 4.0);
-    carMesh.rotation.y = -1.6106;
-    carMesh.castShadow = true;
-    ltkWestSidewalkGroup.add(carMesh);
 
     ensembleGroup.add(ltkWestSidewalkGroup);
 
