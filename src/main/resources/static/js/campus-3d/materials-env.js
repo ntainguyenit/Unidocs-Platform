@@ -2189,6 +2189,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
         const geom = new THREE.PlaneGeometry(w, h);
         const mesh = new THREE.Mesh(geom, mat);
         mesh.position.set(x, y, z);
+        mesh.rotation.order = 'YXZ';
         mesh.rotation.y = rotY;
         mesh.rotation.x = rotX;
         scene.add(mesh);
@@ -2196,6 +2197,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
         if (isTwoWay) {
             const backMesh = new THREE.Mesh(geom, mat);
             backMesh.position.set(x, y, z);
+            backMesh.rotation.order = 'YXZ';
             backMesh.rotation.y = rotY + Math.PI;
             backMesh.rotation.x = -rotX;
             scene.add(backMesh);
@@ -2360,16 +2362,16 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     });
     addBillboard(myThuatTex, 7.6, 0.85, 4.0, 7.6, -36.3, 0);
 
-    // 5. Garage roof decals (NHÀ ĐỂ XE / NƠI ĐỂ XE) matching Image 1 & Official Plan 61a14ecc
-    const garageTex = createSignTexture(['NHÀ ĐỂ XE'], {
-        w: 512, h: 128, bg: 'transparent', color: '#ffffff', fontSizes: [64], maxAnisotropy: maxAniso
+    // 5. Garage roof decals: NHÀ ĐỂ XE GIÁO VIÊN (Red roofs) & NHÀ ĐỂ XE SINH VIÊN (Blue roof)
+    const garageGiaoVienTex = createSignTexture(['NHÀ ĐỂ XE GIÁO VIÊN'], {
+        w: 1024, h: 160, bg: 'transparent', color: '#ffffff', fontSizes: [68], maxAnisotropy: maxAniso
     });
-    const parkingDongDaTex = createSignTexture(['NƠI ĐỂ XE'], {
-        w: 512, h: 128, bg: 'transparent', color: '#ffffff', fontSizes: [64], maxAnisotropy: maxAniso
+    const garageSinhVienTex = createSignTexture(['NHÀ ĐỂ XE SINH VIÊN'], {
+        w: 1024, h: 160, bg: 'transparent', color: '#ffffff', fontSizes: [68], maxAnisotropy: maxAniso
     });
-    addBillboard(garageTex, 13.0, 2.6, -64.0, 4.7, 67.5, 0, -Math.PI * 0.48);
-    addBillboard(garageTex, 13.0, 2.6, 34.0, 4.7, 67.5, 0, -Math.PI * 0.48);
-    addBillboard(parkingDongDaTex, 11.5, 2.4, -29.21, 4.75, -61.80, 0.4461 + Math.PI, Math.PI * 0.48);
+    addBillboard(garageGiaoVienTex, 16.0, 2.5, -64.0, 4.7, 67.5, 0, -Math.PI * 0.48);
+    addBillboard(garageGiaoVienTex, 16.0, 2.5, 34.0, 4.7, 67.5, 0, -Math.PI * 0.48);
+    addBillboard(garageSinhVienTex, 14.5, 2.26, -28.93, 4.75, -61.21, 0.4461, -Math.PI * 0.48);
 
     // 6. Monument spiky red-and-green dracaena/croton foliage tufts inside black stone planter (Photo 5)
     const spikeCanvas = document.createElement('canvas');
