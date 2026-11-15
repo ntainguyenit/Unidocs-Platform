@@ -70,11 +70,11 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
     let tileTextures = null;
     const upgraded = new Set();
     campusModel.traverse((obj) => {
-        // Retract Dong Da left-side perimeter wall so it starts cleanly outside left gate pillar
+        // Seamlessly connect Dong Da left-side perimeter wall from monument pillar to corner property
         if (obj.isMesh && obj.position && Math.abs(obj.position.x - 25.775) < 0.15 && Math.abs(obj.position.z - (-91.98)) < 0.15) {
-            obj.position.x = 27.001;
-            obj.position.z = -92.566;
-            obj.scale.x *= 0.426;
+            obj.position.x = 28.14;
+            obj.position.z = -93.14;
+            obj.scale.x *= 0.485;
         }
 
         if (!obj.isMesh || !obj.material) return;
@@ -1547,26 +1547,26 @@ function createHuscHighSchoolSignTexture(maxAnisotropy = 4) {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
     ctx.font = '900 84px "Inter", "Segoe UI", sans-serif';
-    ctx.fillText('TRƯỜNG THPT CHUYÊN KHOA HỌC HUẾ', w * 0.5, 440);
+    ctx.fillText('TRƯỜNG THPT CHUYÊN KHOA HỌC HUẾ', w * 0.46, 440);
 
     ctx.font = '800 52px "Inter", "Segoe UI", sans-serif';
     ctx.fillStyle = '#f1f5f9';
-    ctx.fillText('HUSC HIGH SCHOOL FOR GIFTED STUDENTS', w * 0.5, 545);
+    ctx.fillText('HUSC HIGH SCHOOL FOR GIFTED STUDENTS', w * 0.46, 545);
 
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.82)';
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(80, 625);
-    ctx.lineTo(w - 80, 625);
+    ctx.lineTo(w - 220, 625);
     ctx.stroke();
 
     ctx.textAlign = 'left';
     ctx.font = '700 34px "Inter", "Segoe UI", sans-serif';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('Website: http://thpt-khhue.thuathienhue.edu.vn', 90, 715);
+    ctx.fillText('Website: http://thpt-khhue.thuathienhue.edu.vn', 80, 715);
 
     ctx.textAlign = 'right';
-    ctx.fillText('Điện thoại: 0234 3898936', w - 90, 715);
+    ctx.fillText('Điện thoại: 0234 3898936', w - 240, 715);
 
     ctx.strokeStyle = 'rgba(15, 60, 134, 0.40)';
     ctx.lineWidth = 6;
@@ -1578,8 +1578,12 @@ function createHuscHighSchoolSignTexture(maxAnisotropy = 4) {
     return tex;
 }
 
+// Dynamic spotlight pool for Dong Da Left Wing Gate structure
+const gateSpotlights = [];
+
 // Build authentic wide left-wing gate pier, slate foundation, beam, spotlights, and Chuyên Khoa học signboard matching Photo 1
 function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = null) {
+    gateSpotlights.length = 0;
     const tileTex = createCeramicTileTextures(maxAniso);
     const tileMat = new THREE.MeshStandardMaterial({
         color: 0xffffff,
@@ -1627,18 +1631,18 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
     baseMesh.receiveShadow = true;
     group.add(baseMesh);
 
-    // 2. High School Signboard Panel (widened for high visibility)
-    const signW = 4.80;
+    // 2. High School Signboard Panel (widened for high visibility, shifted slightly left for phone visibility)
+    const signW = 4.70;
     const signH = 2.05;
     const signGeom = new THREE.PlaneGeometry(signW, signH);
     const signMesh = new THREE.Mesh(signGeom, signMat);
-    signMesh.position.set(0, baseH + signH * 0.5, baseD * 0.5 + 0.015);
+    signMesh.position.set(-0.10, baseH + signH * 0.5, baseD * 0.5 + 0.015);
     group.add(signMesh);
 
     // Solid backing panel for signboard
     const backPanelGeom = new THREE.BoxGeometry(signW, signH, 0.16);
     const backPanelMesh = new THREE.Mesh(backPanelGeom, new THREE.MeshStandardMaterial({ color: 0x2e3440, roughness: 0.7 }));
-    backPanelMesh.position.set(0, baseH + signH * 0.5, baseD * 0.5 - 0.08);
+    backPanelMesh.position.set(-0.10, baseH + signH * 0.5, baseD * 0.5 - 0.08);
     backPanelMesh.castShadow = true;
     group.add(backPanelMesh);
 
@@ -1719,17 +1723,22 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
         lensMesh.rotation.x = -Math.PI * 0.5 + 0.65;
         lensMesh.position.set(0, -0.13, 0.01);
 
-        const spotLight = new THREE.PointLight(0xfff3d0, 4.2, 7.5, 1.2);
+        const spotLight = new THREE.PointLight(0xfff3d0, 0, 7.5, 1.2);
         spotLight.position.set(0, -0.12, 0);
+        spotLight.visible = false;
 
         const coneMesh = new THREE.Mesh(coneGeom, coneMat);
+        coneMesh.visible = false;
 
         spotGroup.add(brackMesh, lampMesh, lensMesh, spotLight, coneMesh);
         group.add(spotGroup);
 
         const glowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.6), glowMat);
         glowMesh.position.set(spotX, baseH + signH - 0.45, baseD * 0.5 + 0.022);
+        glowMesh.visible = false;
         group.add(glowMesh);
+
+        gateSpotlights.push({ spotLight, coneMesh, glowMesh });
     }
 
     // 6. Top Decorative Railing and 4 dynamic colored flags on 4 poles above overhead beam
@@ -1783,7 +1792,7 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
     // Position group seamlessly on authentic left wing of Gate 38 Dong Da
     const gateAngle = 0.4461;
     group.rotation.y = gateAngle + Math.PI;
-    group.position.set(23.35, 0, -90.88);
+    group.position.set(23.45, 0, -90.93);
 
     scene.add(group);
 }
@@ -4582,6 +4591,27 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             setNightSkyActive(false);
             if (updateTraffic && updateTraffic.setNightMode) updateTraffic.setNightMode(false);
         }
+
+        // Under-beam gate spotlights turn off during daytime and turn on at sunset/night
+        for (const sp of gateSpotlights) {
+            if (mode === 'night') {
+                sp.spotLight.visible = true;
+                sp.spotLight.intensity = 3.8;
+                sp.coneMesh.visible = true;
+                sp.glowMesh.visible = true;
+            } else if (mode === 'sunset') {
+                sp.spotLight.visible = true;
+                sp.spotLight.intensity = 1.6;
+                sp.coneMesh.visible = true;
+                sp.glowMesh.visible = true;
+            } else {
+                sp.spotLight.visible = false;
+                sp.spotLight.intensity = 0;
+                sp.coneMesh.visible = false;
+                sp.glowMesh.visible = false;
+            }
+        }
+
         renderer.shadowMap.needsUpdate = true;
     };
 
