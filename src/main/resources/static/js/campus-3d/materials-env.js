@@ -1128,11 +1128,11 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     ], 0.005, 1.25));
 
     // Outer sidewalk along West side of Ly Thuong Kiet split cleanly outside road carriageways
-    const pushLtkOuterSegment = (uStart, uEnd) => {
+    const pushLtkOuterSegment = (uStart, uEnd, swWidth = 6.0) => {
         const swNearStart = uvToWorld(roadDefs.ltk, uStart, -ltkHalfW);
         const swNearEnd = uvToWorld(roadDefs.ltk, uEnd, -ltkHalfW);
-        const swFarEnd = uvToWorld(roadDefs.ltk, uEnd, -ltkHalfW - 4.5);
-        const swFarStart = uvToWorld(roadDefs.ltk, uStart, -ltkHalfW - 4.5);
+        const swFarEnd = uvToWorld(roadDefs.ltk, uEnd, -ltkHalfW - swWidth);
+        const swFarStart = uvToWorld(roadDefs.ltk, uStart, -ltkHalfW - swWidth);
         sidewalkGeoms.push(buildGroundPoly([
             [swNearStart[0], swNearStart[1]],
             [swNearEnd[0], swNearEnd[1]],
@@ -1142,11 +1142,11 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     };
 
     // Segment 1: south of Nguyen Hue junction
-    pushLtkOuterSegment(roadDefs.ltk.uMin, ltkSwNh.outer.u1);
-    // Segment 2: between Nguyen Hue and Dong Da junctions
-    pushLtkOuterSegment(ltkNwNh.outer.u1, ltkSwDd.outer.u1);
+    pushLtkOuterSegment(roadDefs.ltk.uMin, ltkSwNh.outer.u1, 6.0);
+    // Segment 2: between Nguyen Hue and Dong Da junctions flush with building facades
+    pushLtkOuterSegment(ltkNwNh.outer.u1, ltkSwDd.outer.u1, 6.0);
     // Segment 3: north of Dong Da junction
-    pushLtkOuterSegment(ltkNwDd.outer.u1, roadDefs.ltk.uMax);
+    pushLtkOuterSegment(ltkNwDd.outer.u1, roadDefs.ltk.uMax, 6.0);
 
     const { colorTex: sidewalkColorTex, bumpTex: sidewalkBumpTex } = createTerrazzoSidewalkTextures(maxAniso);
     const sidewalkMesh = new THREE.Mesh(
@@ -3704,8 +3704,8 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     tcbGroup.add(tcbTrussMesh);
 
     // Position Techcombank Building at South-West corner of Ly Thuong Kiet x Dong Da intersection
-    tcbGroup.position.set(-142.0, 0, -1.5);
-    tcbGroup.rotation.y = 1.5308;
+    tcbGroup.position.set(-139.18, 0, -0.61);
+    tcbGroup.rotation.y = 1.6106;
     ensembleGroup.add(tcbGroup);
 
     // 8. DongA Bank Hue Branch building at 26 Ly Thuong Kiet street (Photos 1, 3)
@@ -3846,8 +3846,8 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     daGroup.add(fp2);
 
     // Position DongA Bank building adjacent to Techcombank on Ly Thuong Kiet
-    daGroup.position.set(-141.0, 0, 14.0);
-    daGroup.rotation.y = 1.5308;
+    daGroup.position.set(-139.42, 0, 18.41);
+    daGroup.rotation.y = 1.6106;
     ensembleGroup.add(daGroup);
 
     // 9. Contemporary Commercial Office Tower at 28 Ly Thuong Kiet street (Photos 1, 3)
@@ -3925,30 +3925,98 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     ofGroup.add(ofPenthouseMesh);
 
     // Position Office Tower adjacent to DongA Bank on Ly Thuong Kiet
-    ofGroup.position.set(-141.0, 0, 38.0);
-    ofGroup.rotation.y = 1.5308;
+    ofGroup.position.set(-138.57, 0, 39.90);
+    ofGroup.rotation.y = 1.6106;
     ensembleGroup.add(ofGroup);
 
-    // 10. West sidewalk along Ly Thuong Kiet, mature shade trees with wooden braces, and streetscape props (Photos 1, 3)
+    // 10. Corner Commercial Building at 30-32 Ly Thuong Kiet street (Photos 1, 3)
+    const cbGroup = new THREE.Group();
+    const cbLen = 18.0;
+    const cbDepth = 18.0;
+    const cbH = 22.0;
+
+    const cbCanvas = document.createElement('canvas');
+    cbCanvas.width = 1024;
+    cbCanvas.height = 1024;
+    const cbCtx = cbCanvas.getContext('2d');
+
+    // Warm contemporary commercial facade with bronze/sandstone tones
+    cbCtx.fillStyle = '#f8fafc';
+    cbCtx.fillRect(0, 0, 1024, 1024);
+
+    // Ground floor commercial / showroom entrance (y: 820 to 1024)
+    cbCtx.fillStyle = '#1e293b';
+    cbCtx.fillRect(0, 820, 1024, 204);
+
+    // Warm bronze architectural accents on ground floor
+    cbCtx.fillStyle = '#92400e';
+    cbCtx.fillRect(0, 820, 1024, 16);
+
+    // Storefront glass display windows
+    for (let sb = 0; sb < 5; sb++) {
+        const sbx = sb * (1024 / 5);
+        cbCtx.fillStyle = '#0f172a';
+        cbCtx.fillRect(sbx + 12, 846, 1024 / 5 - 24, 168);
+        cbCtx.fillStyle = '#0284c7';
+        cbCtx.fillRect(sbx + 16, 850, 1024 / 5 - 32, 160);
+
+        cbCtx.strokeStyle = 'rgba(251, 191, 36, 0.7)';
+        cbCtx.lineWidth = 2;
+        cbCtx.strokeRect(sbx + 16, 850, 1024 / 5 - 32, 160);
+    }
+
+    // Floors 2-5 modern ribbon windows
+    const numCbFloors = 5;
+    const cbFloorH = 820 / numCbFloors;
+    for (let cf = 0; cf < numCbFloors; cf++) {
+        const cfy = cf * cbFloorH;
+
+        // Architectural sill trim
+        cbCtx.fillStyle = '#e2e8f0';
+        cbCtx.fillRect(0, cfy + cbFloorH - 10, 1024, 10);
+
+        for (let w = 0; w < 5; w++) {
+            const wx = w * (1024 / 5);
+            cbCtx.fillStyle = '#1e293b';
+            cbCtx.fillRect(wx + 16, cfy + 18, 1024 / 5 - 32, cbFloorH - 36);
+
+            cbCtx.fillStyle = '#1e3a5f';
+            cbCtx.fillRect(wx + 20, cfy + 22, 1024 / 5 - 40, cbFloorH - 44);
+
+            cbCtx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            cbCtx.lineWidth = 1.5;
+            cbCtx.strokeRect(wx + 20, cfy + 22, 1024 / 5 - 40, cbFloorH - 44);
+        }
+    }
+
+    const cbTex = new THREE.CanvasTexture(cbCanvas);
+    cbTex.colorSpace = THREE.SRGBColorSpace;
+    cbTex.anisotropy = Math.min(8, maxAniso);
+
+    const cbMat = new THREE.MeshStandardMaterial({
+        map: cbTex,
+        roughness: 0.36,
+        metalness: 0.18
+    });
+
+    const cbBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(cbLen, cbH, cbDepth), cbMat);
+    cbBodyMesh.position.set(0, cbH * 0.5, 0);
+    cbBodyMesh.castShadow = true;
+    cbBodyMesh.receiveShadow = true;
+    cbGroup.add(cbBodyMesh);
+
+    // Decorative rooftop parapet trim
+    const cbParapetMesh = new THREE.Mesh(new THREE.BoxGeometry(cbLen + 0.4, 1.2, cbDepth + 0.4), whiteTrimMat);
+    cbParapetMesh.position.set(0, cbH + 0.6, 0);
+    cbGroup.add(cbParapetMesh);
+
+    // Position Corner Commercial Building adjacent to Office Tower along Ly Thuong Kiet
+    cbGroup.position.set(-137.73, 0, 60.88);
+    cbGroup.rotation.y = 1.6106;
+    ensembleGroup.add(cbGroup);
+
+    // 11. West sidewalk along Ly Thuong Kiet, mature shade trees with wooden braces, and streetscape props (Photos 1, 3)
     const ltkWestSidewalkGroup = new THREE.Group();
-
-    // Smooth terrazzo sidewalk pavement extending from Dong Da intersection down towards Nguyen Hue
-    const swLen = 78.0;
-    const swW = 7.5;
-    const ltkSidewalkPaveGeom = new THREE.PlaneGeometry(swW, swLen);
-    const ltkSidewalkPaveMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.78 });
-    const ltkSidewalkPaveMesh = new THREE.Mesh(ltkSidewalkPaveGeom, ltkSidewalkPaveMat);
-    ltkSidewalkPaveMesh.rotation.x = -Math.PI * 0.5;
-    ltkSidewalkPaveMesh.position.set(-128.25, 0.012, 19.0);
-    ltkSidewalkPaveMesh.receiveShadow = true;
-    ltkWestSidewalkGroup.add(ltkSidewalkPaveMesh);
-
-    // Beveled dark granite curb along road edge
-    const curbBarGeom = new THREE.BoxGeometry(0.35, 0.24, swLen);
-    const curbBarMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.85 });
-    const curbBarMesh = new THREE.Mesh(curbBarGeom, curbBarMat);
-    curbBarMesh.position.set(-124.6, 0.12, 19.0);
-    ltkWestSidewalkGroup.add(curbBarMesh);
 
     // Wooden tree brace stakes for urban storm protection around the 6 synchronized trees (Photos 1, 3)
     const stakeLen = 1.90;
@@ -3956,14 +4024,21 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const collarGeom = new THREE.BoxGeometry(0.05, 0.08, 0.82);
     const woodBraceMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.82, metalness: 0.05 });
 
-    const treeZPositions = [-14.0, 0.0, 14.0, 28.0, 42.0, 54.0];
+    const treeCoords = [
+        [-128.5, -14.0],
+        [-127.9, 0.0],
+        [-127.4, 14.0],
+        [-126.8, 28.0],
+        [-126.2, 42.0],
+        [-125.8, 54.0]
+    ];
     const upVector = new THREE.Vector3(0, 1, 0);
     const rBot = 0.82;
     const rTop = 0.38;
     const yBot = 0.02;
     const yTop = 1.70;
 
-    treeZPositions.forEach((tz) => {
+    treeCoords.forEach(([tx, tz]) => {
         const trGroup = new THREE.Group();
 
         // 4 Wooden support stakes planted firmly into ground and angled inward to prop trunk
@@ -3994,19 +4069,28 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         c2.position.set(0, 1.65, 0);
         trGroup.add(c2);
 
-        trGroup.position.set(-127.0, 0, tz);
+        trGroup.position.set(tx, 0, tz);
         ltkWestSidewalkGroup.add(trGroup);
     });
 
     // Parked motorbikes on sidewalk in front of Techcombank and DongA Bank (Photos 1, 3)
     const bikeGeom = new THREE.BoxGeometry(0.55, 0.85, 1.6);
     const bikeColors = [0xdc2626, 0x1e293b, 0x0284c7, 0xf8fafc, 0x475569];
-    const bikeSpotsZ = [-10.0, -8.5, -7.0, 7.5, 9.0, 10.5, 20.0, 21.5];
-    bikeSpotsZ.forEach((bz, bidx) => {
+    const bikeCoords = [
+        [-130.55, -10.0],
+        [-130.49, -8.5],
+        [-130.43, -7.0],
+        [-129.85, 7.5],
+        [-129.79, 9.0],
+        [-129.73, 10.5],
+        [-129.35, 20.0],
+        [-129.29, 21.5]
+    ];
+    bikeCoords.forEach(([bx, bz], bidx) => {
         const bMat = new THREE.MeshStandardMaterial({ color: bikeColors[bidx % bikeColors.length], roughness: 0.45, metalness: 0.35 });
         const bike = new THREE.Mesh(bikeGeom, bMat);
-        bike.position.set(-129.2, 0.43, bz);
-        bike.rotation.y = Math.PI * 0.5 + 0.15;
+        bike.position.set(bx, 0.43, bz);
+        bike.rotation.y = 1.6106 + Math.PI * 0.5 + 0.15;
         ltkWestSidewalkGroup.add(bike);
     });
 
@@ -4093,7 +4177,6 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
     // Background urban massing blocks beyond surrounding streets (softly blended into distance fog)
     const cityMat = new THREE.MeshLambertMaterial({ color: 0xc2cbd4 });
     const ctxCoords = [
-        [-146, 12, 22, 18, 20], [-140, 55, 22, 12, 20],
         [-80, 118, 26, 14, 18], [-15, 120, 28, 16, 16], [52, 118, 26, 15, 22],
         [108, 48, 24, 18, 18], [98, -22, 22, 16, 20], [72, -88, 26, 15, 18],
         [-25, -116, 28, 18, 16]
