@@ -341,7 +341,7 @@ function createContrailRibbonMesh(segmentCount = 42) {
     const createHistory = () => {
         const pts = [];
         for (let i = 0; i < segmentCount; i++) {
-            pts.push({ x: 0, y: -200, z: 0, age: 999 });
+            pts.push({ x: 0, y: 0, z: 0, age: 999, valid: false });
         }
         return pts;
     };
@@ -361,6 +361,7 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
     scene.add(aircraft);
 
     const contrail = createContrailRibbonMesh(SEGMENT_COUNT);
+    contrail.mesh.visible = false;
     scene.add(contrail.mesh);
 
     // Diverse low-altitude flight paths crossing directly above campus just above flocking birds
@@ -407,19 +408,53 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
         flightProgress = 0;
         isActive = true;
         aircraft.visible = true;
+        contrail.mesh.visible = true;
 
         curPos.copy(currentStart);
         aircraft.position.copy(curPos);
         const lookTarget = curPos.clone().add(currentDir);
         aircraft.lookAt(lookTarget);
 
-        // Reset contrail history buffers
+        // Precompute initial engine nozzle positions at spawn location
+        aircraft.localToWorld(leftWorld.copy(leftExhaustLocal));
+        aircraft.localToWorld(rightWorld.copy(rightExhaustLocal));
+
+        // Reset contrail history buffers and clamp to engine nozzles
         for (let i = 0; i < SEGMENT_COUNT; i++) {
-            contrail.leftHistory[i].y = -200;
+            contrail.leftHistory[i].x = leftWorld.x;
+            contrail.leftHistory[i].y = leftWorld.y;
+            contrail.leftHistory[i].z = leftWorld.z;
             contrail.leftHistory[i].age = 999;
-            contrail.rightHistory[i].y = -200;
+            contrail.leftHistory[i].valid = false;
+
+            contrail.rightHistory[i].x = rightWorld.x;
+            contrail.rightHistory[i].y = rightWorld.y;
+            contrail.rightHistory[i].z = rightWorld.z;
             contrail.rightHistory[i].age = 999;
+            contrail.rightHistory[i].valid = false;
         }
+
+        // Initialize vertex buffer positions to nozzles and alpha to 0 (no underground or stray vertices)
+        const posArr = contrail.positions;
+        const alphaArr = contrail.alphas;
+        for (let s = 0; s < SEGMENT_COUNT; s++) {
+            for (let engine = 0; engine < 2; engine++) {
+                const base = (engine * SEGMENT_COUNT + s) * 2;
+                const pos = engine === 0 ? leftWorld : rightWorld;
+                posArr[base * 3] = pos.x;
+                posArr[base * 3 + 1] = pos.y;
+                posArr[base * 3 + 2] = pos.z;
+                posArr[(base + 1) * 3] = pos.x;
+                posArr[(base + 1) * 3 + 1] = pos.y;
+                posArr[(base + 1) * 3 + 2] = pos.z;
+                alphaArr[base] = 0;
+                alphaArr[base + 1] = 0;
+            }
+        }
+        contrail.geom.attributes.position.needsUpdate = true;
+        contrail.geom.attributes.aAlpha.needsUpdate = true;
+
+        sampleTimer = 0.038;
     };
 
     // Update aircraft flight physics, strobe blink, and smooth contrail expansion
@@ -431,53 +466,80 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
             if (spawnTimer <= 0) {
                 startOverflight();
             }
+            return;
+        }
+
+        flightProgress += (flightSpeed * safeDt) / pathLength;
+        if (flightProgress >= 1.0) {
+            isActive = false;
+            aircraft.visible = false;
+            contrail.mesh.visible = false;
+            spawnTimer = 1.2 + Math.random() * 1.5;
+            return;
+        }
+
+        curPos.lerpVectors(currentStart, currentEnd, flightProgress);
+        aircraft.position.copy(curPos);
+        aircraft.lookAt(curPos.clone().add(currentDir));
+
+        // Anti-collision strobe light pulses every 1.25s
+        strobeLight.visible = (elapsedSec % 1.25) < 0.12;
+
+        // Current world space engine nozzle locations
+        aircraft.localToWorld(leftWorld.copy(leftExhaustLocal));
+        aircraft.localToWorld(rightWorld.copy(rightExhaustLocal));
+
+        // Age all active contrail segments
+        for (let i = 0; i < SEGMENT_COUNT; i++) {
+            if (contrail.leftHistory[i].valid) contrail.leftHistory[i].age += safeDt;
+            if (contrail.rightHistory[i].valid) contrail.rightHistory[i].age += safeDt;
+        }
+
+        // Sample contrail points behind engines
+        sampleTimer += safeDt;
+        if (sampleTimer >= 0.038) {
+            sampleTimer = 0;
+
+            for (let i = SEGMENT_COUNT - 1; i > 0; i--) {
+                const lPrev = contrail.leftHistory[i - 1];
+                const lCur = contrail.leftHistory[i];
+                lCur.x = lPrev.x;
+                lCur.y = lPrev.y;
+                lCur.z = lPrev.z;
+                lCur.age = lPrev.age;
+                lCur.valid = lPrev.valid;
+
+                const rPrev = contrail.rightHistory[i - 1];
+                const rCur = contrail.rightHistory[i];
+                rCur.x = rPrev.x;
+                rCur.y = rPrev.y;
+                rCur.z = rPrev.z;
+                rCur.age = rPrev.age;
+                rCur.valid = rPrev.valid;
+            }
+
+            contrail.leftHistory[0].x = leftWorld.x;
+            contrail.leftHistory[0].y = leftWorld.y;
+            contrail.leftHistory[0].z = leftWorld.z;
+            contrail.leftHistory[0].age = 0;
+            contrail.leftHistory[0].valid = true;
+
+            contrail.rightHistory[0].x = rightWorld.x;
+            contrail.rightHistory[0].y = rightWorld.y;
+            contrail.rightHistory[0].z = rightWorld.z;
+            contrail.rightHistory[0].age = 0;
+            contrail.rightHistory[0].valid = true;
         } else {
-            flightProgress += (flightSpeed * safeDt) / pathLength;
-            if (flightProgress >= 1.0) {
-                isActive = false;
-                aircraft.visible = false;
-                spawnTimer = 1.2 + Math.random() * 1.5;
-            } else {
-                curPos.lerpVectors(currentStart, currentEnd, flightProgress);
-                aircraft.position.copy(curPos);
-                aircraft.lookAt(curPos.clone().add(currentDir));
-
-                // Anti-collision strobe light pulses every 1.25s
-                strobeLight.visible = (elapsedSec % 1.25) < 0.12;
-
-                // Sample contrail points behind engines
-                sampleTimer += safeDt;
-                if (sampleTimer >= 0.038) {
-                    sampleTimer = 0;
-                    aircraft.localToWorld(leftWorld.copy(leftExhaustLocal));
-                    aircraft.localToWorld(rightWorld.copy(rightExhaustLocal));
-
-                    for (let i = SEGMENT_COUNT - 1; i > 0; i--) {
-                        const lPrev = contrail.leftHistory[i - 1];
-                        const lCur = contrail.leftHistory[i];
-                        lCur.x = lPrev.x;
-                        lCur.y = lPrev.y;
-                        lCur.z = lPrev.z;
-                        lCur.age = lPrev.age + safeDt;
-
-                        const rPrev = contrail.rightHistory[i - 1];
-                        const rCur = contrail.rightHistory[i];
-                        rCur.x = rPrev.x;
-                        rCur.y = rPrev.y;
-                        rCur.z = rPrev.z;
-                        rCur.age = rPrev.age + safeDt;
-                    }
-
-                    contrail.leftHistory[0].x = leftWorld.x;
-                    contrail.leftHistory[0].y = leftWorld.y;
-                    contrail.leftHistory[0].z = leftWorld.z;
-                    contrail.leftHistory[0].age = 0;
-
-                    contrail.rightHistory[0].x = rightWorld.x;
-                    contrail.rightHistory[0].y = rightWorld.y;
-                    contrail.rightHistory[0].z = rightWorld.z;
-                    contrail.rightHistory[0].age = 0;
-                }
+            // Keep head of ribbon firmly anchored to nozzle between discrete sample intervals
+            if (contrail.leftHistory[0].valid) {
+                contrail.leftHistory[0].x = leftWorld.x;
+                contrail.leftHistory[0].y = leftWorld.y;
+                contrail.leftHistory[0].z = leftWorld.z;
+            }
+            if (contrail.rightHistory[0].valid) {
+                contrail.rightHistory[0].x = rightWorld.x;
+                contrail.rightHistory[0].y = rightWorld.y;
+                contrail.rightHistory[0].z = rightWorld.z;
             }
         }
 
@@ -487,7 +549,7 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
         const alphaArr = contrail.alphas;
         const uvArr = contrail.uvs;
 
-        const fillEngineRibbon = (history, baseVertexOffset) => {
+        const fillEngineRibbon = (history, baseVertexOffset, defaultPos) => {
             for (let s = 0; s < SEGMENT_COUNT; s++) {
                 const pt = history[s];
                 const vLeftIdx = (baseVertexOffset + s * 2) * 3;
@@ -497,16 +559,37 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
                 const uvLeftIdx = (baseVertexOffset + s * 2) * 2;
                 const uvRightIdx = (baseVertexOffset + s * 2 + 1) * 2;
 
-                if (pt.y < -100 || pt.age > 16.0) {
-                    posArr[vLeftIdx] = 0; posArr[vLeftIdx + 1] = -200; posArr[vLeftIdx + 2] = 0;
-                    posArr[vRightIdx] = 0; posArr[vRightIdx + 1] = -200; posArr[vRightIdx + 2] = 0;
+                const segNorm = s / (SEGMENT_COUNT - 1);
+                uvArr[uvLeftIdx] = 0.0; uvArr[uvLeftIdx + 1] = segNorm;
+                uvArr[uvRightIdx] = 1.0; uvArr[uvRightIdx + 1] = segNorm;
+
+                // If segment has not been recorded yet or has dissipated
+                if (!pt.valid || pt.age > 16.0) {
+                    if (s > 0) {
+                        // Collapse vertices to previous segment to produce 0-area degenerate triangles
+                        const prevLeftIdx = (baseVertexOffset + (s - 1) * 2) * 3;
+                        const prevRightIdx = (baseVertexOffset + (s - 1) * 2 + 1) * 3;
+                        posArr[vLeftIdx] = posArr[prevLeftIdx];
+                        posArr[vLeftIdx + 1] = posArr[prevLeftIdx + 1];
+                        posArr[vLeftIdx + 2] = posArr[prevLeftIdx + 2];
+                        posArr[vRightIdx] = posArr[prevRightIdx];
+                        posArr[vRightIdx + 1] = posArr[prevRightIdx + 1];
+                        posArr[vRightIdx + 2] = posArr[prevRightIdx + 2];
+                    } else {
+                        // Initial fallback at engine nozzle position
+                        posArr[vLeftIdx] = defaultPos.x;
+                        posArr[vLeftIdx + 1] = defaultPos.y;
+                        posArr[vLeftIdx + 2] = defaultPos.z;
+                        posArr[vRightIdx] = defaultPos.x;
+                        posArr[vRightIdx + 1] = defaultPos.y;
+                        posArr[vRightIdx + 2] = defaultPos.z;
+                    }
                     alphaArr[aLeftIdx] = 0;
                     alphaArr[aRightIdx] = 0;
                     continue;
                 }
 
-                // Expand contrail width gracefully from 0.45m at nozzle to 3.4m downwind
-                const segNorm = s / (SEGMENT_COUNT - 1);
+                // Expand contrail width gracefully from 0.44m at nozzle to 3.5m downwind
                 const halfW = 0.22 + segNorm * 1.55;
 
                 posArr[vLeftIdx] = pt.x + normal.x * halfW;
@@ -516,9 +599,6 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
                 posArr[vRightIdx] = pt.x - normal.x * halfW;
                 posArr[vRightIdx + 1] = pt.y - 0.12;
                 posArr[vRightIdx + 2] = pt.z - normal.z * halfW;
-
-                uvArr[uvLeftIdx] = 0.0; uvArr[uvLeftIdx + 1] = segNorm;
-                uvArr[uvRightIdx] = 1.0; uvArr[uvRightIdx + 1] = segNorm;
 
                 // Delayed condensation rising quickly, then dissipating gently to 0
                 let alpha = 0.0;
@@ -530,8 +610,8 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
             }
         };
 
-        fillEngineRibbon(contrail.leftHistory, 0);
-        fillEngineRibbon(contrail.rightHistory, SEGMENT_COUNT * 2);
+        fillEngineRibbon(contrail.leftHistory, 0, leftWorld);
+        fillEngineRibbon(contrail.rightHistory, SEGMENT_COUNT * 2, rightWorld);
 
         contrail.geom.attributes.position.needsUpdate = true;
         contrail.geom.attributes.aAlpha.needsUpdate = true;
