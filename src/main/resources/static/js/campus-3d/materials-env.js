@@ -1001,14 +1001,13 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     };
 
     // Dashed yellow centerlines dividing opposing traffic strictly stopping 2.0m before junctions (Photo 2 & 3)
+    // Note: Dong Da street has a physical planted median divider, so yellow dashed centerlines are omitted
     pushYellowCenterline(roadDefs.nh, -168.0, -119.0);
     pushYellowCenterline(roadDefs.nh, -88.4, -7.5);
     pushYellowCenterline(roadDefs.nh, 1.5, 168.0);
     pushYellowCenterline(roadDefs.ltk, -128.0, -85.55);
     pushYellowCenterline(roadDefs.ltk, -53.55, 31.0);
     pushYellowCenterline(roadDefs.ltk, 69.2, 128.0);
-    pushYellowCenterline(roadDefs.dd, -176.0, -120.7);
-    pushYellowCenterline(roadDefs.dd, -81.9, 176.0);
 
     // White parking/outer lane dashed lines along Ly Thuong Kiet matching Photo 2, 3, 4
     pushWhiteEdgeDashes(roadDefs.ltk, -128.0, -85.55, -5.8);
