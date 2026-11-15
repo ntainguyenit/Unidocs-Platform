@@ -3351,7 +3351,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     armGeom.rotateZ(Math.PI * 0.35);
     const lumGeom = new THREE.BoxGeometry(0.65, 0.12, 0.28);
 
-    // Dual-sided Red Festive Propaganda Banners (Photos 4, 5)
+    // Dual-sided Red Festive Propaganda Banners for all median lamp posts (Photos 1, 2)
     const banCanvas = document.createElement('canvas');
     banCanvas.width = 256;
     banCanvas.height = 512;
@@ -3365,7 +3365,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     // Golden 5-pointed star emblem
     banCtx.fillStyle = '#facc15';
     banCtx.beginPath();
-    const cx = 128, cy = 90, rOut = 36, rIn = 16;
+    const cx = 128, cy = 95, rOut = 38, rIn = 17;
     for (let p = 0; p < 10; p++) {
         const pang = (p / 10) * Math.PI * 2 - Math.PI * 0.5;
         const pr = p % 2 === 0 ? rOut : rIn;
@@ -3378,14 +3378,13 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
 
     banCtx.textAlign = 'center';
     banCtx.textBaseline = 'middle';
+    banCtx.fillStyle = '#fef08a';
     banCtx.font = '900 28px "Inter", "Segoe UI", sans-serif';
-    banCtx.fillText('CHÚC MỪNG', 128, 175);
-    banCtx.fillText('NĂM MỚI', 128, 220);
-    banCtx.font = '900 48px "Inter", "Segoe UI", sans-serif';
-    banCtx.fillText('2024', 128, 290);
-    banCtx.font = '700 22px "Inter", "Segoe UI", sans-serif';
-    banCtx.fillText('MỪNG ĐẢNG', 128, 385);
-    banCtx.fillText('MỪNG XUÂN', 128, 425);
+    banCtx.fillText('CHÚC MỪNG', 128, 195);
+    banCtx.fillText('NĂM MỚI', 128, 245);
+    banCtx.font = '700 24px "Inter", "Segoe UI", sans-serif';
+    banCtx.fillText('MỪNG ĐẢNG', 128, 360);
+    banCtx.fillText('MỪNG XUÂN', 128, 410);
 
     const banTex = new THREE.CanvasTexture(banCanvas);
     banTex.colorSpace = THREE.SRGBColorSpace;
@@ -3393,12 +3392,33 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const bannerMat = new THREE.MeshStandardMaterial({
         map: banTex,
         roughness: 0.45,
-        metalness: 0.1,
-        side: THREE.DoubleSide
+        metalness: 0.1
     });
 
-    const lampPositionsU = [-70.0, -22.0, 26.0, 80.0, 135.0];
-    lampPositionsU.forEach((uPos, lIdx) => {
+    const banW = 1.15;
+    const banH = 2.6;
+    const banGeom = new THREE.PlaneGeometry(banW, banH);
+
+    // Helper to create non-flipped double-sided banner with both directions readable
+    const createDoubleSidedBanner = (zPos) => {
+        const bg = new THREE.Group();
+        // Face 1 facing oncoming traffic (towards -X in lGroup)
+        const f1 = new THREE.Mesh(banGeom, bannerMat);
+        f1.position.set(-0.005, 5.0, zPos);
+        f1.rotation.y = -Math.PI * 0.5;
+        bg.add(f1);
+
+        // Face 2 facing departing traffic (towards +X in lGroup)
+        const f2 = new THREE.Mesh(banGeom, bannerMat);
+        f2.position.set(0.005, 5.0, zPos);
+        f2.rotation.y = Math.PI * 0.5;
+        bg.add(f2);
+
+        return bg;
+    };
+
+    const lampPositionsU = [-70.0, -22.0, 26.0, 80.0, 135.0, 170.0];
+    lampPositionsU.forEach((uPos) => {
         const lx = ddDef.cx + uPos * ddUx;
         const lz = ddDef.cz + uPos * ddUz;
 
@@ -3426,20 +3446,9 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         lum2.position.set(0, poleH - 0.55, 1.95);
         lGroup.add(lum2);
 
-        // Near the intersection (lIdx === 0), attach the festive banners (Photos 4, 5)
-        if (lIdx === 0) {
-            const banW = 1.15;
-            const banH = 2.6;
-            const b1 = new THREE.Mesh(new THREE.PlaneGeometry(banW, banH), bannerMat);
-            b1.position.set(0, 5.0, -0.68);
-            b1.rotation.y = Math.PI * 0.5;
-            lGroup.add(b1);
-
-            const b2 = new THREE.Mesh(new THREE.PlaneGeometry(banW, banH), bannerMat);
-            b2.position.set(0, 5.0, 0.68);
-            b2.rotation.y = -Math.PI * 0.5;
-            lGroup.add(b2);
-        }
+        // Attach 2 festive banners to all lamp posts along Dong Da median island
+        lGroup.add(createDoubleSidedBanner(-0.68));
+        lGroup.add(createDoubleSidedBanner(0.68));
 
         lGroup.position.set(lx, 0, lz);
         lGroup.rotation.y = ddRotY;
@@ -3448,71 +3457,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
 
     ensembleGroup.add(medianIslandGroup);
 
-    // 6. DÃY NHÀ PHỐ KINH DOANH & HÀNG CÂY XANH ĐƯỜNG ĐỐNG ĐA (Photo 5)
-    const shGroup = new THREE.Group();
-    const shCanvas = document.createElement('canvas');
-    shCanvas.width = 1024;
-    shCanvas.height = 256;
-    const shCtx = shCanvas.getContext('2d');
-
-    const shColors = ['#fef08a', '#e0e7ff', '#ffedd5', '#f1f5f9'];
-    const shSigns = ['BÁNH MÌ HUẾ', 'CÀ PHÊ SÁNG', 'TIỆM ĂN NHANH', 'ĐẶC SẢN CỐ ĐÔ'];
-    const signBg = ['#dc2626', '#78350f', '#ea580c', '#0284c7'];
-
-    for (let i = 0; i < 4; i++) {
-        const sx = i * 256;
-        shCtx.fillStyle = shColors[i];
-        shCtx.fillRect(sx, 0, 256, 256);
-
-        // Upper windows
-        shCtx.fillStyle = '#0f172a';
-        shCtx.fillRect(sx + 30, 25, 65, 80);
-        shCtx.fillRect(sx + 155, 25, 65, 80);
-
-        // Store sign
-        shCtx.fillStyle = signBg[i];
-        shCtx.fillRect(sx + 16, 125, 224, 46);
-        shCtx.strokeStyle = '#facc15';
-        shCtx.lineWidth = 2;
-        shCtx.strokeRect(sx + 16, 125, 224, 46);
-
-        shCtx.fillStyle = '#ffffff';
-        shCtx.font = '900 24px "Inter", "Segoe UI", sans-serif';
-        shCtx.textAlign = 'center';
-        shCtx.textBaseline = 'middle';
-        shCtx.fillText(shSigns[i], sx + 128, 148);
-
-        // Ground floor entrance
-        shCtx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-        shCtx.fillRect(sx + 20, 180, 216, 76);
-    }
-
-    const shTex = new THREE.CanvasTexture(shCanvas);
-    shTex.colorSpace = THREE.SRGBColorSpace;
-    shTex.anisotropy = Math.min(8, maxAniso);
-
-    const shMat = new THREE.MeshStandardMaterial({ map: shTex, roughness: 0.72 });
-    const shRowMesh = new THREE.Mesh(new THREE.BoxGeometry(42.0, 10.5, 12.0), shMat);
-    shRowMesh.position.set(0, 5.25, 0);
-    shGroup.add(shRowMesh);
-
-    // Fabric awnings (mái hiên di động)
-    const awningGeom = new THREE.BoxGeometry(9.6, 0.15, 2.2);
-    awningGeom.rotateX(0.2);
-    const awningColors = [0xdc2626, 0x15803d, 0xd97706, 0x0284c7];
-    for (let i = 0; i < 4; i++) {
-        const awMat = new THREE.MeshStandardMaterial({ color: awningColors[i], roughness: 0.65 });
-        const awMesh = new THREE.Mesh(awningGeom, awMat);
-        awMesh.position.set(-15.0 + i * 10.2, 3.8, 6.8);
-        shGroup.add(awMesh);
-    }
-
-    // Position shophouses along the right side of Dong Da street
-    shGroup.position.set(-42.0, 0, -84.0);
-    shGroup.rotation.y = -0.4461;
-    ensembleGroup.add(shGroup);
-
-    // 7. Techcombank Hue Branch building at 24 Ly Thuong Kiet street corner (Photos 1, 2, 3)
+    // 6. Techcombank Hue Branch building at 24 Ly Thuong Kiet street corner (Photos 1, 2, 3)
     const tcbGroup = new THREE.Group();
     const tcbLen = 15.0;
     const tcbDepth = 16.0;
