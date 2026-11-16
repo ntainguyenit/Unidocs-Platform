@@ -1497,16 +1497,22 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     sidewalkMesh.updateMatrix();
     scene.add(sidewalkMesh);
 
-    // Authentic square dirt tree basins (bồn cây hè phố) for the 3 shade trees along school-side Ly Thuong Kiet sidewalk
-    const ltkSidewalkTrees = [
-        { x: -108.6, z: -15.0, scale: 1.10 },
-        { x: -107.4, z: 16.0, scale: 1.14 },
-        { x: -106.1, z: 48.0, scale: 1.12 }
+    // Authentic square dirt tree basins (bồn cây hè phố) for shade trees along Ly Thuong Kiet and Nguyen Hue sidewalks
+    const sidewalkTreeBasins = [
+        // Ly Thuong Kiet sidewalk (3 trees along school side)
+        { x: -108.6, z: -15.0, scale: 1.10, rotY: 0.0398 },
+        { x: -107.4, z: 16.0, scale: 1.14, rotY: 0.0398 },
+        { x: -106.1, z: 48.0, scale: 1.12, rotY: 0.0398 },
+        // Nguyen Hue sidewalk (5 trees along school side flanking Gate 77)
+        { x: -64.0, z: 75.5, scale: 1.14, rotY: 0.0 },
+        { x: -45.0, z: 75.5, scale: 1.12, rotY: 0.0 },
+        { x: 16.0, z: 75.5, scale: 1.14, rotY: 0.0 },
+        { x: 38.0, z: 75.5, scale: 1.10, rotY: 0.0 },
+        { x: 60.0, z: 75.5, scale: 1.12, rotY: 0.0 }
     ];
     const treePitCurbGeoms = [];
     const treePitSoilGeoms = [];
     const pitDummy = new THREE.Object3D();
-    const ltkPitRotY = 0.0398; // Road alignment angle parallel to curb & campus boundary wall
     const pitWOuter = 1.32;
     const pitDOuter = 1.32;
     const pitCurbThick = 0.09;
@@ -1515,9 +1521,9 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     const pitDInner = pitDOuter - 2 * pitCurbThick; // 1.14m
     const pitSoilH = 0.026;
 
-    ltkSidewalkTrees.forEach((t) => {
+    sidewalkTreeBasins.forEach((t) => {
         pitDummy.position.set(t.x, 0, t.z);
-        pitDummy.rotation.set(0, ltkPitRotY, 0);
+        pitDummy.rotation.set(0, t.rotY, 0);
         pitDummy.scale.set(1, 1, 1);
         pitDummy.updateMatrix();
 
