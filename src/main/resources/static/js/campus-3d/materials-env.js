@@ -1746,14 +1746,24 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     bctx.strokeStyle = '#f8fafc';
     bctx.lineWidth = 6;
     bctx.strokeRect(24, 24, 464, 336);
-    bctx.beginPath(); bctx.moveTo(256, 24); bctx.lineTo(256, 360); bctx.stroke();
+    // Draw centerline stopping at center jump-ball circle
+    bctx.beginPath(); bctx.moveTo(256, 24); bctx.lineTo(256, 144); bctx.stroke();
+    bctx.beginPath(); bctx.moveTo(256, 240); bctx.lineTo(256, 360); bctx.stroke();
     bctx.beginPath(); bctx.arc(256, 192, 48, 0, Math.PI * 2); bctx.stroke();
     bctx.strokeRect(24, 118, 92, 148);
     bctx.strokeRect(396, 118, 92, 148);
-    bctx.font = '800 30px Inter, sans-serif';
+    // Rotate court label 90 degrees to align horizontally across court matching playing view
+    bctx.save();
+    bctx.translate(256, 192);
+    bctx.rotate(-Math.PI * 0.5);
+    bctx.font = '800 28px Inter, sans-serif';
     bctx.fillStyle = '#ffffff';
     bctx.textAlign = 'center';
-    bctx.fillText('SÂN BÓNG RỔ', 256, 198);
+    bctx.textBaseline = 'middle';
+    bctx.shadowColor = 'rgba(0, 0, 0, 0.40)';
+    bctx.shadowBlur = 6;
+    bctx.fillText('SÂN BÓNG RỔ', 0, 0);
+    bctx.restore();
     const bballTex = new THREE.CanvasTexture(bballCanvas);
     bballTex.colorSpace = THREE.SRGBColorSpace;
     const bballCourt = new THREE.Mesh(
