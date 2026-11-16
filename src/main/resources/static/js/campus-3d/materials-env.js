@@ -793,6 +793,140 @@ function createCurbstoneTextures(maxAnisotropy = 4) {
     return { colorTex, bumpTex };
 }
 
+// Procedural rich dark organic loam soil texture with earthy clods, moisture variation, and edge moss
+function createTreeSoilTextures(maxAnisotropy = 4) {
+    const size = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Rich dark fertile urban garden loam base
+    ctx.fillStyle = '#26190f';
+    ctx.fillRect(0, 0, size, size);
+
+    // Layer 1: Earth tone variations (moist loam patches, slightly lighter and darker dirt)
+    for (let i = 0; i < 45; i++) {
+        const cx = Math.random() * size;
+        const cy = Math.random() * size;
+        const rad = 25 + Math.random() * 80;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+        const tones = [
+            'rgba(50, 32, 18, 0.45)',
+            'rgba(24, 15, 9, 0.55)',
+            'rgba(68, 45, 26, 0.35)',
+            'rgba(38, 28, 20, 0.40)'
+        ];
+        const col = tones[Math.floor(Math.random() * tones.length)];
+        grad.addColorStop(0, col);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Layer 2: Granular dirt clods and organic soil texture (fine speckles)
+    for (let i = 0; i < 3600; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const r = 0.6 + Math.random() * 2.2;
+        const p = Math.random();
+        if (p < 0.42) {
+            ctx.fillStyle = 'rgba(16, 10, 5, 0.65)';
+        } else if (p < 0.76) {
+            ctx.fillStyle = 'rgba(75, 52, 33, 0.45)';
+        } else if (p < 0.92) {
+            ctx.fillStyle = 'rgba(105, 80, 55, 0.35)';
+        } else {
+            ctx.fillStyle = 'rgba(130, 115, 100, 0.35)';
+        }
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Layer 3: Natural micro-moss and tender green accents along edges / corners
+    for (let i = 0; i < 320; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const distFromEdge = Math.min(x, size - x, y, size - y);
+        if (distFromEdge < 95 || Math.random() < 0.15) {
+            const r = 0.8 + Math.random() * 2.0;
+            ctx.fillStyle = Math.random() < 0.5 ? 'rgba(50, 78, 32, 0.45)' : 'rgba(38, 62, 24, 0.5)';
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Bump map for 3D soil relief
+    const bumpCanvas = document.createElement('canvas');
+    bumpCanvas.width = size;
+    bumpCanvas.height = size;
+    const bctx = bumpCanvas.getContext('2d');
+    bctx.fillStyle = '#808080';
+    bctx.fillRect(0, 0, size, size);
+    for (let i = 0; i < 2400; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const r = 0.8 + Math.random() * 2.2;
+        const shade = Math.random() < 0.5 ? 'rgba(35, 35, 35, 0.5)' : 'rgba(220, 220, 220, 0.4)';
+        bctx.fillStyle = shade;
+        bctx.beginPath();
+        bctx.arc(x, y, r, 0, Math.PI * 2);
+        bctx.fill();
+    }
+
+    const colorTex = new THREE.CanvasTexture(canvas);
+    colorTex.colorSpace = THREE.SRGBColorSpace;
+    colorTex.anisotropy = Math.min(4, maxAnisotropy);
+
+    const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+    bumpTex.anisotropy = Math.min(4, maxAnisotropy);
+
+    return { colorTex, bumpTex };
+}
+
+// Procedural speckled granite / concrete curb border texture for sidewalk tree basins
+function createTreePitCurbTexture(maxAnisotropy = 4) {
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Base granite concrete shade
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(0, 0, size, size);
+
+    // Stone grain and speckled mineral flecks
+    for (let i = 0; i < 1600; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const r = 0.5 + Math.random() * 1.5;
+        const shade = Math.random();
+        if (shade < 0.42) {
+            ctx.fillStyle = 'rgba(51, 65, 85, 0.35)';
+        } else if (shade < 0.72) {
+            ctx.fillStyle = 'rgba(241, 245, 249, 0.45)';
+        } else {
+            ctx.fillStyle = 'rgba(100, 116, 139, 0.30)';
+        }
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 2);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = Math.min(4, maxAnisotropy);
+    return tex;
+}
+
 // Create crisp schematic-matched gardens, paved plaza, asphalt streets, and sports pitches
 function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
     const tier = hardwareProfile.tier || 'high';
@@ -1275,6 +1409,97 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     sidewalkMesh.matrixAutoUpdate = false;
     sidewalkMesh.updateMatrix();
     scene.add(sidewalkMesh);
+
+    // Authentic square dirt tree basins (bồn cây hè phố) for the 3 shade trees along school-side Ly Thuong Kiet sidewalk
+    const ltkSidewalkTrees = [
+        { x: -108.6, z: -15.0, scale: 1.10 },
+        { x: -107.4, z: 16.0, scale: 1.14 },
+        { x: -106.1, z: 48.0, scale: 1.12 }
+    ];
+    const treePitCurbGeoms = [];
+    const treePitSoilGeoms = [];
+    const pitDummy = new THREE.Object3D();
+    const ltkPitRotY = 0.0398; // Road alignment angle parallel to curb & campus boundary wall
+    const pitWOuter = 1.32;
+    const pitDOuter = 1.32;
+    const pitCurbThick = 0.09;
+    const pitCurbH = 0.045;
+    const pitWInner = pitWOuter - 2 * pitCurbThick; // 1.14m
+    const pitDInner = pitDOuter - 2 * pitCurbThick; // 1.14m
+    const pitSoilH = 0.026;
+
+    ltkSidewalkTrees.forEach((t) => {
+        pitDummy.position.set(t.x, 0, t.z);
+        pitDummy.rotation.set(0, ltkPitRotY, 0);
+        pitDummy.scale.set(1, 1, 1);
+        pitDummy.updateMatrix();
+
+        // 4 Mitered curb border pieces framing the square tree basin
+        const curbN = new THREE.BoxGeometry(pitWOuter, pitCurbH, pitCurbThick);
+        curbN.translate(0, pitCurbH * 0.5, (pitDOuter - pitCurbThick) * 0.5);
+        curbN.applyMatrix4(pitDummy.matrix);
+        treePitCurbGeoms.push(curbN);
+
+        const curbS = new THREE.BoxGeometry(pitWOuter, pitCurbH, pitCurbThick);
+        curbS.translate(0, pitCurbH * 0.5, -(pitDOuter - pitCurbThick) * 0.5);
+        curbS.applyMatrix4(pitDummy.matrix);
+        treePitCurbGeoms.push(curbS);
+
+        const curbE = new THREE.BoxGeometry(pitCurbThick, pitCurbH, pitDInner);
+        curbE.translate((pitWOuter - pitCurbThick) * 0.5, pitCurbH * 0.5, 0);
+        curbE.applyMatrix4(pitDummy.matrix);
+        treePitCurbGeoms.push(curbE);
+
+        const curbW = new THREE.BoxGeometry(pitCurbThick, pitCurbH, pitDInner);
+        curbW.translate(-(pitWOuter - pitCurbThick) * 0.5, pitCurbH * 0.5, 0);
+        curbW.applyMatrix4(pitDummy.matrix);
+        treePitCurbGeoms.push(curbW);
+
+        // Recessed fertile square soil bed
+        const soilBed = new THREE.BoxGeometry(pitWInner, pitSoilH, pitDInner);
+        soilBed.translate(0, pitSoilH * 0.5, 0);
+        soilBed.applyMatrix4(pitDummy.matrix);
+        treePitSoilGeoms.push(soilBed);
+
+        // Subtle root mound / collar gently blending the trunk base into the soil bed
+        const trunkR1 = 0.40 * t.scale;
+        const trunkR2 = 0.47 * t.scale;
+        const mound = new THREE.CylinderGeometry(trunkR1, trunkR2, 0.016, 14);
+        mound.translate(0, pitSoilH + 0.008, 0);
+        mound.applyMatrix4(pitDummy.matrix);
+        treePitSoilGeoms.push(mound);
+    });
+
+    const pitCurbTex = createTreePitCurbTexture(maxAniso);
+    const treePitCurbMesh = new THREE.Mesh(
+        mergeGeometries(treePitCurbGeoms, false),
+        new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            map: pitCurbTex,
+            roughness: 0.82,
+            metalness: 0.04
+        })
+    );
+    treePitCurbGeoms.forEach((g) => g.dispose());
+    treePitCurbMesh.receiveShadow = true;
+    treePitCurbMesh.castShadow = tier !== 'low';
+    scene.add(treePitCurbMesh);
+
+    const { colorTex: pitSoilColorTex, bumpTex: pitSoilBumpTex } = createTreeSoilTextures(maxAniso);
+    const treePitSoilMesh = new THREE.Mesh(
+        mergeGeometries(treePitSoilGeoms, false),
+        new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            map: pitSoilColorTex,
+            bumpMap: pitSoilBumpTex,
+            bumpScale: 0.024,
+            roughness: 0.94,
+            metalness: 0.01
+        })
+    );
+    treePitSoilGeoms.forEach((g) => g.dispose());
+    treePitSoilMesh.receiveShadow = true;
+    scene.add(treePitSoilMesh);
 
     // 4. Orthogonal Soccer Pitch (San Bong Da) with FIFA turf markings
     const pitchCanvas = document.createElement('canvas');
