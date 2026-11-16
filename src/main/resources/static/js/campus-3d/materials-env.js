@@ -77,6 +77,26 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
             obj.scale.x *= 0.485;
         }
 
+        // Rotate basketball court hoops 90 degrees around court center (-31.0, 0, -7.5) to align with rotated court
+        if (obj.name === 'prop_sports_goals' && !obj.userData.basketballRotated) {
+            obj.userData.basketballRotated = true;
+            const courtCx = -31.0;
+            const courtCz = -7.5;
+            const rotAngle = -Math.PI * 0.5;
+            const cosT = Math.cos(rotAngle);
+            const sinT = Math.sin(rotAngle);
+            for (const child of obj.children) {
+                if (child.isMesh && Math.abs(child.position.x - courtCx) < 12.0 && Math.abs(child.position.z - courtCz) < 12.0) {
+                    const rx = child.position.x - courtCx;
+                    const rz = child.position.z - courtCz;
+                    child.position.x = courtCx + (rx * cosT - rz * sinT);
+                    child.position.z = courtCz + (rx * sinT + rz * cosT);
+                    child.rotateY(rotAngle);
+                    child.updateMatrix();
+                }
+            }
+        }
+
         // Hide obsolete solid grey side slabs on soccer goals so procedural white net mesh covers them cleanly
         if (obj.isMesh && obj.parent && obj.parent.parent && obj.parent.parent.name === 'prop_sports_goals') {
             if (obj.position && Math.abs(obj.position.z) > 20.2) {
@@ -1834,17 +1854,15 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     bctx.beginPath(); bctx.arc(256, 192, 48, 0, Math.PI * 2); bctx.stroke();
     bctx.strokeRect(24, 118, 92, 148);
     bctx.strokeRect(396, 118, 92, 148);
-    // Rotate court label 90 degrees to align horizontally across court matching playing view
+    // Draw court label inside center jump-ball circle
     bctx.save();
-    bctx.translate(256, 192);
-    bctx.rotate(-Math.PI * 0.5);
     bctx.font = '800 28px Inter, sans-serif';
     bctx.fillStyle = '#ffffff';
     bctx.textAlign = 'center';
     bctx.textBaseline = 'middle';
     bctx.shadowColor = 'rgba(0, 0, 0, 0.40)';
     bctx.shadowBlur = 6;
-    bctx.fillText('SÂN BÓNG RỔ', 0, 0);
+    bctx.fillText('SÂN BÓNG RỔ', 256, 192);
     bctx.restore();
     const bballTex = new THREE.CanvasTexture(bballCanvas);
     bballTex.colorSpace = THREE.SRGBColorSpace;
@@ -1852,7 +1870,7 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         new THREE.PlaneGeometry(18.0, 14.0),
         new THREE.MeshStandardMaterial({ map: bballTex, roughness: 0.85 })
     );
-    bballCourt.rotation.x = -Math.PI * 0.5;
+    bballCourt.rotation.set(-Math.PI * 0.5, 0, Math.PI * 0.5);
     bballCourt.position.set(-31.0, 0.035, -7.5);
     bballCourt.receiveShadow = true;
     scene.add(bballCourt);
@@ -3132,7 +3150,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
 
     // 8. Floating crisp building pin sprites above each roof (matching red HUSC pins in Image 1)
     for (const loc of CAMPUS_LOCATIONS) {
-        if (loc.id === 'cong-chinh') continue;
+        if (loc.id === 'cong-chinh' || loc.id === 'san-bong-ro') continue;
         const c = document.createElement('canvas');
         c.width = 256;
         c.height = 96;

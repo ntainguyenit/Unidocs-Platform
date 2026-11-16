@@ -312,9 +312,9 @@ export const CAMPUS_LOCATIONS = [
         x: -31.0,
         z: 1.5,
         checkinRadius: 11.5,
-        teleportTarget: { x: -31.0, z: 1.8, yaw: 0 },
+        teleportTarget: { x: -31.0, z: 2.8, yaw: 0 },
         color: '#64748b',
-        rect: { cx: -31.0, cz: -7.5, w: 18.0, d: 14.0, angle: 0 },
+        rect: { cx: -31.0, cz: -7.5, w: 14.0, d: 18.0, angle: 0 },
         description: 'Sân thể thao bóng rổ nằm giữa dãy Nhà C và hai khu vườn sân trong phía sau Nhà A.',
         departments: 'Câu lạc bộ Bóng rổ HUSC & Giáo dục Thể chất'
     }

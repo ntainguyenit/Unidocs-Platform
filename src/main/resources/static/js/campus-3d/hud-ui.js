@@ -413,7 +413,7 @@ export function setupCampusHud({
         // Basketball Court swatch
         ctx.fillStyle = '#64748b';
         const [bbx, bby] = toCanvas(-31.0, -7.5);
-        ctx.fillRect(bbx - 9 * scaleLen, bby - 7 * scaleLen, 18 * scaleLen, 14 * scaleLen);
+        ctx.fillRect(bbx - 7 * scaleLen, bby - 9 * scaleLen, 14 * scaleLen, 18 * scaleLen);
 
         // Auxiliary architectural wings & bike sheds so 2D contours match connected CAD blocks
         for (const [ax, az, aw, ad, aa, col] of [
