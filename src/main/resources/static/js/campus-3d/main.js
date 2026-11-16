@@ -74,6 +74,7 @@ function batchStaticCampusModel(campusModel) {
 
     campusModel.traverse((obj) => {
         if (!obj.isMesh || !obj.geometry || !obj.material) return;
+        if (!obj.visible) return;
         const mat = Array.isArray(obj.material) ? obj.material[0] : obj.material;
         const src = obj.geometry;
         const posAttr = src.attributes?.position;

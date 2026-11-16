@@ -77,6 +77,13 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
             obj.scale.x *= 0.485;
         }
 
+        // Hide obsolete solid grey side slabs on soccer goals so procedural white net mesh covers them cleanly
+        if (obj.isMesh && obj.parent && obj.parent.parent && obj.parent.parent.name === 'prop_sports_goals') {
+            if (obj.position && Math.abs(obj.position.z) > 20.2) {
+                obj.visible = false;
+            }
+        }
+
         if (!obj.isMesh || !obj.material) return;
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
         for (const m of mats) {
@@ -1285,10 +1292,14 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     fctx.beginPath(); fctx.arc(256, 512, 68, 0, Math.PI * 2); fctx.stroke();
     fctx.strokeRect(128, 34, 256, 128);
     fctx.strokeRect(128, 862, 256, 128);
-    fctx.font = '800 44px Inter, sans-serif';
-    fctx.fillStyle = 'rgba(255,255,255,0.85)';
+    fctx.font = '900 48px Inter, sans-serif';
+    fctx.fillStyle = '#ffffff';
     fctx.textAlign = 'center';
-    fctx.fillText('SÂN BÓNG ĐÁ', 256, 512);
+    fctx.textBaseline = 'middle';
+    fctx.shadowColor = 'rgba(0, 0, 0, 0.40)';
+    fctx.shadowBlur = 6;
+    fctx.fillText('SÂN BÓNG ĐÁ', 256, 700);
+    fctx.shadowBlur = 0;
     const pitchTex = new THREE.CanvasTexture(pitchCanvas);
     pitchTex.colorSpace = THREE.SRGBColorSpace;
     pitchTex.anisotropy = Math.min(4, maxAniso);
@@ -1301,6 +1312,190 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     soccerPitch.position.set(-75.5, 0.035, 36.5);
     soccerPitch.receiveShadow = true;
     scene.add(soccerPitch);
+
+    // Procedural authentic white square grid net texture for soccer goals
+    const createGoalNetTexture = () => {
+        const netCanvas = document.createElement('canvas');
+        netCanvas.width = 256;
+        netCanvas.height = 256;
+        const nctx = netCanvas.getContext('2d');
+        nctx.clearRect(0, 0, 256, 256);
+
+        // Crisp white square net cords
+        const step = 32;
+        nctx.strokeStyle = 'rgba(255, 255, 255, 0.96)';
+        nctx.lineWidth = 3.2;
+
+        for (let x = 0; x <= 256; x += step) {
+            nctx.beginPath();
+            nctx.moveTo(x, 0);
+            nctx.lineTo(x, 256);
+            nctx.stroke();
+        }
+        for (let y = 0; y <= 256; y += step) {
+            nctx.beginPath();
+            nctx.moveTo(0, y);
+            nctx.lineTo(256, y);
+            nctx.stroke();
+        }
+
+        // Small round net knots at grid intersections
+        nctx.fillStyle = '#ffffff';
+        for (let x = 0; x <= 256; x += step) {
+            for (let y = 0; y <= 256; y += step) {
+                nctx.beginPath();
+                nctx.arc(x, y, 2.2, 0, Math.PI * 2);
+                nctx.fill();
+            }
+        }
+
+        const tex = new THREE.CanvasTexture(netCanvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = Math.min(4, maxAniso);
+        return tex;
+    };
+
+    const goalNetTex = createGoalNetTexture();
+    const goalNetMat = new THREE.MeshStandardMaterial({
+        map: goalNetTex,
+        transparent: true,
+        alphaTest: 0.35,
+        side: THREE.DoubleSide,
+        roughness: 0.65,
+        metalness: 0.05,
+        color: 0xffffff
+    });
+    const goalDepthMat = new THREE.MeshDepthMaterial({
+        depthPacking: THREE.RGBADepthPacking,
+        map: goalNetTex,
+        alphaTest: 0.35
+    });
+
+    const goalFrameMat = new THREE.MeshStandardMaterial({
+        color: 0xf8fafc,
+        roughness: 0.35,
+        metalness: 0.15
+    });
+
+    // Construct complete 4-sided white square net enclosure + support tubular frame for both goals
+    const goalNetGeoms = [];
+    const goalFrameGeoms = [];
+
+    const createTiledPlaneGeom = (w, h, tileX, tileY) => {
+        const geom = new THREE.PlaneGeometry(w, h);
+        const uvs = geom.attributes.uv;
+        for (let i = 0; i < uvs.count; i++) {
+            uvs.setXY(i, uvs.getX(i) * tileX, uvs.getY(i) * tileY);
+        }
+        uvs.needsUpdate = true;
+        return geom;
+    };
+
+    const addGoalNetAndFrame = (goalCx, frontZ, dirZ) => {
+        const W = 4.8;
+        const H = 2.18;
+        const D = 1.25;
+        const Y0 = 0.035;
+        const Y1 = Y0 + H;
+        const Ym = Y0 + H * 0.5;
+        const rearZ = frontZ + dirZ * D;
+        const midZ = frontZ + dirZ * (D * 0.5);
+
+        const tileW = W / 0.80; // 6.0 repeats (48 square cells)
+        const tileH = H / 0.80; // 2.725 repeats (22 square cells)
+        const tileD = D / 0.80; // 1.5625 repeats (12.5 square cells)
+
+        // 1. Back net wall
+        const backNet = createTiledPlaneGeom(W, H, tileW, tileH);
+        backNet.translate(goalCx, Ym, rearZ);
+        goalNetGeoms.push(backNet);
+
+        // 2. Top net roof
+        const topNet = createTiledPlaneGeom(W, D, tileW, tileD);
+        topNet.rotateX(-Math.PI * 0.5);
+        topNet.translate(goalCx, Y1, midZ);
+        goalNetGeoms.push(topNet);
+
+        // 3. Left side net wall
+        const leftNet = createTiledPlaneGeom(D, H, tileD, tileH);
+        leftNet.rotateY(Math.PI * 0.5);
+        leftNet.translate(goalCx - W * 0.5, Ym, midZ);
+        goalNetGeoms.push(leftNet);
+
+        // 4. Right side net wall
+        const rightNet = createTiledPlaneGeom(D, H, tileD, tileH);
+        rightNet.rotateY(Math.PI * 0.5);
+        rightNet.translate(goalCx + W * 0.5, Ym, midZ);
+        goalNetGeoms.push(rightNet);
+
+        // Tubular support frames
+        const R = 0.032;
+
+        // Back top horizontal bar
+        const rTop = new THREE.CylinderGeometry(R, R, W, 8);
+        rTop.rotateZ(Math.PI * 0.5);
+        rTop.translate(goalCx, Y1, rearZ);
+        goalFrameGeoms.push(rTop);
+
+        // Back bottom ground bar
+        const rBot = new THREE.CylinderGeometry(R, R, W, 8);
+        rBot.rotateZ(Math.PI * 0.5);
+        rBot.translate(goalCx, Y0 + R, rearZ);
+        goalFrameGeoms.push(rBot);
+
+        // Rear left & right vertical posts
+        const rLeftV = new THREE.CylinderGeometry(R, R, H, 8);
+        rLeftV.translate(goalCx - W * 0.5, Ym, rearZ);
+        goalFrameGeoms.push(rLeftV);
+
+        const rRightV = new THREE.CylinderGeometry(R, R, H, 8);
+        rRightV.translate(goalCx + W * 0.5, Ym, rearZ);
+        goalFrameGeoms.push(rRightV);
+
+        // Top left & right depth bars
+        const tLeftD = new THREE.CylinderGeometry(R, R, D, 8);
+        tLeftD.rotateX(Math.PI * 0.5);
+        tLeftD.translate(goalCx - W * 0.5, Y1, midZ);
+        goalFrameGeoms.push(tLeftD);
+
+        const tRightD = new THREE.CylinderGeometry(R, R, D, 8);
+        tRightD.rotateX(Math.PI * 0.5);
+        tRightD.translate(goalCx + W * 0.5, Y1, midZ);
+        goalFrameGeoms.push(tRightD);
+
+        // Bottom left & right ground depth bars
+        const bLeftD = new THREE.CylinderGeometry(R, R, D, 8);
+        bLeftD.rotateX(Math.PI * 0.5);
+        bLeftD.translate(goalCx - W * 0.5, Y0 + R, midZ);
+        goalFrameGeoms.push(bLeftD);
+
+        const bRightD = new THREE.CylinderGeometry(R, R, D, 8);
+        bRightD.rotateX(Math.PI * 0.5);
+        bRightD.translate(goalCx + W * 0.5, Y0 + R, midZ);
+        goalFrameGeoms.push(bRightD);
+    };
+
+    // North Goal (front at Z = 16.5, depth towards -Z)
+    addGoalNetAndFrame(-75.5, 16.5, -1);
+    // South Goal (front at Z = 56.5, depth towards +Z)
+    addGoalNetAndFrame(-75.5, 56.5, 1);
+
+    const mergedNetMesh = new THREE.Mesh(mergeGeometries(goalNetGeoms, false), goalNetMat);
+    goalNetGeoms.forEach((g) => g.dispose());
+    if (tier === 'high') {
+        mergedNetMesh.customDepthMaterial = goalDepthMat;
+        mergedNetMesh.castShadow = true;
+    }
+    mergedNetMesh.receiveShadow = true;
+    scene.add(mergedNetMesh);
+
+    const mergedFrameMesh = new THREE.Mesh(mergeGeometries(goalFrameGeoms, false), goalFrameMat);
+    goalFrameGeoms.forEach((g) => g.dispose());
+    mergedFrameMesh.castShadow = true;
+    mergedFrameMesh.receiveShadow = true;
+    scene.add(mergedFrameMesh);
 
     // 5. Orthogonal Basketball Court (San Bong Ro) with court markings
     const bballCanvas = document.createElement('canvas');
