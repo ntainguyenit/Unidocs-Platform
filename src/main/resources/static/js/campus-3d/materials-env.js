@@ -267,10 +267,10 @@ function createCanopyCardClusterGeometry(cardCount = 34, cardSize = 3.2) {
 }
 
 // Build dense multi-tier botanical shrub card cluster geometry for median dividers
-function createDenseShrubCardClusterGeometry(cardTier = 'high', baseCardSize = 0.84) {
+function createDenseShrubCardClusterGeometry(cardTier = 'high', baseCardSize = 0.88) {
     const cards = [];
     const dummy = new THREE.Object3D();
-    const shrubCenter = new THREE.Vector3(0, 0.40, 0);
+    const shrubCenter = new THREE.Vector3(0, 0.38, 0);
 
     let seed = 317;
     const rand = () => {
@@ -278,71 +278,85 @@ function createDenseShrubCardClusterGeometry(cardTier = 'high', baseCardSize = 0
         return (seed - 1) / 2147483646;
     };
 
-    const n1 = cardTier === 'low' ? 4 : (cardTier === 'medium' ? 5 : 6);
-    const n2 = cardTier === 'low' ? 5 : (cardTier === 'medium' ? 6 : 7);
-    const n3 = cardTier === 'low' ? 3 : (cardTier === 'medium' ? 4 : 5);
+    const isLow = cardTier === 'low';
+    const isMed = cardTier === 'medium';
 
-    // Tier 1: Lower perimeter cards spreading outward close to lawn surface
-    for (let i = 0; i < n1; i++) {
-        const theta = (i / n1) * Math.PI * 2 + 0.22;
-        const rad = 0.32 + rand() * 0.08;
+    // Tier counts for rich botanical foliage coverage without any artificial inner sphere
+    const nCore = isLow ? 4 : (isMed ? 6 : 8);      // Volumetric criss-cross interior core cards
+    const nSkirt = isLow ? 6 : (isMed ? 8 : 10);    // Low skirt perimeter cards spreading near grass
+    const nBody = isLow ? 7 : (isMed ? 9 : 12);     // Middle plump sphere body cards
+    const nShoulder = isLow ? 5 : (isMed ? 8 : 10); // Upper shoulder cards curving upward
+    const nCrown = isLow ? 4 : (isMed ? 6 : 8);     // Top dome crown cards overlapping & sealing top
+
+    // Helper to add a plane card with specified transform
+    const addCard = (x, y, z, lookX, lookY, lookZ, roll, w, h) => {
+        const card = new THREE.PlaneGeometry(w, h);
+        dummy.position.set(x, y, z);
+        dummy.lookAt(lookX, lookY, lookZ);
+        dummy.rotateZ(roll);
+        dummy.updateMatrix();
+        card.applyMatrix4(dummy.matrix);
+        cards.push(card);
+    };
+
+    // 1. Volumetric inner core cards: criss-cross through center at alternating orientations
+    for (let i = 0; i < nCore; i++) {
+        const theta = (i / nCore) * Math.PI + 0.12;
+        const offset = (rand() - 0.5) * 0.08;
+        const x = Math.cos(theta + Math.PI * 0.5) * offset;
+        const z = Math.sin(theta + Math.PI * 0.5) * offset;
+        const y = 0.38 + (rand() - 0.5) * 0.08;
+        const w = baseCardSize * (0.94 + rand() * 0.16);
+        const h = baseCardSize * (0.90 + rand() * 0.16);
+        addCard(x, y, z, x + Math.cos(theta), y + 0.18 + (rand() - 0.5) * 0.20, z + Math.sin(theta), rand() * Math.PI * 2, w, h);
+    }
+
+    // 2. Skirt perimeter cards: lower tier spreading close to the lawn surface
+    for (let i = 0; i < nSkirt; i++) {
+        const theta = (i / nSkirt) * Math.PI * 2 + 0.18;
+        const rad = 0.32 + rand() * 0.07;
         const x = Math.cos(theta) * rad * 1.08;
-        const y = 0.26 + (rand() - 0.5) * 0.06;
-        const z = Math.sin(theta) * rad * 0.95;
-
-        const cardW = baseCardSize * (0.92 + rand() * 0.20);
-        const cardH = baseCardSize * (0.86 + rand() * 0.18);
-        const card = new THREE.PlaneGeometry(cardW, cardH);
-
-        dummy.position.set(x, y, z);
-        dummy.lookAt(x * 2.2, y + 0.35, z * 2.2);
-        dummy.rotateZ(rand() * Math.PI * 2);
-        dummy.updateMatrix();
-
-        card.applyMatrix4(dummy.matrix);
-        cards.push(card);
+        const y = 0.24 + (rand() - 0.5) * 0.05;
+        const z = Math.sin(theta) * rad * 0.96;
+        const w = baseCardSize * (0.92 + rand() * 0.16);
+        const h = baseCardSize * (0.88 + rand() * 0.16);
+        addCard(x, y, z, x * 2.2, y + 0.28, z * 2.2, rand() * Math.PI * 2, w, h);
     }
 
-    // Tier 2: Mid-height cards tilted outward and upward creating dense volume
-    for (let i = 0; i < n2; i++) {
-        const theta = (i / n2) * Math.PI * 2 + 0.58;
-        const rad = 0.26 + rand() * 0.08;
-        const x = Math.cos(theta) * rad * 1.05;
-        const y = 0.46 + (rand() - 0.5) * 0.08;
-        const z = Math.sin(theta) * rad * 0.95;
-
-        const cardW = baseCardSize * (0.96 + rand() * 0.20);
-        const cardH = baseCardSize * (0.90 + rand() * 0.20);
-        const card = new THREE.PlaneGeometry(cardW, cardH);
-
-        dummy.position.set(x, y, z);
-        dummy.lookAt(x * 2.0, y + 0.55, z * 2.0);
-        dummy.rotateZ(rand() * Math.PI * 2);
-        dummy.updateMatrix();
-
-        card.applyMatrix4(dummy.matrix);
-        cards.push(card);
+    // 3. Middle body cards: dense bulging belly layer tilted slightly upward
+    for (let i = 0; i < nBody; i++) {
+        const theta = (i / nBody) * Math.PI * 2 + 0.42;
+        const rad = 0.28 + rand() * 0.07;
+        const x = Math.cos(theta) * rad * 1.06;
+        const y = 0.44 + (rand() - 0.5) * 0.06;
+        const z = Math.sin(theta) * rad * 0.96;
+        const w = baseCardSize * (0.96 + rand() * 0.16);
+        const h = baseCardSize * (0.92 + rand() * 0.16);
+        addCard(x, y, z, x * 2.0, y + 0.50, z * 2.0, rand() * Math.PI * 2, w, h);
     }
 
-    // Tier 3: Crown dome cards overlapping across the top for a rounded botanical canopy
-    for (let i = 0; i < n3; i++) {
-        const theta = (i / n3) * Math.PI * 2 + 0.85;
-        const rad = 0.12 + rand() * 0.06;
+    // 4. Upper shoulder cards: curving upward towards crown
+    for (let i = 0; i < nShoulder; i++) {
+        const theta = (i / nShoulder) * Math.PI * 2 + 0.68;
+        const rad = 0.20 + rand() * 0.06;
+        const x = Math.cos(theta) * rad * 1.04;
+        const y = 0.58 + (rand() - 0.5) * 0.06;
+        const z = Math.sin(theta) * rad * 0.96;
+        const w = baseCardSize * (0.92 + rand() * 0.16);
+        const h = baseCardSize * (0.88 + rand() * 0.16);
+        addCard(x, y, z, x * 1.8, y + 0.85, z * 1.8, rand() * Math.PI * 2, w, h);
+    }
+
+    // 5. Crown dome cards: sealing the top with overlapping leaves visible from high/overview camera angles
+    for (let i = 0; i < nCrown; i++) {
+        const theta = (i / nCrown) * Math.PI * 2 + 0.92;
+        const rad = 0.08 + rand() * 0.06;
         const x = Math.cos(theta) * rad;
-        const y = 0.62 + (rand() - 0.5) * 0.06;
+        const y = 0.68 + (rand() - 0.5) * 0.05;
         const z = Math.sin(theta) * rad;
-
-        const cardW = baseCardSize * (0.92 + rand() * 0.16);
-        const cardH = baseCardSize * (0.86 + rand() * 0.16);
-        const card = new THREE.PlaneGeometry(cardW, cardH);
-
-        dummy.position.set(x, y, z);
-        dummy.lookAt(x * 1.5, y + 1.1, z * 1.5);
-        dummy.rotateZ(rand() * Math.PI * 2);
-        dummy.updateMatrix();
-
-        card.applyMatrix4(dummy.matrix);
-        cards.push(card);
+        const w = baseCardSize * (0.94 + rand() * 0.16);
+        const h = baseCardSize * (0.90 + rand() * 0.16);
+        addCard(x, y, z, x * 1.2, y + 1.2, z * 1.2, rand() * Math.PI * 2, w, h);
     }
 
     const merged = mergeGeometries(cards, false);
@@ -3735,7 +3749,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const tier = hardwareProfile.tier || 'high';
     const shrubLeafTex = getSharedLeafClusterTexture(tier === 'low' ? 256 : 512, maxAniso);
     const shrubCardTier = tier === 'low' ? 'low' : (tier === 'medium' ? 'medium' : 'high');
-    const shrubLeafGeom = createDenseShrubCardClusterGeometry(shrubCardTier, 0.84);
+    const shrubLeafGeom = createDenseShrubCardClusterGeometry(shrubCardTier, 0.88);
 
     // Identical leaf material to campus trees with alphaTest cutout but without wind vertex displacement
     const shrubLeafMat = new THREE.MeshStandardMaterial({
@@ -3752,23 +3766,13 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         alphaTest: 0.42
     });
 
-    // Dark green organic core sphere ensuring maximum botanical density ("rậm rạp")
-    const shrubCoreMat = new THREE.MeshStandardMaterial({
-        color: 0x14532d,
-        roughness: 0.92,
-        metalness: 0.02
-    });
-    const shrubCoreGeom = new THREE.SphereGeometry(0.38, 8, 6);
-    shrubCoreGeom.scale(1.06, 0.88, 0.95);
-    shrubCoreGeom.translate(0, 0.40, 0);
-
     const shrubStemMat = new THREE.MeshStandardMaterial({
         color: 0x5d4129,
         roughness: 0.92,
         metalness: 0.02
     });
-    const shrubStemGeom = new THREE.CylinderGeometry(0.06, 0.10, 0.30, 6);
-    shrubStemGeom.translate(0, 0.15, 0);
+    const shrubStemGeom = new THREE.CylinderGeometry(0.06, 0.10, 0.24, 6);
+    shrubStemGeom.translate(0, 0.12, 0);
 
     // Build authentic raised median island spanning the entire length of Dong Da (from u = -82.0 to u = 176.0)
     // Segment 1: from intersection crosswalk (u = -82.0) to Gate 38 opening (u = 38.0), length = 120.0m
@@ -3820,15 +3824,9 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
             stem.receiveShadow = true;
             shrubGroup.add(stem);
 
-            // Inner dark green foliage volume core ensuring maximum botanical density ("rậm rạp")
-            const core = new THREE.Mesh(shrubCoreGeom, shrubCoreMat);
-            core.castShadow = true;
-            core.receiveShadow = true;
-            shrubGroup.add(core);
-
-            // Outer botanical leaf cluster cards using the exact campus tree leaf texture (static, no wind motion)
+            // Dense botanical leaf cluster cards using the exact campus tree leaf texture (static, no wind motion)
             const leaves = new THREE.Mesh(shrubLeafGeom, shrubLeafMat);
-            if (tier === 'high') {
+            if (tier === 'high' || tier === 'medium') {
                 leaves.customDepthMaterial = shrubLeafDepthMat;
                 leaves.castShadow = true;
             }
