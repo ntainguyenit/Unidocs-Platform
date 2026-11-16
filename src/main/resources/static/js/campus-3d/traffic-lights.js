@@ -338,16 +338,16 @@ export function createSmartIntersectionSystem(scene, hardwareProfile = { tier: '
     const ddSwFacingYaw = Math.atan2(-ddDirX, -ddDirZ);
     const ddNeFacingYaw = Math.atan2(ddDirX, ddDirZ);
 
-    // Install 4 cantilever poles at NH x LTK and 4 cantilever poles at DD x LTK facing oncoming lanes
+    // Install 4 cantilever poles at NH x LTK and 4 cantilever poles at DD x LTK seated cleanly on sidewalk behind curved curb returns
     const poleSpecs = [
         // Ly Thuong Kiet x Nguyen Hue (South Main Intersection)
-        { id: 'nh_ne', intersection: 'nh', axis: 'ew', x: -104.6, z: 75.6, rotY: Math.PI * 0.5 },
-        { id: 'nh_sw', intersection: 'nh', axis: 'ew', x: -122.8, z: 95.4, rotY: -Math.PI * 0.5 },
-        { id: 'nh_nw', intersection: 'nh', axis: 'ns', x: -123.4, z: 75.7, rotY: ltkNorthFacingYaw },
-        { id: 'nh_se', intersection: 'nh', axis: 'ns', x: -104.2, z: 95.3, rotY: ltkSouthFacingYaw },
+        { id: 'nh_ne', intersection: 'nh', axis: 'ew', x: -103.8, z: 74.8, rotY: Math.PI * 0.5 },
+        { id: 'nh_sw', intersection: 'nh', axis: 'ew', x: -123.6, z: 96.2, rotY: -Math.PI * 0.5 },
+        { id: 'nh_nw', intersection: 'nh', axis: 'ns', x: -124.2, z: 74.9, rotY: ltkNorthFacingYaw },
+        { id: 'nh_se', intersection: 'nh', axis: 'ns', x: -103.4, z: 96.1, rotY: ltkSouthFacingYaw },
         // Ly Thuong Kiet x Dong Da (Rear North Intersection)
-        { id: 'dd_sw', intersection: 'dd', axis: 'ew', x: -127.94, z: -19.34, rotY: ddSwFacingYaw },
-        { id: 'dd_ne', intersection: 'dd', axis: 'ew', x: -109.00, z: -48.81, rotY: ddNeFacingYaw },
+        { id: 'dd_sw', intersection: 'dd', axis: 'ew', x: -128.5, z: -18.2, rotY: ddSwFacingYaw },
+        { id: 'dd_ne', intersection: 'dd', axis: 'ew', x: -108.5, z: -49.8, rotY: ddNeFacingYaw },
         { id: 'dd_nw', intersection: 'dd', axis: 'ns', x: -128.28, z: -46.08, rotY: ltkNorthFacingYaw },
         { id: 'dd_se', intersection: 'dd', axis: 'ns', x: -109.05, z: -21.83, rotY: ltkSouthFacingYaw }
     ];

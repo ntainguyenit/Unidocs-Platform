@@ -1109,28 +1109,33 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     const ltkHalfW = roadDefs.ltk.d * 0.5;
     const ddHalfW = roadDefs.dd.d * 0.5;
 
-    // Beveled curbstones (bó vỉa vát cong 1m/viên) with authentic 3D slant profile and expansion joints matching Photo 4
+    // Beveled curbstones (bó vỉa vát cong 1m/viên) with authentic 3D slant profile, upward normals, and expansion joints
     const curbGeoms = [];
     const buildCurbQuad = (p0Out, p1Out, p1In, p0In, u0 = 0, u1 = 1) => {
         const yGutter = -0.008;
         const yTop = 0.008;
+        // Verify normal orientation: if normal points downward, swap vertex order to ensure upward-facing shading
+        const ny = (p1Out[1] - p0Out[1]) * (p1In[0] - p0Out[0]) - (p1Out[0] - p0Out[0]) * (p1In[1] - p0Out[1]);
+        const [a0Out, a1Out, a1In, a0In, au0, au1] = ny < 0
+            ? [p1Out, p0Out, p0In, p1In, u1, u0]
+            : [p0Out, p1Out, p1In, p0In, u0, u1];
         const positions = new Float32Array([
-            p0Out[0], yGutter, p0Out[1],
-            p1Out[0], yGutter, p1Out[1],
-            p1In[0],  yTop,    p1In[1],
+            a0Out[0], yGutter, a0Out[1],
+            a1Out[0], yGutter, a1Out[1],
+            a1In[0],  yTop,    a1In[1],
 
-            p0Out[0], yGutter, p0Out[1],
-            p1In[0],  yTop,    p1In[1],
-            p0In[0],  yTop,    p0In[1]
+            a0Out[0], yGutter, a0Out[1],
+            a1In[0],  yTop,    a1In[1],
+            a0In[0],  yTop,    a0In[1]
         ]);
         const uvs = new Float32Array([
-            u0, 0.0,
-            u1, 0.0,
-            u1, 1.0,
+            au0, 0.0,
+            au1, 0.0,
+            au1, 1.0,
 
-            u0, 0.0,
-            u1, 1.0,
-            u0, 1.0
+            au0, 0.0,
+            au1, 1.0,
+            au0, 1.0
         ]);
         const geom = new THREE.BufferGeometry();
         geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -1139,63 +1144,124 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         return geom;
     };
 
-    const pushMiteredCurb = (pStartOuter, pStartInner, pEndOuter, pEndInner) => {
-        const len = Math.hypot(pEndOuter[0] - pStartOuter[0], pEndOuter[1] - pStartOuter[1]);
-        curbGeoms.push(buildCurbQuad(pStartOuter, pEndOuter, pEndInner, pStartInner, 0, len));
-    };
-    const pushRoadSideCurb = (road, vOuter, vInner, uStart, uEnd, startHit = null, endHit = null) => {
-        const p0Out = startHit ? [startHit.outer.x, startHit.outer.z] : uvToWorld(road, uStart, vOuter);
-        const p0In = startHit ? [startHit.inner.x, startHit.inner.z] : uvToWorld(road, uStart, vInner);
-        const p1Out = endHit ? [endHit.outer.x, endHit.outer.z] : uvToWorld(road, uEnd, vOuter);
-        const p1In = endHit ? [endHit.inner.x, endHit.inner.z] : uvToWorld(road, uEnd, vInner);
-        const u0 = startHit ? (startHit.outer.u1 || uStart) : uStart;
-        const u1 = endHit ? (endHit.outer.u1 || uEnd) : uEnd;
-        curbGeoms.push(buildCurbQuad(p0Out, p1Out, p1In, p0In, u0, u1));
+    const cornerFillets = {};
+    const asphaltCornerGeoms = [];
+
+    const buildCornerCurb = (id, r1, v1, s1, w1, r2, v2, s2, w2, R = 2.6, segs = 14) => {
+        const P = lineIntersectPt(r1, v1, r2, v2);
+        const u1x = Math.cos(r1.rotY) * s1, u1z = Math.sin(r1.rotY) * s1;
+        const u2x = Math.cos(r2.rotY) * s2, u2z = Math.sin(r2.rotY) * s2;
+        const cosA = Math.max(-0.999, Math.min(0.999, u1x * u2x + u1z * u2z));
+        const sinHalfA = Math.sqrt((1 - cosA) / 2);
+        const cosHalfA = Math.sqrt((1 + cosA) / 2);
+        const tanHalfA = sinHalfA / cosHalfA;
+        const dT = R / tanHalfA;
+
+        const bx = u1x + u2x, bz = u1z + u2z;
+        const bLen = Math.hypot(bx, bz) || 1;
+        const wx = bx / bLen, wz = bz / bLen;
+        const distC = R / sinHalfA;
+        const C = { x: P.x + distC * wx, z: P.z + distC * wz };
+
+        const T1 = { x: P.x + dT * u1x, z: P.z + dT * u1z };
+        const T2 = { x: P.x + dT * u2x, z: P.z + dT * u2z };
+
+        const r1x = T1.x - C.x, r1z = T1.z - C.z;
+        const r2x = T2.x - C.x, r2z = T2.z - C.z;
+        const phi1 = Math.atan2(r1z, r1x);
+        const phi2 = Math.atan2(r2z, r2x);
+        const dPhi = Math.atan2(Math.sin(phi2 - phi1), Math.cos(phi2 - phi1));
+        const arcLen = R * Math.abs(dPhi);
+
+        const outerPts = [];
+        const innerPts = [];
+
+        for (let i = 0; i <= segs; i++) {
+            const t = i / segs;
+            const phi = phi1 + t * dPhi;
+            const w = (1 - t) * w1 + t * w2;
+            const Rin = R - w;
+            const cosP = Math.cos(phi), sinP = Math.sin(phi);
+            outerPts.push([C.x + R * cosP, C.z + R * sinP]);
+            innerPts.push([C.x + Rin * cosP, C.z + Rin * sinP]);
+        }
+
+        const uStart = worldToUv(r1, T1.x, T1.z).u;
+        for (let i = 0; i < segs; i++) {
+            const u0 = uStart + (i / segs) * arcLen;
+            const u1 = uStart + ((i + 1) / segs) * arcLen;
+            curbGeoms.push(buildCurbQuad(
+                outerPts[i],
+                outerPts[i + 1],
+                innerPts[i + 1],
+                innerPts[i],
+                u0,
+                u1
+            ));
+        }
+
+        // Seamless triangular asphalt patch under the curved curb corner
+        const asphaltPts = [[P.x, P.z], ...outerPts];
+        asphaltCornerGeoms.push(buildGroundPoly(asphaltPts, -0.020, 0.25));
+
+        const u1OnR1 = worldToUv(r1, T1.x, T1.z).u;
+        const u2OnR2 = worldToUv(r2, T2.x, T2.z).u;
+
+        const info = { id, P, C, T1, T2, u1OnR1, u2OnR2, outerPts, innerPts, arcLen };
+        cornerFillets[id] = info;
+        return info;
     };
 
-    const curbHitPair = (mainRoad, vOut, vIn, crossRoad, vCross) => ({
-        outer: lineIntersectPt(mainRoad, vOut, crossRoad, vCross),
-        inner: lineIntersectPt(mainRoad, vIn, crossRoad, vCross)
-    });
+    // 8 Rounded corner curbstones at LTK x Nguyen Hue and LTK x Dong Da intersections
+    const fNhNw = buildCornerCurb('nh_nw', roadDefs.nh, -nhHalfW, -1, roadDefs.nh.curb, roadDefs.ltk, -ltkHalfW, +1, roadDefs.ltk.curb, 2.6);
+    const fNhNe = buildCornerCurb('nh_ne', roadDefs.nh, -nhHalfW, +1, roadDefs.nh.curb, roadDefs.ltk, +ltkHalfW, +1, roadDefs.ltk.curb, 2.6);
+    const fNhSw = buildCornerCurb('nh_sw', roadDefs.nh, +nhHalfW, -1, roadDefs.nh.curb, roadDefs.ltk, -ltkHalfW, -1, roadDefs.ltk.curb, 2.6);
+    const fNhSe = buildCornerCurb('nh_se', roadDefs.nh, +nhHalfW, +1, roadDefs.nh.curb, roadDefs.ltk, +ltkHalfW, -1, roadDefs.ltk.curb, 2.6);
 
-    // Nguyen Hue curbstones split around Ly Thuong Kiet
+    const fDdNw = buildCornerCurb('dd_nw', roadDefs.dd, -ddHalfW, -1, roadDefs.dd.curb, roadDefs.ltk, -ltkHalfW, +1, roadDefs.ltk.curb, 2.6);
+    const fDdNe = buildCornerCurb('dd_ne', roadDefs.dd, -ddHalfW, +1, roadDefs.dd.curb, roadDefs.ltk, +ltkHalfW, +1, roadDefs.ltk.curb, 2.6);
+    const fDdSw = buildCornerCurb('dd_sw', roadDefs.dd, +ddHalfW, -1, roadDefs.dd.curb, roadDefs.ltk, -ltkHalfW, -1, roadDefs.ltk.curb, 2.6);
+    const fDdSe = buildCornerCurb('dd_se', roadDefs.dd, +ddHalfW, +1, roadDefs.dd.curb, roadDefs.ltk, +ltkHalfW, -1, roadDefs.ltk.curb, 2.6);
+
+    const pushRoadSideCurb = (road, vOuter, vInner, uStart, uEnd) => {
+        const p0Out = uvToWorld(road, uStart, vOuter);
+        const p0In = uvToWorld(road, uStart, vInner);
+        const p1Out = uvToWorld(road, uEnd, vOuter);
+        const p1In = uvToWorld(road, uEnd, vInner);
+        curbGeoms.push(buildCurbQuad(p0Out, p1Out, p1In, p0In, uStart, uEnd));
+    };
+
+    // Straight curbstones trimmed seamlessly to corner arc tangents
     const nhCurbIn = nhHalfW - roadDefs.nh.curb;
-    const nhWestN = curbHitPair(roadDefs.nh, -nhHalfW, -nhCurbIn, roadDefs.ltk, -ltkHalfW);
-    const nhEastN = curbHitPair(roadDefs.nh, -nhHalfW, -nhCurbIn, roadDefs.ltk, +ltkHalfW);
-    const nhWestS = curbHitPair(roadDefs.nh, +nhHalfW, +nhCurbIn, roadDefs.ltk, -ltkHalfW);
-    const nhEastS = curbHitPair(roadDefs.nh, +nhHalfW, +nhCurbIn, roadDefs.ltk, +ltkHalfW);
-    pushRoadSideCurb(roadDefs.nh, -nhHalfW, -nhCurbIn, roadDefs.nh.uMin, 0, null, nhWestN);
-    pushRoadSideCurb(roadDefs.nh, -nhHalfW, -nhCurbIn, 0, roadDefs.nh.uMax, nhEastN, null);
-    pushRoadSideCurb(roadDefs.nh, +nhHalfW, +nhCurbIn, roadDefs.nh.uMin, 0, null, nhWestS);
-    pushRoadSideCurb(roadDefs.nh, +nhHalfW, +nhCurbIn, 0, roadDefs.nh.uMax, nhEastS, null);
+    pushRoadSideCurb(roadDefs.nh, -nhHalfW, -nhCurbIn, roadDefs.nh.uMin, fNhNw.u1OnR1);
+    pushRoadSideCurb(roadDefs.nh, -nhHalfW, -nhCurbIn, fNhNe.u1OnR1, roadDefs.nh.uMax);
+    pushRoadSideCurb(roadDefs.nh, +nhHalfW, +nhCurbIn, roadDefs.nh.uMin, fNhSw.u1OnR1);
+    pushRoadSideCurb(roadDefs.nh, +nhHalfW, +nhCurbIn, fNhSe.u1OnR1, roadDefs.nh.uMax);
 
-    // Ly Thuong Kiet curbstones split around both NH and DD
     const ltkCurbIn = ltkHalfW - roadDefs.ltk.curb;
-    const ltkSwNh = curbHitPair(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, roadDefs.nh, +nhHalfW);
-    const ltkNwNh = curbHitPair(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, roadDefs.nh, -nhHalfW);
-    const ltkSwDd = curbHitPair(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, roadDefs.dd, +ddHalfW);
-    const ltkNwDd = curbHitPair(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, roadDefs.dd, -ddHalfW);
-    const ltkSeNh = curbHitPair(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, roadDefs.nh, +nhHalfW);
-    const ltkNeNh = curbHitPair(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, roadDefs.nh, -nhHalfW);
-    const ltkSeDd = curbHitPair(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, roadDefs.dd, +ddHalfW);
-    const ltkNeDd = curbHitPair(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, roadDefs.dd, -ddHalfW);
-    pushRoadSideCurb(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, roadDefs.ltk.uMin, 0, null, ltkSwNh);
-    pushRoadSideCurb(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, 0, 0, ltkNwNh, ltkSwDd);
-    pushRoadSideCurb(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, 0, roadDefs.ltk.uMax, ltkNwDd, null);
-    pushRoadSideCurb(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, roadDefs.ltk.uMin, 0, null, ltkSeNh);
-    pushRoadSideCurb(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, 0, 0, ltkNeNh, ltkSeDd);
-    pushRoadSideCurb(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, 0, roadDefs.ltk.uMax, ltkNeDd, null);
+    pushRoadSideCurb(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, roadDefs.ltk.uMin, fNhSw.u2OnR2);
+    pushRoadSideCurb(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, fNhNw.u2OnR2, fDdSw.u2OnR2);
+    pushRoadSideCurb(roadDefs.ltk, -ltkHalfW, -ltkCurbIn, fDdNw.u2OnR2, roadDefs.ltk.uMax);
 
-    // Dong Da curbstones split around Ly Thuong Kiet
+    pushRoadSideCurb(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, roadDefs.ltk.uMin, fNhSe.u2OnR2);
+    pushRoadSideCurb(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, fNhNe.u2OnR2, fDdSe.u2OnR2);
+    pushRoadSideCurb(roadDefs.ltk, +ltkHalfW, +ltkCurbIn, fDdNe.u2OnR2, roadDefs.ltk.uMax);
+
     const ddCurbIn = ddHalfW - roadDefs.dd.curb;
-    const ddWestN = curbHitPair(roadDefs.dd, -ddHalfW, -ddCurbIn, roadDefs.ltk, -ltkHalfW);
-    const ddEastN = curbHitPair(roadDefs.dd, -ddHalfW, -ddCurbIn, roadDefs.ltk, +ltkHalfW);
-    const ddWestS = curbHitPair(roadDefs.dd, +ddHalfW, +ddCurbIn, roadDefs.ltk, -ltkHalfW);
-    const ddEastS = curbHitPair(roadDefs.dd, +ddHalfW, +ddCurbIn, roadDefs.ltk, +ltkHalfW);
-    pushRoadSideCurb(roadDefs.dd, -ddHalfW, -ddCurbIn, roadDefs.dd.uMin, 0, null, ddWestN);
-    pushRoadSideCurb(roadDefs.dd, -ddHalfW, -ddCurbIn, 0, roadDefs.dd.uMax, ddEastN, null);
-    pushRoadSideCurb(roadDefs.dd, +ddHalfW, +ddCurbIn, roadDefs.dd.uMin, 0, null, ddWestS);
-    pushRoadSideCurb(roadDefs.dd, +ddHalfW, +ddCurbIn, 0, roadDefs.dd.uMax, ddEastS, null);
+    pushRoadSideCurb(roadDefs.dd, -ddHalfW, -ddCurbIn, roadDefs.dd.uMin, fDdNw.u1OnR1);
+    pushRoadSideCurb(roadDefs.dd, -ddHalfW, -ddCurbIn, fDdNe.u1OnR1, roadDefs.dd.uMax);
+    pushRoadSideCurb(roadDefs.dd, +ddHalfW, +ddCurbIn, roadDefs.dd.uMin, fDdSw.u1OnR1);
+    pushRoadSideCurb(roadDefs.dd, +ddHalfW, +ddCurbIn, fDdSe.u1OnR1, roadDefs.dd.uMax);
+
+    if (asphaltCornerGeoms.length > 0) {
+        const asphaltPatchMesh = new THREE.Mesh(
+            mergeGeometries(asphaltCornerGeoms, false),
+            roadAsphaltMat
+        );
+        asphaltCornerGeoms.forEach((g) => g.dispose());
+        asphaltPatchMesh.receiveShadow = true;
+        scene.add(asphaltPatchMesh);
+    }
 
     const { colorTex: curbColorTex, bumpTex: curbBumpTex } = createCurbstoneTextures(maxAniso);
     const curbMesh = new THREE.Mesh(
@@ -1359,27 +1425,29 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     // Flush campus-perimeter sidewalks strictly outside outer road curbstones
     const sidewalkGeoms = [];
 
-    const nhNePt = lineIntersectPt(roadDefs.nh, -nhHalfW, roadDefs.ltk, +ltkHalfW);
-    const ddSePt = lineIntersectPt(roadDefs.dd, +ddHalfW, roadDefs.ltk, +ltkHalfW);
     const nhNeCampus = lineIntersectPt(roadDefs.nh, -13.0, roadDefs.ltk, +10.24);
     const ddSeCampus = lineIntersectPt(roadDefs.dd, +10.0, roadDefs.ltk, +10.24);
     const ddEndU = worldToUv(roadDefs.dd, 30.0, -94.0).u;
 
     // Exterior sidewalks flanking Nguyen Hue, Ly Thuong Kiet, and Dong Da gates strictly outside curbstones
     sidewalkGeoms.push(buildGroundPoly([
-        [nhNePt.x, nhNePt.z],
+        uvToWorld(roadDefs.nh, fNhNe.u1OnR1, -nhHalfW),
         uvToWorld(roadDefs.nh, 94.0, -nhHalfW),
         uvToWorld(roadDefs.nh, 94.0, -13.1),
-        uvToWorld(roadDefs.nh, nhNePt.u1, -13.1)
+        uvToWorld(roadDefs.nh, fNhNe.u1OnR1, -13.1)
     ], 0.005, 1.25));
-    sidewalkGeoms.push(buildGroundPoly([
-        [nhNePt.x, nhNePt.z],
-        [ddSePt.x, ddSePt.z],
+
+    // Continuous school sidewalk along LTK including rounded corner fillets at Gate 77 and Gate 38
+    const ltkSchoolSidewalkPts = [
+        ...fNhNe.innerPts,
+        ...fDdSe.innerPts.slice().reverse(),
         [ddSeCampus.x, ddSeCampus.z],
         [nhNeCampus.x, nhNeCampus.z]
-    ], 0.005, 1.25));
+    ];
+    sidewalkGeoms.push(buildGroundPoly(ltkSchoolSidewalkPts, 0.005, 1.25));
+
     sidewalkGeoms.push(buildGroundPoly([
-        [ddSePt.x, ddSePt.z],
+        uvToWorld(roadDefs.dd, fDdSe.u1OnR1, +ddHalfW),
         uvToWorld(roadDefs.dd, ddEndU, +ddHalfW),
         uvToWorld(roadDefs.dd, ddEndU, +10.1),
         [ddSeCampus.x, ddSeCampus.z]
@@ -1399,12 +1467,17 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         ], 0.005, 1.25));
     };
 
+    // Corner sidewalk tile filler for outer sidewalk intersections
+    [fNhNw, fNhSw, fNhSe, fDdNw, fDdNe, fDdSw].forEach((c) => {
+        sidewalkGeoms.push(buildGroundPoly([[c.C.x, c.C.z], ...c.innerPts], 0.005, 1.25));
+    });
+
     // Segment 1: south of Nguyen Hue junction
-    pushLtkOuterSegment(roadDefs.ltk.uMin, ltkSwNh.outer.u1, 6.0);
+    pushLtkOuterSegment(roadDefs.ltk.uMin, fNhSw.u2OnR2, 6.0);
     // Segment 2: between Nguyen Hue and Dong Da junctions flush with building facades
-    pushLtkOuterSegment(ltkNwNh.outer.u1, ltkSwDd.outer.u1, 6.0);
+    pushLtkOuterSegment(fNhNw.u2OnR2, fDdSw.u2OnR2, 6.0);
     // Segment 3: north of Dong Da junction
-    pushLtkOuterSegment(ltkNwDd.outer.u1, roadDefs.ltk.uMax, 6.0);
+    pushLtkOuterSegment(fDdNw.u2OnR2, roadDefs.ltk.uMax, 6.0);
 
     const { colorTex: sidewalkColorTex, bumpTex: sidewalkBumpTex } = createTerrazzoSidewalkTextures(maxAniso);
     const sidewalkMesh = new THREE.Mesh(
