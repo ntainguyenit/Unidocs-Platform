@@ -1836,44 +1836,91 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         const ringCy = ringWorldCz * 32;
         const ringR = 176;
         const pathW = 54;
+        const curbW = pathW + 10;
 
-        const strokeCurbedPath = (drawFn) => {
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.strokeStyle = curbColor;
-            ctx.lineWidth = pathW + 10;
-            ctx.beginPath(); drawFn(); ctx.stroke();
-            ctx.strokeStyle = pathColor;
-            ctx.lineWidth = pathW;
-            ctx.beginPath(); drawFn(); ctx.stroke();
+        // Path geometries ending flush at ring and junction boundaries with zero protrusion
+        const drawMainPaths = () => {
+            ctx.moveTo(ringCx, 0);
+            ctx.lineTo(ringCx, ringCy - ringR);
+            ctx.moveTo(ringCx, ringCy + ringR);
+            ctx.lineTo(ringCx, lh);
+            if (isRight) {
+                ctx.moveTo(ringCx + ringR, ringCy);
+                ctx.lineTo(lw, ringCy);
+            }
         };
 
-        strokeCurbedPath(() => {
-            ctx.moveTo(ringCx, 0);
-            ctx.lineTo(ringCx, ringCy - ringR + 12);
-        });
-        strokeCurbedPath(() => {
-            ctx.moveTo(ringCx, ringCy + ringR - 12);
-            ctx.lineTo(ringCx, lh);
-        });
+        const drawDiagonalPath = () => {
+            if (!isRight) return;
+            ctx.moveTo(ringCx, 140);
+            ctx.lineTo(lw - 180, ringCy);
+        };
+
+        // Pass 1: Render continuous outer curbs across all pathways
+        ctx.save();
+        ctx.lineCap = 'butt';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = curbColor;
+        ctx.lineWidth = curbW;
+
+        ctx.beginPath();
+        ctx.arc(ringCx, ringCy, ringR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        drawMainPaths();
+        ctx.stroke();
 
         if (isRight) {
-            strokeCurbedPath(() => {
-                ctx.moveTo(ringCx + ringR - 12, ringCy);
-                ctx.lineTo(lw, ringCy);
-            });
-            strokeCurbedPath(() => {
-                ctx.moveTo(ringCx, 140);
-                ctx.lineTo(lw - 180, ringCy);
-            });
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(ringCx, 0, lw - ringCx, ringCy);
+            ctx.clip();
+            ctx.beginPath();
+            drawDiagonalPath();
+            ctx.stroke();
+            ctx.restore();
         }
+        ctx.restore();
 
-        ctx.strokeStyle = curbColor;
-        ctx.lineWidth = pathW + 10;
-        ctx.beginPath(); ctx.arc(ringCx, ringCy, ringR, 0, Math.PI * 2); ctx.stroke();
+        // Pass 2: Render inner walkway pavement overlay to form unified seamless intersections
+        ctx.save();
+        ctx.lineCap = 'butt';
+        ctx.lineJoin = 'round';
         ctx.strokeStyle = pathColor;
         ctx.lineWidth = pathW;
-        ctx.beginPath(); ctx.arc(ringCx, ringCy, ringR, 0, Math.PI * 2); ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(ringCx, ringCy, ringR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        drawMainPaths();
+        ctx.stroke();
+
+        if (isRight) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(ringCx, 0, lw - ringCx, ringCy);
+            ctx.clip();
+            ctx.beginPath();
+            drawDiagonalPath();
+            ctx.stroke();
+            ctx.restore();
+        }
+        ctx.restore();
+
+        // Pass 3: Pristine inner circular lawn inside ring (eliminates any radial spoke bleed)
+        ctx.save();
+        const innerLawnR = ringR - curbW * 0.5;
+        ctx.fillStyle = '#386f39';
+        ctx.beginPath();
+        ctx.arc(ringCx, ringCy, innerLawnR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = curbColor;
+        ctx.lineWidth = 6;
+        ctx.stroke();
+        ctx.restore();
 
         ctx.restore();
         ctx.restore();
@@ -1934,29 +1981,55 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         const rCy = shapeKind === 'back' ? lh * 0.52 : lh * 0.5;
         const ringR = shapeKind === 'back' ? 112 : 96;
         const pathW = 40;
+        const curbW = pathW + 8;
 
-        const strokePath = (fn) => {
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = curbColor;
-            ctx.lineWidth = pathW + 8;
-            ctx.beginPath(); fn(); ctx.stroke();
-            ctx.strokeStyle = pathColor;
-            ctx.lineWidth = pathW;
-            ctx.beginPath(); fn(); ctx.stroke();
+        const drawSpokes = () => {
+            ctx.moveTo(rCx, 0); ctx.lineTo(rCx, rCy - ringR);
+            ctx.moveTo(rCx, rCy + ringR); ctx.lineTo(rCx, lh);
+            ctx.moveTo(0, rCy); ctx.lineTo(rCx - ringR, rCy);
+            ctx.moveTo(rCx + ringR, rCy); ctx.lineTo(lw, rCy);
         };
 
-        // Radial spokes + circular ring matching SketchUp 4dbedfd4 and Plan 61a14ecc
-        strokePath(() => { ctx.moveTo(rCx, 0); ctx.lineTo(rCx, rCy - ringR + 8); });
-        strokePath(() => { ctx.moveTo(rCx, rCy + ringR - 8); ctx.lineTo(rCx, lh); });
-        strokePath(() => { ctx.moveTo(0, rCy); ctx.lineTo(rCx - ringR + 8, rCy); });
-        strokePath(() => { ctx.moveTo(rCx + ringR - 8, rCy); ctx.lineTo(lw, rCy); });
-
+        // Pass 1: Render continuous outer curbs across all pathways
+        ctx.save();
+        ctx.lineCap = 'butt';
+        ctx.lineJoin = 'round';
         ctx.strokeStyle = curbColor;
-        ctx.lineWidth = pathW + 8;
-        ctx.beginPath(); ctx.arc(rCx, rCy, ringR, 0, Math.PI * 2); ctx.stroke();
+        ctx.lineWidth = curbW;
+        ctx.beginPath();
+        ctx.arc(rCx, rCy, ringR, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        drawSpokes();
+        ctx.stroke();
+        ctx.restore();
+
+        // Pass 2: Render inner walkway pavement overlay to form unified seamless intersections
+        ctx.save();
+        ctx.lineCap = 'butt';
+        ctx.lineJoin = 'round';
         ctx.strokeStyle = pathColor;
         ctx.lineWidth = pathW;
-        ctx.beginPath(); ctx.arc(rCx, rCy, ringR, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(rCx, rCy, ringR, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        drawSpokes();
+        ctx.stroke();
+        ctx.restore();
+
+        // Pass 3: Pristine inner circular lawn inside ring (eliminates any radial spoke bleed)
+        ctx.save();
+        const innerLawnR = ringR - curbW * 0.5;
+        ctx.fillStyle = '#3b733c';
+        ctx.beginPath();
+        ctx.arc(rCx, rCy, innerLawnR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = curbColor;
+        ctx.lineWidth = 5;
+        ctx.stroke();
+        ctx.restore();
+
         ctx.restore();
         ctx.restore();
 
