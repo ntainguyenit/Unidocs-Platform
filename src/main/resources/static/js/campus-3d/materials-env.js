@@ -2320,7 +2320,7 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
     scene.add(group);
 }
 
-// Create authentic Nha D West Facade, entrance canopy, and perimeter fence viewed from Ly Thuong Kiet (Photo 1)
+// Create authentic Nha D West Facade and entrance canopy viewed from Ly Thuong Kiet (Photo 1)
 function createNhaDWestFacade(scene, maxAniso = 4) {
     const group = new THREE.Group();
 
@@ -2618,96 +2618,6 @@ function createNhaDWestFacade(scene, maxAniso = 4) {
     group.position.set(facadePosX, 0, facadePosZ);
     group.rotation.y = -Math.PI * 0.5 + bldgYaw;
     scene.add(group);
-
-    // 3. Perimeter boundary fence with corrugated galvanized metal panels & concrete pillars (Photo 1)
-    const fenceGroup = new THREE.Group();
-    const fenceZCenter = -25.5;
-    const fenceX = -105.8;
-    const fenceSpanZ = 16.0;
-
-    // Concrete base curb
-    const fenceBaseGeom = new THREE.BoxGeometry(0.40, 0.45, fenceSpanZ);
-    const concreteMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.88, metalness: 0.02 });
-    const fenceBaseMesh = new THREE.Mesh(fenceBaseGeom, concreteMat);
-    fenceBaseMesh.position.set(0, 0.225, 0);
-    fenceGroup.add(fenceBaseMesh);
-
-    // Square concrete support pillars with beveled caps
-    const pillarGeom = new THREE.BoxGeometry(0.55, 2.65, 0.55);
-    const pillarCapGeom = new THREE.ConeGeometry(0.42, 0.22, 4);
-    pillarCapGeom.rotateY(Math.PI * 0.25);
-    const pillarZ = [-8.0, 0, 8.0];
-
-    for (let p of pillarZ) {
-        const pillar = new THREE.Mesh(pillarGeom, concreteMat);
-        pillar.position.set(0, 1.325, p);
-        pillar.castShadow = true;
-        pillar.receiveShadow = true;
-        fenceGroup.add(pillar);
-
-        const cap = new THREE.Mesh(pillarCapGeom, concreteMat);
-        cap.position.set(0, 2.65 + 0.11, p);
-        fenceGroup.add(cap);
-    }
-
-    // Corrugated galvanized metal sheet panel (Tôn lượn sóng)
-    const cSize = 256;
-    const cCanvas = document.createElement('canvas');
-    cCanvas.width = cSize;
-    cCanvas.height = cSize;
-    const cctx = cCanvas.getContext('2d');
-    cctx.fillStyle = '#94a3b8';
-    cctx.fillRect(0, 0, cSize, cSize);
-
-    // Vertical corrugated sin wave shading
-    const wavePitch = 16;
-    for (let x = 0; x < cSize; x += wavePitch) {
-        const waveGrad = cctx.createLinearGradient(x, 0, x + wavePitch, 0);
-        waveGrad.addColorStop(0, '#64748b');
-        waveGrad.addColorStop(0.45, '#cbd5e1');
-        waveGrad.addColorStop(0.55, '#f1f5f9');
-        waveGrad.addColorStop(1.0, '#475569');
-        cctx.fillStyle = waveGrad;
-        cctx.fillRect(x, 0, wavePitch, cSize);
-    }
-
-    const corrugatedTex = new THREE.CanvasTexture(cCanvas);
-    corrugatedTex.colorSpace = THREE.SRGBColorSpace;
-    corrugatedTex.wrapS = THREE.RepeatWrapping;
-    corrugatedTex.wrapT = THREE.RepeatWrapping;
-    corrugatedTex.repeat.set(12, 1);
-    corrugatedTex.anisotropy = Math.min(8, maxAniso);
-
-    const corrugateMat = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        map: corrugatedTex,
-        roughness: 0.38,
-        metalness: 0.75
-    });
-
-    const fencePanel1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.95, 7.35), corrugateMat);
-    fencePanel1.position.set(0, 0.45 + 0.975, -3.95);
-    fencePanel1.castShadow = true;
-    fenceGroup.add(fencePanel1);
-
-    const fencePanel2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.95, 7.35), corrugateMat);
-    fencePanel2.position.set(0, 0.45 + 0.975, 3.95);
-    fencePanel2.castShadow = true;
-    fenceGroup.add(fencePanel2);
-
-    // Lush landscaping bushes peeking behind the fence matching Photo 1
-    const bushGeom = new THREE.SphereGeometry(0.85, 6, 6);
-    const bushMat = new THREE.MeshStandardMaterial({ color: 0x1e3a1e, roughness: 0.88 });
-    for (let b = 0; b < 8; b++) {
-        const bush = new THREE.Mesh(bushGeom, bushMat);
-        const bz = -6.5 + b * 1.8;
-        bush.position.set(0.65, 0.85, bz);
-        bush.scale.set(0.9, 1.2, 1.1);
-        fenceGroup.add(bush);
-    }
-
-    fenceGroup.position.set(fenceX, 0, fenceZCenter);
-    scene.add(fenceGroup);
 }
 
 // Add signature signage, Main Gate inscription, Dong Da Gate sign, Nha A marquee, garage roofs, and billowing flags
@@ -2886,7 +2796,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     // Authentic wide left-wing gate pier and THPT Chuyên Khoa học Huế signboard matching Photo 1
     createDongDaLeftWingGateStructure(scene, maxAniso, animatedFlags);
 
-    // Authentic Building D West facade, canopy, and fence viewed from Ly Thuong Kiet (Photo 1)
+    // Authentic Building D West facade and entrance canopy viewed from Ly Thuong Kiet (Photo 1)
     createNhaDWestFacade(scene, maxAniso);
 
     const myThuatTex = createSignTexture(['PHÒNG HỌC MỸ THUẬT'], {
