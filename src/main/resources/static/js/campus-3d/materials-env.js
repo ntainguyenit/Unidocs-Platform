@@ -1625,38 +1625,39 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     soccerPitch.receiveShadow = true;
     scene.add(soccerPitch);
 
-    // Procedural authentic white square grid net texture for soccer goals
+    // Procedural authentic bold white square grid net texture for soccer goals
     const createGoalNetTexture = () => {
         const netCanvas = document.createElement('canvas');
-        netCanvas.width = 256;
-        netCanvas.height = 256;
+        netCanvas.width = 512;
+        netCanvas.height = 512;
         const nctx = netCanvas.getContext('2d');
-        nctx.clearRect(0, 0, 256, 256);
+        nctx.clearRect(0, 0, 512, 512);
 
-        // Crisp white square net cords
-        const step = 32;
-        nctx.strokeStyle = 'rgba(255, 255, 255, 0.96)';
-        nctx.lineWidth = 3.2;
+        // Bold, bright, opaque white braided nylon square net cords
+        const step = 64;
+        nctx.strokeStyle = '#ffffff';
+        nctx.lineWidth = 11.0;
+        nctx.lineCap = 'square';
 
-        for (let x = 0; x <= 256; x += step) {
+        for (let x = 0; x <= 512; x += step) {
             nctx.beginPath();
             nctx.moveTo(x, 0);
-            nctx.lineTo(x, 256);
+            nctx.lineTo(x, 512);
             nctx.stroke();
         }
-        for (let y = 0; y <= 256; y += step) {
+        for (let y = 0; y <= 512; y += step) {
             nctx.beginPath();
             nctx.moveTo(0, y);
-            nctx.lineTo(256, y);
+            nctx.lineTo(512, y);
             nctx.stroke();
         }
 
-        // Small round net knots at grid intersections
+        // Distinct rounded woven knots at grid intersections
         nctx.fillStyle = '#ffffff';
-        for (let x = 0; x <= 256; x += step) {
-            for (let y = 0; y <= 256; y += step) {
+        for (let x = 0; x <= 512; x += step) {
+            for (let y = 0; y <= 512; y += step) {
                 nctx.beginPath();
-                nctx.arc(x, y, 2.2, 0, Math.PI * 2);
+                nctx.arc(x, y, 8.0, 0, Math.PI * 2);
                 nctx.fill();
             }
         }
@@ -1665,7 +1666,7 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
         tex.colorSpace = THREE.SRGBColorSpace;
-        tex.anisotropy = Math.min(4, maxAniso);
+        tex.anisotropy = Math.min(8, maxAniso);
         return tex;
     };
 
@@ -1673,16 +1674,18 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     const goalNetMat = new THREE.MeshStandardMaterial({
         map: goalNetTex,
         transparent: true,
-        alphaTest: 0.35,
+        alphaTest: 0.22,
         side: THREE.DoubleSide,
-        roughness: 0.65,
+        roughness: 0.45,
         metalness: 0.05,
-        color: 0xffffff
+        color: 0xffffff,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.35
     });
     const goalDepthMat = new THREE.MeshDepthMaterial({
         depthPacking: THREE.RGBADepthPacking,
         map: goalNetTex,
-        alphaTest: 0.35
+        alphaTest: 0.22
     });
 
     const goalFrameMat = new THREE.MeshStandardMaterial({
