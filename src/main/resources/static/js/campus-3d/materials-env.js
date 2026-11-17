@@ -104,6 +104,15 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
             }
         }
 
+        // Hide obsolete yellow walls, ground floor brown base, and old windows of bldg_D so modern 4-sided architectural facade covers it completely
+        if (obj.name === 'bldg_D') {
+            obj.traverse((child) => {
+                if (child.isMesh) {
+                    child.visible = false;
+                }
+            });
+        }
+
         if (!obj.isMesh || !obj.material) return;
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
         for (const m of mats) {
@@ -2524,256 +2533,573 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
     scene.add(group);
 }
 
-// Create authentic Nha D West Facade and entrance canopy viewed from Ly Thuong Kiet (Photo 1)
-function createNhaDWestFacade(scene, maxAniso = 4) {
+// Create authentic 4-sided modern architectural building for Nha D (Photo 1) covering all 4 faces
+function createNhaDModernBuilding(scene, maxAniso = 4) {
     const group = new THREE.Group();
 
-    // 1. Generate high-resolution Nha D West Facade PBR color & bump textures matching Photo 1
-    const sizeW = 1024;
-    const sizeH = 1344;
-    const canvas = document.createElement('canvas');
-    canvas.width = sizeW;
-    canvas.height = sizeH;
-    const ctx = canvas.getContext('2d');
+    // 1. Texture generator for West (with logo & text) and East (clean) short facades (11.5m wide x 15.0m high)
+    const createNhaDShortTexture = (hasSignboard = true) => {
+        const sizeW = 1024;
+        const sizeH = 1344;
+        const canvas = document.createElement('canvas');
+        canvas.width = sizeW;
+        canvas.height = sizeH;
+        const ctx = canvas.getContext('2d');
 
-    // Base off-white exterior architectural finish on flanking columns
-    ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(0, 0, sizeW, sizeH);
+        // Base off-white exterior architectural finish on flanking columns
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, sizeW, sizeH);
 
-    // Subtle formwork seams on left and right columns
-    ctx.strokeStyle = 'rgba(203, 213, 225, 0.40)';
-    ctx.lineWidth = 1.5;
-    for (let y = 100; y < sizeH; y += 120) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(190, y);
-        ctx.moveTo(834, y);
-        ctx.lineTo(sizeW, y);
-        ctx.stroke();
-    }
-
-    // Central recessed bay clad in dark bronze-brown horizontal ceramic tiles
-    const bayX = 190;
-    const bayW = 644;
-    ctx.fillStyle = '#453027';
-    ctx.fillRect(bayX, 0, bayW, sizeH);
-
-    // Fine horizontal tile joint lines
-    const tileH = 16;
-    for (let y = 0; y < sizeH; y += tileH) {
-        ctx.strokeStyle = 'rgba(25, 17, 13, 0.55)';
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.moveTo(bayX, y);
-        ctx.lineTo(bayX + bayW, y);
-        ctx.stroke();
-
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.lineWidth = 1.0;
-        ctx.beginPath();
-        ctx.moveTo(bayX, y + 1.8);
-        ctx.lineTo(bayX + bayW, y + 1.8);
-        ctx.stroke();
-    }
-
-    // Top Header Signboard on dark bronze tiles: Official HUSC shield emblem + university names matching Photo 1
-    const signY0 = 26;
-    const signH = 145;
-
-    // Draw official HUSC shield emblem on the left
-    drawHuscShield(ctx, bayX + 82, signY0 + signH * 0.5, 114);
-
-    // Signboard text lines
-    ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.70)';
-    ctx.shadowBlur = 5;
-    ctx.shadowOffsetX = 1;
-    ctx.shadowOffsetY = 2;
-
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-
-    ctx.font = '700 38px "Inter", "Segoe UI", sans-serif';
-    ctx.fillText('ĐẠI HỌC HUẾ', bayX + 162, signY0 + 44);
-
-    ctx.font = '800 46px "Inter", "Segoe UI", sans-serif';
-    ctx.fillText('TRƯỜNG ĐẠI HỌC KHOA HỌC', bayX + 162, signY0 + 98);
-    ctx.restore();
-
-    // 4 Upper floors: wide 4-pane dark reflective ribbon windows + white concrete spandrel beams
-    const winX = bayX + 30;
-    const winW = bayW - 60;
-    const winH = 175;
-    const floorY = [205, 440, 675, 910];
-
-    for (let f = 0; f < 4; f++) {
-        const fy = floorY[f];
-
-        // Horizontal white concrete spandrel beam separating floors
-        ctx.fillStyle = '#e2e8f0';
-        ctx.fillRect(bayX, fy - 26, bayW, 26);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
-        ctx.fillRect(bayX, fy - 4, bayW, 4);
-
-        // Dark bronze window frame outer border
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(winX - 6, fy - 4, winW + 12, winH + 8);
-
-        // 4 casement window panes per floor
-        const paneW = (winW - 18) / 4;
-        for (let p = 0; p < 4; p++) {
-            const px = winX + p * (paneW + 6);
-
-            // Dark tinted glass gradient with sky reflection
-            const glassGrad = ctx.createLinearGradient(px, fy, px, fy + winH);
-            glassGrad.addColorStop(0, '#1e293b');
-            glassGrad.addColorStop(0.35, '#0f172a');
-            glassGrad.addColorStop(1, '#090d16');
-            ctx.fillStyle = glassGrad;
-            ctx.fillRect(px, fy, paneW, winH);
-
-            // Diagonal sky reflection streak
-            ctx.fillStyle = 'rgba(186, 230, 253, 0.14)';
+        // Subtle formwork seams on left and right columns
+        ctx.strokeStyle = 'rgba(203, 213, 225, 0.40)';
+        ctx.lineWidth = 1.5;
+        for (let y = 100; y < sizeH; y += 120) {
             ctx.beginPath();
-            ctx.moveTo(px, fy + 40);
-            ctx.lineTo(px + paneW * 0.7, fy);
-            ctx.lineTo(px + paneW, fy);
-            ctx.lineTo(px + paneW * 0.3, fy + winH);
-            ctx.lineTo(px, fy + winH);
-            ctx.closePath();
-            ctx.fill();
+            ctx.moveTo(0, y);
+            ctx.lineTo(160, y);
+            ctx.moveTo(sizeW - 160, y);
+            ctx.lineTo(sizeW, y);
+            ctx.stroke();
+        }
 
-            // Upper transom sash divider
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 3.5;
+        // Central recessed bay clad in dark bronze-brown horizontal ceramic tiles
+        const bayX = 160;
+        const bayW = 704;
+        ctx.fillStyle = '#261b17';
+        ctx.fillRect(bayX, 0, bayW, sizeH);
+
+        // Fine horizontal tile joint lines
+        const tileH = 16;
+        for (let y = 0; y < sizeH; y += tileH) {
+            ctx.strokeStyle = 'rgba(15, 10, 8, 0.55)';
+            ctx.lineWidth = 1.8;
             ctx.beginPath();
-            ctx.moveTo(px, fy + 44);
-            ctx.lineTo(px + paneW, fy + 44);
+            ctx.moveTo(bayX, y);
+            ctx.lineTo(bayX + bayW, y);
             ctx.stroke();
 
-            // Inner glass rim highlight
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-            ctx.lineWidth = 1.2;
-            ctx.strokeRect(px + 2, fy + 2, paneW - 4, winH - 4);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            ctx.lineWidth = 1.0;
+            ctx.beginPath();
+            ctx.moveTo(bayX, y + 1.8);
+            ctx.lineTo(bayX + bayW, y + 1.8);
+            ctx.stroke();
         }
-    }
 
-    // Ground Floor entrance lobby: glass curtain wall, double entrance doors, and handles
-    const lobbyY = 1145;
-    const lobbyH = sizeH - lobbyY;
+        // Top Header Black Band (vùng đen)
+        const headerY0 = 20;
+        const headerH = 165;
+        ctx.fillStyle = '#080c14';
+        ctx.fillRect(bayX, headerY0, bayW, headerH);
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(bayX, headerY0, bayW, headerH);
 
-    // White horizontal spandrel beam above ground floor
-    ctx.fillStyle = '#e2e8f0';
-    ctx.fillRect(bayX, lobbyY - 26, bayW, 26);
+        if (hasSignboard) {
+            const headerCenterY = headerY0 + headerH * 0.5; // 102.5
 
-    // Dark charcoal lobby outer structural frame
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(winX - 6, lobbyY - 4, winW + 12, lobbyH - 8);
+            // Draw official HUSC shield emblem on the left inside the black band
+            const logoX = bayX + 72;
+            drawHuscShield(ctx, logoX, headerCenterY, 100);
 
-    // Warm interior lobby ambient glow through glass
-    const lobbyGrad = ctx.createLinearGradient(winX, lobbyY, winX, lobbyY + lobbyH);
-    lobbyGrad.addColorStop(0, 'rgba(30, 41, 59, 0.95)');
-    lobbyGrad.addColorStop(0.55, 'rgba(51, 65, 85, 0.88)');
-    lobbyGrad.addColorStop(1, 'rgba(15, 23, 42, 0.98)');
-    ctx.fillStyle = lobbyGrad;
-    ctx.fillRect(winX, lobbyY, winW, lobbyH - 14);
+            // Signboard text "TRƯỜNG ĐẠI HỌC KHOA HỌC" cleanly inside the black band
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 2;
 
-    // Center double glass doors
-    const doorW = 120;
-    const doorX = winX + (winW - doorW) * 0.5;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
-    ctx.fillRect(doorX, lobbyY + 8, doorW, lobbyH - 22);
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.font = '800 36px "Inter", "Segoe UI", sans-serif';
+            ctx.fillText('TRƯỜNG ĐẠI HỌC KHOA HỌC', bayX + 138, headerCenterY);
+            ctx.restore();
+        }
 
-    ctx.strokeStyle = '#64748b';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(doorX, lobbyY + 8, doorW * 0.5, lobbyH - 22);
-    ctx.strokeRect(doorX + doorW * 0.5, lobbyY + 8, doorW * 0.5, lobbyH - 22);
+        // 4 Upper floors: wide 4-pane dark reflective ribbon windows + white concrete spandrel beams
+        const winX = bayX + 26;
+        const winW = bayW - 52;
+        const winH = 175;
+        const floorY = [210, 445, 680, 915];
 
-    // Stainless steel vertical door handles
-    ctx.fillStyle = '#e2e8f0';
-    ctx.fillRect(doorX + doorW * 0.5 - 10, lobbyY + 68, 4, 46);
-    ctx.fillRect(doorX + doorW * 0.5 + 6, lobbyY + 68, 4, 46);
+        for (let f = 0; f < 4; f++) {
+            const fy = floorY[f];
 
-    // Base planter curb with lush green shrubbery along building foundation
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(bayX - 20, sizeH - 18, bayW + 40, 18);
-    for (let i = 0; i < 90; i++) {
-        const gx = bayX - 16 + Math.random() * (bayW + 32);
-        const gy = sizeH - 12 + Math.random() * 12;
-        const gr = 4 + Math.random() * 6;
-        ctx.fillStyle = Math.random() > 0.4 ? '#166534' : '#15803d';
-        ctx.beginPath();
-        ctx.arc(gx, gy, gr, 0, Math.PI * 2);
-        ctx.fill();
-    }
+            // Horizontal white concrete spandrel beam separating floors
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(bayX, fy - 26, bayW, 26);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+            ctx.fillRect(bayX, fy - 4, bayW, 4);
 
-    const facadeColorTex = new THREE.CanvasTexture(canvas);
-    facadeColorTex.colorSpace = THREE.SRGBColorSpace;
-    facadeColorTex.anisotropy = Math.min(8, maxAniso);
+            // Dark bronze window frame outer border
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(winX - 6, fy - 4, winW + 12, winH + 8);
 
-    // Facade bump texture for crisp brick grout and window frame relief
-    const bumpCanvas = document.createElement('canvas');
-    bumpCanvas.width = sizeW;
-    bumpCanvas.height = sizeH;
-    const bctx = bumpCanvas.getContext('2d');
-    bctx.fillStyle = '#808080';
-    bctx.fillRect(0, 0, sizeW, sizeH);
+            // 4 casement window panes per floor
+            const paneW = (winW - 18) / 4;
+            for (let p = 0; p < 4; p++) {
+                const px = winX + p * (paneW + 6);
 
-    // Recessed dark tile zone
-    bctx.fillStyle = '#6a6a6a';
-    bctx.fillRect(bayX, 0, bayW, sizeH);
-    bctx.fillStyle = '#303030';
-    for (let y = 0; y < sizeH; y += tileH) {
-        bctx.fillRect(bayX, y, bayW, 2);
-    }
+                // Dark tinted glass gradient with sky reflection
+                const glassGrad = ctx.createLinearGradient(px, fy, px, fy + winH);
+                glassGrad.addColorStop(0, '#1e293b');
+                glassGrad.addColorStop(0.35, '#0f172a');
+                glassGrad.addColorStop(1, '#090d16');
+                ctx.fillStyle = glassGrad;
+                ctx.fillRect(px, fy, paneW, winH);
 
-    // Windows bump
-    bctx.fillStyle = '#202020';
-    for (let f = 0; f < 4; f++) {
-        bctx.fillRect(winX - 6, floorY[f] - 4, winW + 12, winH + 8);
-    }
-    bctx.fillRect(winX - 6, lobbyY - 4, winW + 12, lobbyH - 8);
+                // Diagonal sky reflection streak
+                ctx.fillStyle = 'rgba(186, 230, 253, 0.14)';
+                ctx.beginPath();
+                ctx.moveTo(px, fy + 40);
+                ctx.lineTo(px + paneW * 0.7, fy);
+                ctx.lineTo(px + paneW, fy);
+                ctx.lineTo(px + paneW * 0.3, fy + winH);
+                ctx.lineTo(px, fy + winH);
+                ctx.closePath();
+                ctx.fill();
 
-    const facadeBumpTex = new THREE.CanvasTexture(bumpCanvas);
-    facadeBumpTex.anisotropy = Math.min(8, maxAniso);
+                // Upper transom sash divider
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.moveTo(px, fy + 44);
+                ctx.lineTo(px + paneW, fy + 44);
+                ctx.stroke();
 
-    // Main Facade Mesh mounted on West face of Nha D
-    const facadeW = 11.6;
-    const facadeH = 15.2;
-    const facadeGeom = new THREE.PlaneGeometry(facadeW, facadeH);
-    const facadeMat = new THREE.MeshStandardMaterial({
-        map: facadeColorTex,
-        bumpMap: facadeBumpTex,
+                // Inner glass rim highlight
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+                ctx.lineWidth = 1.2;
+                ctx.strokeRect(px + 2, fy + 2, paneW - 4, winH - 4);
+            }
+        }
+
+        // Ground Floor entrance lobby: glass curtain wall, double entrance doors, and handles
+        const lobbyY = 1145;
+        const lobbyH = sizeH - lobbyY;
+
+        // White horizontal spandrel beam above ground floor
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(bayX, lobbyY - 26, bayW, 26);
+
+        // Dark charcoal lobby outer structural frame
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(winX - 6, lobbyY - 4, winW + 12, lobbyH - 8);
+
+        // Warm interior lobby ambient glow through glass
+        const lobbyGrad = ctx.createLinearGradient(winX, lobbyY, winX, lobbyY + lobbyH);
+        lobbyGrad.addColorStop(0, 'rgba(30, 41, 59, 0.95)');
+        lobbyGrad.addColorStop(0.55, 'rgba(51, 65, 85, 0.88)');
+        lobbyGrad.addColorStop(1, 'rgba(15, 23, 42, 0.98)');
+        ctx.fillStyle = lobbyGrad;
+        ctx.fillRect(winX, lobbyY, winW, lobbyH - 14);
+
+        // Center double glass doors
+        const doorW = 120;
+        const doorX = winX + (winW - doorW) * 0.5;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+        ctx.fillRect(doorX, lobbyY + 8, doorW, lobbyH - 22);
+
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(doorX, lobbyY + 8, doorW * 0.5, lobbyH - 22);
+        ctx.strokeRect(doorX + doorW * 0.5, lobbyY + 8, doorW * 0.5, lobbyH - 22);
+
+        // Stainless steel vertical door handles
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(doorX + doorW * 0.5 - 10, lobbyY + 68, 4, 46);
+        ctx.fillRect(doorX + doorW * 0.5 + 6, lobbyY + 68, 4, 46);
+
+        // Base planter curb with lush green shrubbery along building foundation
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(bayX - 20, sizeH - 18, bayW + 40, 18);
+        for (let i = 0; i < 90; i++) {
+            const gx = bayX - 16 + Math.random() * (bayW + 32);
+            const gy = sizeH - 12 + Math.random() * 12;
+            const gr = 4 + Math.random() * 6;
+            ctx.fillStyle = Math.random() > 0.4 ? '#166534' : '#15803d';
+            ctx.beginPath();
+            ctx.arc(gx, gy, gr, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        const colorTex = new THREE.CanvasTexture(canvas);
+        colorTex.colorSpace = THREE.SRGBColorSpace;
+        colorTex.anisotropy = Math.min(8, maxAniso);
+        return colorTex;
+    };
+
+    // 2. Bump texture generator for short facades (11.5m)
+    const createNhaDShortBumpTexture = () => {
+        const sizeW = 1024;
+        const sizeH = 1344;
+        const bumpCanvas = document.createElement('canvas');
+        bumpCanvas.width = sizeW;
+        bumpCanvas.height = sizeH;
+        const bctx = bumpCanvas.getContext('2d');
+        bctx.fillStyle = '#808080';
+        bctx.fillRect(0, 0, sizeW, sizeH);
+
+        const bayX = 160;
+        const bayW = 704;
+        const winX = bayX + 26;
+        const winW = bayW - 52;
+        const winH = 175;
+        const floorY = [210, 445, 680, 915];
+        const lobbyY = 1145;
+        const lobbyH = sizeH - lobbyY;
+
+        // Recessed dark tile zone
+        bctx.fillStyle = '#6a6a6a';
+        bctx.fillRect(bayX, 0, bayW, sizeH);
+        bctx.fillStyle = '#303030';
+        for (let y = 0; y < sizeH; y += 16) {
+            bctx.fillRect(bayX, y, bayW, 2);
+        }
+
+        // Windows bump
+        bctx.fillStyle = '#202020';
+        for (let f = 0; f < 4; f++) {
+            bctx.fillRect(winX - 6, floorY[f] - 4, winW + 12, winH + 8);
+        }
+        bctx.fillRect(winX - 6, lobbyY - 4, winW + 12, lobbyH - 8);
+
+        const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+        bumpTex.anisotropy = Math.min(8, maxAniso);
+        return bumpTex;
+    };
+
+    // 3. Texture generator for North & South long facades (22.0m wide x 15.0m high)
+    const createNhaDLongTexture = () => {
+        const sizeW = 2048;
+        const sizeH = 1344;
+        const canvas = document.createElement('canvas');
+        canvas.width = sizeW;
+        canvas.height = sizeH;
+        const ctx = canvas.getContext('2d');
+
+        // Base off-white exterior architectural finish
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        // Formwork seams on flanking columns
+        ctx.strokeStyle = 'rgba(203, 213, 225, 0.40)';
+        ctx.lineWidth = 1.5;
+        for (let y = 100; y < sizeH; y += 120) {
+            ctx.beginPath();
+            ctx.moveTo(0, y); ctx.lineTo(160, y);
+            ctx.moveTo(sizeW - 160, y); ctx.lineTo(sizeW, y);
+            ctx.stroke();
+        }
+
+        const bayX = 160;
+        const bayW = sizeW - 320; // 1728px
+
+        // Central recessed field clad in dark ceramic tiles
+        ctx.fillStyle = '#261b17';
+        ctx.fillRect(bayX, 0, bayW, sizeH);
+
+        // Fine horizontal tile joint lines
+        const tileH = 16;
+        for (let y = 0; y < sizeH; y += tileH) {
+            ctx.strokeStyle = 'rgba(15, 10, 8, 0.55)';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.moveTo(bayX, y);
+            ctx.lineTo(bayX + bayW, y);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            ctx.lineWidth = 1.0;
+            ctx.beginPath();
+            ctx.moveTo(bayX, y + 1.8);
+            ctx.lineTo(bayX + bayW, y + 1.8);
+            ctx.stroke();
+        }
+
+        // Top Header Black Band (vùng đen) across the long facade
+        const headerY0 = 20;
+        const headerH = 165;
+        ctx.fillStyle = '#080c14';
+        ctx.fillRect(bayX, headerY0, bayW, headerH);
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(bayX, headerY0, bayW, headerH);
+
+        // 4 Upper floors: 2 wide window bays separated by central architectural white pier
+        const pierW = 128;
+        const sectionW = (bayW - pierW - 52) * 0.5; // (1728 - 128 - 52) / 2 = 774px
+        const sec1X = bayX + 26;
+        const pierX = sec1X + sectionW;
+        const sec2X = pierX + pierW;
+        const winH = 175;
+        const floorY = [210, 445, 680, 915];
+
+        // Vertical central white architectural pier
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(pierX, 185, pierW, sizeH - 185);
+        ctx.strokeStyle = 'rgba(203, 213, 225, 0.40)';
+        ctx.lineWidth = 1.5;
+        for (let y = 100; y < sizeH; y += 120) {
+            ctx.beginPath();
+            ctx.moveTo(pierX, y);
+            ctx.lineTo(pierX + pierW, y);
+            ctx.stroke();
+        }
+
+        for (let f = 0; f < 4; f++) {
+            const fy = floorY[f];
+
+            // Horizontal white concrete spandrel beam separating floors
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(bayX, fy - 26, bayW, 26);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+            ctx.fillRect(bayX, fy - 4, bayW, 4);
+
+            // Windows in both sections
+            for (const sx of [sec1X, sec2X]) {
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(sx - 6, fy - 4, sectionW + 12, winH + 8);
+
+                const paneW = (sectionW - 18) / 4;
+                for (let p = 0; p < 4; p++) {
+                    const px = sx + p * (paneW + 6);
+                    const glassGrad = ctx.createLinearGradient(px, fy, px, fy + winH);
+                    glassGrad.addColorStop(0, '#1e293b');
+                    glassGrad.addColorStop(0.35, '#0f172a');
+                    glassGrad.addColorStop(1, '#090d16');
+                    ctx.fillStyle = glassGrad;
+                    ctx.fillRect(px, fy, paneW, winH);
+
+                    ctx.fillStyle = 'rgba(186, 230, 253, 0.14)';
+                    ctx.beginPath();
+                    ctx.moveTo(px, fy + 40);
+                    ctx.lineTo(px + paneW * 0.7, fy);
+                    ctx.lineTo(px + paneW, fy);
+                    ctx.lineTo(px + paneW * 0.3, fy + winH);
+                    ctx.lineTo(px, fy + winH);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#334155';
+                    ctx.lineWidth = 3.5;
+                    ctx.beginPath();
+                    ctx.moveTo(px, fy + 44);
+                    ctx.lineTo(px + paneW, fy + 44);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+                    ctx.lineWidth = 1.2;
+                    ctx.strokeRect(px + 2, fy + 2, paneW - 4, winH - 4);
+                }
+            }
+        }
+
+        // Ground floor
+        const lobbyY = 1145;
+        const lobbyH = sizeH - lobbyY;
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(bayX, lobbyY - 26, bayW, 26);
+
+        for (const sx of [sec1X, sec2X]) {
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(sx - 6, lobbyY - 4, sectionW + 12, lobbyH - 8);
+            const lobbyGrad = ctx.createLinearGradient(sx, lobbyY, sx, lobbyY + lobbyH);
+            lobbyGrad.addColorStop(0, 'rgba(30, 41, 59, 0.95)');
+            lobbyGrad.addColorStop(0.55, 'rgba(51, 65, 85, 0.88)');
+            lobbyGrad.addColorStop(1, 'rgba(15, 23, 42, 0.98)');
+            ctx.fillStyle = lobbyGrad;
+            ctx.fillRect(sx, lobbyY, sectionW, lobbyH - 14);
+        }
+
+        // Base planter shrubbery curb
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(bayX - 20, sizeH - 18, bayW + 40, 18);
+        for (let i = 0; i < 180; i++) {
+            const gx = bayX - 16 + Math.random() * (bayW + 32);
+            const gy = sizeH - 12 + Math.random() * 12;
+            const gr = 4 + Math.random() * 6;
+            ctx.fillStyle = Math.random() > 0.4 ? '#166534' : '#15803d';
+            ctx.beginPath();
+            ctx.arc(gx, gy, gr, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        const colorTex = new THREE.CanvasTexture(canvas);
+        colorTex.colorSpace = THREE.SRGBColorSpace;
+        colorTex.anisotropy = Math.min(8, maxAniso);
+        return colorTex;
+    };
+
+    // 4. Bump texture generator for long facades (22.0m)
+    const createNhaDLongBumpTexture = () => {
+        const sizeW = 2048;
+        const sizeH = 1344;
+        const bumpCanvas = document.createElement('canvas');
+        bumpCanvas.width = sizeW;
+        bumpCanvas.height = sizeH;
+        const bctx = bumpCanvas.getContext('2d');
+        bctx.fillStyle = '#808080';
+        bctx.fillRect(0, 0, sizeW, sizeH);
+
+        const bayX = 160;
+        const bayW = sizeW - 320;
+        const pierW = 128;
+        const sectionW = (bayW - pierW - 52) * 0.5;
+        const sec1X = bayX + 26;
+        const pierX = sec1X + sectionW;
+        const sec2X = pierX + pierW;
+        const winH = 175;
+        const floorY = [210, 445, 680, 915];
+        const lobbyY = 1145;
+        const lobbyH = sizeH - lobbyY;
+
+        bctx.fillStyle = '#6a6a6a';
+        bctx.fillRect(bayX, 0, bayW, sizeH);
+        bctx.fillStyle = '#303030';
+        for (let y = 0; y < sizeH; y += 16) {
+            bctx.fillRect(bayX, y, bayW, 2);
+        }
+
+        bctx.fillStyle = '#858585';
+        bctx.fillRect(pierX, 185, pierW, sizeH - 185);
+
+        bctx.fillStyle = '#202020';
+        for (let f = 0; f < 4; f++) {
+            for (const sx of [sec1X, sec2X]) {
+                bctx.fillRect(sx - 6, floorY[f] - 4, sectionW + 12, winH + 8);
+            }
+        }
+        for (const sx of [sec1X, sec2X]) {
+            bctx.fillRect(sx - 6, lobbyY - 4, sectionW + 12, lobbyH - 8);
+        }
+
+        const bumpTex = new THREE.CanvasTexture(bumpCanvas);
+        bumpTex.anisotropy = Math.min(8, maxAniso);
+        return bumpTex;
+    };
+
+    // Shared materials & textures
+    const shortBump = createNhaDShortBumpTexture();
+    const longColor = createNhaDLongTexture();
+    const longBump = createNhaDLongBumpTexture();
+
+    const shortMatWest = new THREE.MeshStandardMaterial({
+        map: createNhaDShortTexture(true),
+        bumpMap: shortBump,
         bumpScale: 0.018,
         roughness: 0.42,
         metalness: 0.10
     });
-    const facadeMesh = new THREE.Mesh(facadeGeom, facadeMat);
-    facadeMesh.position.set(0, facadeH * 0.5, 0);
-    facadeMesh.receiveShadow = true;
-    group.add(facadeMesh);
+    const shortMatEast = new THREE.MeshStandardMaterial({
+        map: createNhaDShortTexture(false),
+        bumpMap: shortBump,
+        bumpScale: 0.018,
+        roughness: 0.42,
+        metalness: 0.10
+    });
+    const longMat = new THREE.MeshStandardMaterial({
+        map: longColor,
+        bumpMap: longBump,
+        bumpScale: 0.018,
+        roughness: 0.42,
+        metalness: 0.10
+    });
 
-    // 2. 3D Cantilevered Glass & Steel Entrance Canopy (Mái sảnh kính) matching Photo 1
+    const bldgW = 22.0;
+    const bldgD = 11.5;
+    const bldgH = 15.0;
+    const halfW = bldgW * 0.5; // 11.0
+    const halfD = bldgD * 0.5; // 5.75
+    const halfH = bldgH * 0.5; // 7.5
+
+    // 1. West Face (facing Ly Thuong Kiet) - WITH HUSC logo & "TRƯỜNG ĐẠI HỌC KHOA HỌC"
+    const westMesh = new THREE.Mesh(new THREE.PlaneGeometry(bldgD, bldgH), shortMatWest);
+    westMesh.position.set(-halfW, halfH, 0);
+    westMesh.rotation.y = -Math.PI * 0.5;
+    westMesh.receiveShadow = true;
+    group.add(westMesh);
+
+    // 2. East Face (facing campus courtyard) - clean modern facade without text
+    const eastMesh = new THREE.Mesh(new THREE.PlaneGeometry(bldgD, bldgH), shortMatEast);
+    eastMesh.position.set(halfW, halfH, 0);
+    eastMesh.rotation.y = Math.PI * 0.5;
+    eastMesh.receiveShadow = true;
+    group.add(eastMesh);
+
+    // 3. North Face (facing Dong Da & parking) - clean modern wide facade without text
+    const northMesh = new THREE.Mesh(new THREE.PlaneGeometry(bldgW, bldgH), longMat);
+    northMesh.position.set(0, halfH, -halfD);
+    northMesh.rotation.y = Math.PI;
+    northMesh.receiveShadow = true;
+    group.add(northMesh);
+
+    // 4. South Face (facing soccer field) - clean modern wide facade without text
+    const southMesh = new THREE.Mesh(new THREE.PlaneGeometry(bldgW, bldgH), longMat);
+    southMesh.position.set(0, halfH, halfD);
+    southMesh.rotation.y = 0;
+    southMesh.receiveShadow = true;
+    group.add(southMesh);
+
+    // 5. 4 Off-white vertical corner columns to seamlessly lock edges together
+    const cornerMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.42, metalness: 0.05 });
+    const cornerGeom = new THREE.BoxGeometry(0.24, bldgH, 0.24);
+    for (const cx of [-halfW, halfW]) {
+        for (const cz of [-halfD, halfD]) {
+            const col = new THREE.Mesh(cornerGeom, cornerMat);
+            col.position.set(cx, halfH, cz);
+            col.castShadow = true;
+            col.receiveShadow = true;
+            group.add(col);
+        }
+    }
+
+    // 6. Roof parapet coping rim running continuously along perimeter
+    const copingMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.35, metalness: 0.08 });
+    const nCoping = new THREE.Mesh(new THREE.BoxGeometry(bldgW + 0.24, 0.36, 0.24), copingMat);
+    nCoping.position.set(0, bldgH, -halfD);
+    const sCoping = new THREE.Mesh(new THREE.BoxGeometry(bldgW + 0.24, 0.36, 0.24), copingMat);
+    sCoping.position.set(0, bldgH, halfD);
+    const wCoping = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.36, bldgD + 0.24), copingMat);
+    wCoping.position.set(-halfW, bldgH, 0);
+    const eCoping = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.36, bldgD + 0.24), copingMat);
+    eCoping.position.set(halfW, bldgH, 0);
+    group.add(nCoping, sCoping, wCoping, eCoping);
+
+    // Flat roof surface slab
+    const roofSlab = new THREE.Mesh(
+        new THREE.PlaneGeometry(bldgW, bldgD),
+        new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.85, metalness: 0.05 })
+    );
+    roofSlab.rotation.x = -Math.PI * 0.5;
+    roofSlab.position.set(0, bldgH - 0.05, 0);
+    roofSlab.receiveShadow = true;
+    group.add(roofSlab);
+
+    // 7. Interior solid light blocker box preventing any internal yellow bleed or light leak
+    const innerBoxGeom = new THREE.BoxGeometry(bldgW - 0.08, bldgH - 0.1, bldgD - 0.08);
+    const innerBoxMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.90 });
+    const innerBox = new THREE.Mesh(innerBoxGeom, innerBoxMat);
+    innerBox.position.set(0, halfH, 0);
+    innerBox.castShadow = true;
+    innerBox.receiveShadow = true;
+    group.add(innerBox);
+
+    // 8. West entrance 3D Cantilevered Glass & Steel Canopy (Photo 1)
     const canopyW = 6.6;
     const canopyD = 1.6;
     const canopyH = 0.08;
     const canopyY = 3.65;
-    const canopyZ = canopyD * 0.5;
+    const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.35, metalness: 0.80 });
 
-    // Canopy dark metal frame
-    const canopyFrameGeom = new THREE.BoxGeometry(canopyW, canopyH, canopyD);
-    const darkMetalMat = new THREE.MeshStandardMaterial({
-        color: 0x334155,
-        roughness: 0.35,
-        metalness: 0.80
-    });
+    const canopyFrameGeom = new THREE.BoxGeometry(canopyD, canopyH, canopyW);
     const canopyFrameMesh = new THREE.Mesh(canopyFrameGeom, darkMetalMat);
-    canopyFrameMesh.position.set(0, canopyY, canopyZ);
+    canopyFrameMesh.position.set(-halfW - canopyD * 0.5, canopyY, 0);
+    canopyFrameMesh.castShadow = true;
+    canopyFrameMesh.receiveShadow = true;
     group.add(canopyFrameMesh);
 
-    // Translucent laminated glass panel
-    const glassGeom = new THREE.BoxGeometry(canopyW - 0.2, 0.024, canopyD - 0.2);
     const canopyGlassMat = new THREE.MeshStandardMaterial({
         color: 0x94a3b8,
         transparent: true,
@@ -2781,46 +3107,52 @@ function createNhaDWestFacade(scene, maxAniso = 4) {
         roughness: 0.12,
         metalness: 0.15
     });
-    const glassMesh = new THREE.Mesh(glassGeom, canopyGlassMat);
-    glassMesh.position.set(0, canopyY + 0.035, canopyZ);
+    const glassMesh = new THREE.Mesh(new THREE.BoxGeometry(canopyD - 0.2, 0.024, canopyW - 0.2), canopyGlassMat);
+    glassMesh.position.set(-halfW - canopyD * 0.5, canopyY + 0.035, 0);
     group.add(glassMesh);
 
-    // 4 Diagonal stainless steel tension tie rods supporting the canopy from wall anchors above
-    const tieX = [-2.6, -0.88, 0.88, 2.6];
+    // 4 Diagonal stainless steel tension tie rods supporting the West canopy
+    const tieZ = [-2.6, -0.88, 0.88, 2.6];
     const rodLength = Math.hypot(canopyD - 0.1, 1.25);
     const rodAngle = Math.atan2(canopyD - 0.1, 1.25);
     const rodGeom = new THREE.CylinderGeometry(0.018, 0.018, rodLength, 8);
-    rodGeom.rotateX(rodAngle);
+    rodGeom.rotateZ(-rodAngle);
     const steelMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.25, metalness: 0.90 });
 
     for (let i = 0; i < 4; i++) {
         const rod = new THREE.Mesh(rodGeom, steelMat);
-        rod.position.set(tieX[i], canopyY + 0.625, (canopyD - 0.1) * 0.5);
+        rod.position.set(-halfW - (canopyD - 0.1) * 0.5, canopyY + 0.625, tieZ[i]);
         group.add(rod);
 
-        // Wall anchor clevis mount
-        const clevisGeom = new THREE.BoxGeometry(0.08, 0.14, 0.12);
-        const clevis = new THREE.Mesh(clevisGeom, darkMetalMat);
-        clevis.position.set(tieX[i], canopyY + 1.25, 0.06);
+        const clevis = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.08), darkMetalMat);
+        clevis.position.set(-halfW - 0.06, canopyY + 1.25, tieZ[i]);
         group.add(clevis);
     }
 
-    // Ground entrance terrace steps
-    const stepGeom = new THREE.BoxGeometry(7.2, 0.22, 1.8);
+    // West ground entrance terrace steps
+    const stepGeom = new THREE.BoxGeometry(1.8, 0.22, 7.2);
     const stepMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.78, metalness: 0.05 });
     const stepMesh = new THREE.Mesh(stepGeom, stepMat);
-    stepMesh.position.set(0, 0.11, 0.9);
+    stepMesh.position.set(-halfW - 0.9, 0.11, 0);
     stepMesh.receiveShadow = true;
     group.add(stepMesh);
 
-    // Position entire Nha D West Facade assembly onto building West wall
-    const bldgYaw = 0.06;
-    const halfLen = 11.15;
-    const facadePosX = -74.0 - halfLen * Math.cos(bldgYaw);
-    const facadePosZ = -25.5 - halfLen * Math.sin(bldgYaw);
+    // 9. North entrance canopy & steps (facing parking / Dong Da)
+    const northCanopyFrame = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.08, 1.4), darkMetalMat);
+    northCanopyFrame.position.set(0, canopyY, -halfD - 0.7);
+    northCanopyFrame.castShadow = true;
+    northCanopyFrame.receiveShadow = true;
+    group.add(northCanopyFrame);
 
-    group.position.set(facadePosX, 0, facadePosZ);
-    group.rotation.y = -Math.PI * 0.5 + bldgYaw;
+    const northStepMesh = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.22, 1.6), stepMat);
+    northStepMesh.position.set(0, 0.11, -halfD - 0.8);
+    northStepMesh.receiveShadow = true;
+    group.add(northStepMesh);
+
+    // Position entire Nha D modern building assembly onto building location
+    const bldgYaw = 0.06;
+    group.position.set(-74.0, 0, -25.5);
+    group.rotation.y = bldgYaw;
     scene.add(group);
 }
 
@@ -3000,8 +3332,8 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     // Authentic wide left-wing gate pier and THPT Chuyên Khoa học Huế signboard matching Photo 1
     createDongDaLeftWingGateStructure(scene, maxAniso, animatedFlags);
 
-    // Authentic Building D West facade and entrance canopy viewed from Ly Thuong Kiet (Photo 1)
-    createNhaDWestFacade(scene, maxAniso);
+    // Authentic 4-sided Building D modern facade and entrance canopies matching Photo 1
+    createNhaDModernBuilding(scene, maxAniso);
 
     const myThuatTex = createSignTexture(['PHÒNG HỌC MỸ THUẬT'], {
         w: 640, h: 112, bg: '#1f2937', border: '#facc15', color: '#fde047', fontSizes: [42], maxAnisotropy: maxAniso
