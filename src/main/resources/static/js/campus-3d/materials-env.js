@@ -1176,67 +1176,70 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     const cornerFillets = {};
     const asphaltCornerGeoms = [];
 
-    const buildCornerCurb = (id, r1, v1, s1, w1, r2, v2, s2, w2, R = 2.6, segs = 14) => {
-        const P = lineIntersectPt(r1, v1, r2, v2);
+    const buildCornerCurb = (id, r1, v1Top, s1, w1, r2, v2Top, s2, w2, R_top = 2.6, segs = 16) => {
+        const P = lineIntersectPt(r1, v1Top, r2, v2Top);
         const u1x = Math.cos(r1.rotY) * s1, u1z = Math.sin(r1.rotY) * s1;
         const u2x = Math.cos(r2.rotY) * s2, u2z = Math.sin(r2.rotY) * s2;
         const cosA = Math.max(-0.999, Math.min(0.999, u1x * u2x + u1z * u2z));
         const sinHalfA = Math.sqrt((1 - cosA) / 2);
         const cosHalfA = Math.sqrt((1 + cosA) / 2);
         const tanHalfA = sinHalfA / cosHalfA;
-        const dT = R / tanHalfA;
+        const dT = R_top / tanHalfA;
 
         const bx = u1x + u2x, bz = u1z + u2z;
         const bLen = Math.hypot(bx, bz) || 1;
         const wx = bx / bLen, wz = bz / bLen;
-        const distC = R / sinHalfA;
+        const distC = R_top / sinHalfA;
         const C = { x: P.x + distC * wx, z: P.z + distC * wz };
 
-        const T1 = { x: P.x + dT * u1x, z: P.z + dT * u1z };
-        const T2 = { x: P.x + dT * u2x, z: P.z + dT * u2z };
+        const T1_top = { x: P.x + dT * u1x, z: P.z + dT * u1z };
+        const T2_top = { x: P.x + dT * u2x, z: P.z + dT * u2z };
 
-        const r1x = T1.x - C.x, r1z = T1.z - C.z;
-        const r2x = T2.x - C.x, r2z = T2.z - C.z;
+        const r1x = T1_top.x - C.x, r1z = T1_top.z - C.z;
+        const r2x = T2_top.x - C.x, r2z = T2_top.z - C.z;
         const phi1 = Math.atan2(r1z, r1x);
         const phi2 = Math.atan2(r2z, r2x);
         const dPhi = Math.atan2(Math.sin(phi2 - phi1), Math.cos(phi2 - phi1));
-        const arcLen = R * Math.abs(dPhi);
+        const arcLen = R_top * Math.abs(dPhi);
 
-        const outerPts = [];
-        const innerPts = [];
+        const topPts = [];
+        const gutterPts = [];
 
         for (let i = 0; i <= segs; i++) {
             const t = i / segs;
             const phi = phi1 + t * dPhi;
-            const w = (1 - t) * w1 + t * w2;
-            const Rin = R - w;
             const cosP = Math.cos(phi), sinP = Math.sin(phi);
-            outerPts.push([C.x + R * cosP, C.z + R * sinP]);
-            innerPts.push([C.x + Rin * cosP, C.z + Rin * sinP]);
+            const w = (1 - t) * w1 + t * w2;
+            const R_gut = R_top + w;
+            topPts.push([C.x + R_top * cosP, C.z + R_top * sinP]);
+            gutterPts.push([C.x + R_gut * cosP, C.z + R_gut * sinP]);
         }
 
-        const uStart = worldToUv(r1, T1.x, T1.z).u;
+        const uStart = worldToUv(r1, T1_top.x, T1_top.z).u;
         for (let i = 0; i < segs; i++) {
             const u0 = uStart + (i / segs) * arcLen;
             const u1 = uStart + ((i + 1) / segs) * arcLen;
             curbGeoms.push(buildCurbQuad(
-                outerPts[i],
-                outerPts[i + 1],
-                innerPts[i + 1],
-                innerPts[i],
+                gutterPts[i],
+                gutterPts[i + 1],
+                topPts[i + 1],
+                topPts[i],
                 u0,
                 u1
             ));
         }
 
-        // Seamless triangular asphalt patch under the curved curb corner
-        const asphaltPts = [[P.x, P.z], ...outerPts];
+        // Seamless triangular asphalt patch under the curved curb corner (between road corner and curved gutter arc)
+        const v1Gutter = v1Top < 0 ? (v1Top + w1) : (v1Top - w1);
+        const v2Gutter = v2Top < 0 ? (v2Top + w2) : (v2Top - w2);
+        const P_gut = lineIntersectPt(r1, v1Gutter, r2, v2Gutter);
+        const asphaltPts = [[P_gut.x, P_gut.z], ...gutterPts];
         asphaltCornerGeoms.push(buildGroundPoly(asphaltPts, -0.020, 0.25));
 
-        const u1OnR1 = worldToUv(r1, T1.x, T1.z).u;
-        const u2OnR2 = worldToUv(r2, T2.x, T2.z).u;
+        const u1OnR1 = worldToUv(r1, T1_top.x, T1_top.z).u;
+        const u2OnR2 = worldToUv(r2, T2_top.x, T2_top.z).u;
 
-        const info = { id, P, C, T1, T2, u1OnR1, u2OnR2, outerPts, innerPts, arcLen };
+        const info = { id, P, C, T1: T1_top, T2: T2_top, u1OnR1, u2OnR2, topPts, gutterPts, innerPts: topPts, outerPts: gutterPts, arcLen };
         cornerFillets[id] = info;
         return info;
     };
@@ -1252,12 +1255,12 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     const fDdSw = buildCornerCurb('dd_sw', roadDefs.dd, +ddHalfW, -1, roadDefs.dd.curb, roadDefs.ltk, -ltkHalfW, -1, roadDefs.ltk.curb, 2.6);
     const fDdSe = buildCornerCurb('dd_se', roadDefs.dd, +ddHalfW, +1, roadDefs.dd.curb, roadDefs.ltk, +ltkHalfW, -1, roadDefs.ltk.curb, 2.6);
 
-    const pushRoadSideCurb = (road, vOuter, vInner, uStart, uEnd) => {
-        const p0Out = uvToWorld(road, uStart, vOuter);
-        const p0In = uvToWorld(road, uStart, vInner);
-        const p1Out = uvToWorld(road, uEnd, vOuter);
-        const p1In = uvToWorld(road, uEnd, vInner);
-        curbGeoms.push(buildCurbQuad(p0Out, p1Out, p1In, p0In, uStart, uEnd));
+    const pushRoadSideCurb = (road, vTop, vGutter, uStart, uEnd) => {
+        const p0Gutter = uvToWorld(road, uStart, vGutter);
+        const p1Gutter = uvToWorld(road, uEnd, vGutter);
+        const p0Top = uvToWorld(road, uStart, vTop);
+        const p1Top = uvToWorld(road, uEnd, vTop);
+        curbGeoms.push(buildCurbQuad(p0Gutter, p1Gutter, p1Top, p0Top, uStart, uEnd));
     };
 
     // Straight curbstones trimmed seamlessly to corner arc tangents
