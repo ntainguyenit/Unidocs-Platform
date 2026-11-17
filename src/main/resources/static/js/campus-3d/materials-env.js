@@ -2314,8 +2314,6 @@ const gateSpotlights = [];
 const streetlampDownlights = [];
 let streetlampLumMat = null;
 let streetlampBeamMat = null;
-let streetlampRingMat = null;
-let streetlampCoreMat = null;
 
 // Build authentic wide left-wing gate pier, slate foundation, beam, spotlights, and Chuyên Khoa học signboard matching Photo 1
 function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = null) {
@@ -4380,30 +4378,14 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     armGeom.rotateZ(Math.PI * 0.35);
     const lumGeom = new THREE.BoxGeometry(0.65, 0.12, 0.28);
 
-    // Downward white light cone and road illuminated ground pool for night streetlamp illumination (like teleport station)
+    // Downward volumetric white light cone for night streetlamp illumination
     streetlampDownlights.length = 0;
     const streetlampBeamGeom = new THREE.CylinderGeometry(0.30, 2.40, 8.925, 24, 1, true);
-    const streetlampRingGeom = new THREE.RingGeometry(2.05, 2.40, 32);
-    const streetlampCoreGeom = new THREE.CircleGeometry(2.05, 32);
 
     streetlampBeamMat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
         opacity: 0.24,
-        side: THREE.DoubleSide,
-        depthWrite: false
-    });
-    streetlampRingMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.85,
-        side: THREE.DoubleSide,
-        depthWrite: false
-    });
-    streetlampCoreMat = new THREE.MeshBasicMaterial({
-        color: 0xf8fafc,
-        transparent: true,
-        opacity: 0.28,
         side: THREE.DoubleSide,
         depthWrite: false
     });
@@ -4504,19 +4486,9 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         lum2.position.set(0, poleH - 0.55, 1.95);
         lGroup.add(lum2);
 
-        // Downlight beams and illuminated road circular pools for both lanes (activated at night/sunset)
+        // Downlight volumetric light beams for both lanes (activated at night/sunset, without ground rings)
         const downlightGroup = new THREE.Group();
         for (const zOffset of [-1.95, 1.95]) {
-            const ringMesh = new THREE.Mesh(streetlampRingGeom, streetlampRingMat);
-            ringMesh.position.set(0, 0.026, zOffset);
-            ringMesh.rotation.x = -Math.PI * 0.5;
-            downlightGroup.add(ringMesh);
-
-            const coreMesh = new THREE.Mesh(streetlampCoreGeom, streetlampCoreMat);
-            coreMesh.position.set(0, 0.025, zOffset);
-            coreMesh.rotation.x = -Math.PI * 0.5;
-            downlightGroup.add(coreMesh);
-
             const beamMesh = new THREE.Mesh(streetlampBeamGeom, streetlampBeamMat);
             beamMesh.position.set(0, 4.4875, zOffset);
             downlightGroup.add(beamMesh);
@@ -5692,12 +5664,6 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         }
         if (streetlampBeamMat) {
             streetlampBeamMat.opacity = isNight ? 0.24 : (isSunset ? 0.14 : 0);
-        }
-        if (streetlampRingMat) {
-            streetlampRingMat.opacity = isNight ? 0.85 : (isSunset ? 0.45 : 0);
-        }
-        if (streetlampCoreMat) {
-            streetlampCoreMat.opacity = isNight ? 0.28 : (isSunset ? 0.16 : 0);
         }
 
         renderer.shadowMap.needsUpdate = true;
