@@ -5124,25 +5124,159 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         ltkWestSidewalkGroup.add(trGroup);
     });
 
-    // Parked motorbikes on sidewalk in front of Techcombank and DongA Bank (Photos 1, 3)
-    const bikeGeom = new THREE.BoxGeometry(0.55, 0.85, 1.6);
-    const bikeColors = [0xdc2626, 0x1e293b, 0x0284c7, 0xf8fafc, 0x475569];
-    const bikeCoords = [
-        [-130.55, -10.0],
+    // Authentic Vietnamese polished granito stone benches (ghe da cong vien / ghe da hoa cuong) on sidewalk
+    const createGranitoTexture = (aniso = 4) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // Base polished terrazzo tone (bright pale gray-stone)
+        ctx.fillStyle = '#f1f5f9';
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Subtle cloudy stone grain
+        for (let c = 0; c < 14; c++) {
+            const cx = Math.random() * 512;
+            const cy = Math.random() * 512;
+            const cr = 45 + Math.random() * 75;
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, cr);
+            grad.addColorStop(0, 'rgba(226, 232, 240, 0.65)');
+            grad.addColorStop(1, 'rgba(241, 245, 249, 0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(cx - cr, cy - cr, cr * 2, cr * 2);
+        }
+
+        // High-density granite mineral chips (dark slate, medium slate, quartz crystal, charcoal)
+        for (let i = 0; i < 2400; i++) {
+            const x = Math.random() * 512;
+            const y = Math.random() * 512;
+            const r = 0.8 + Math.random() * 2.2;
+            const rnd = Math.random();
+            if (rnd < 0.35) {
+                ctx.fillStyle = '#475569';
+            } else if (rnd < 0.65) {
+                ctx.fillStyle = '#94a3b8';
+            } else if (rnd < 0.85) {
+                ctx.fillStyle = '#ffffff';
+            } else {
+                ctx.fillStyle = '#1e293b';
+            }
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(1.5, 1.5);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = Math.min(8, aniso);
+        return tex;
+    };
+
+    const benchStoneTex = createGranitoTexture(maxAniso);
+    const benchStoneMat = new THREE.MeshStandardMaterial({
+        map: benchStoneTex,
+        roughness: 0.44,
+        metalness: 0.06
+    });
+
+    const createVietnameseStoneBenchGeometry = () => {
+        const parts = [];
+
+        // 1. Seat slab (Mat ghe da mai hoa cuong)
+        const seatW = 1.30;
+        const seatD = 0.44;
+        const seatH = 0.05;
+        const seatGeom = new THREE.BoxGeometry(seatD, seatH, seatW);
+        seatGeom.translate(0, 0.425, 0);
+        parts.push(seatGeom);
+
+        // Front rounded nose trim for seat
+        const noseGeom = new THREE.CylinderGeometry(0.025, 0.025, seatW, 12, 1, false, -Math.PI * 0.5, Math.PI);
+        noseGeom.rotateX(Math.PI * 0.5);
+        noseGeom.translate(seatD * 0.5, 0.425, 0);
+        parts.push(noseGeom);
+
+        // 2. Backrest slab (Tua lung ghe da)
+        const backW = 1.30;
+        const backH = 0.32;
+        const backThick = 0.045;
+        const backGeom = new THREE.BoxGeometry(backThick, backH, backW);
+        backGeom.rotateZ(0.08);
+        backGeom.translate(-0.19, 0.59, 0);
+        parts.push(backGeom);
+
+        // Top rounded lip for backrest
+        const topBackGeom = new THREE.CylinderGeometry(backThick * 0.5, backThick * 0.5, backW, 12);
+        topBackGeom.rotateX(Math.PI * 0.5);
+        topBackGeom.translate(-0.19 - Math.sin(0.08) * (backH * 0.5), 0.59 + Math.cos(0.08) * (backH * 0.5), 0);
+        parts.push(topBackGeom);
+
+        // 3. Two sculpted stone support legs (Chan ghe da mai)
+        const legZOffsets = [-0.44, 0.44];
+        legZOffsets.forEach((lz) => {
+            // Ground foot pad on sidewalk
+            const footGeom = new THREE.BoxGeometry(0.40, 0.07, 0.09);
+            footGeom.translate(0, 0.035, lz);
+            parts.push(footGeom);
+
+            // Vertical central leg post
+            const postGeom = new THREE.BoxGeometry(0.22, 0.33, 0.09);
+            postGeom.translate(-0.02, 0.235, lz);
+            parts.push(postGeom);
+
+            // Rear support brace for backrest
+            const braceGeom = new THREE.BoxGeometry(0.08, 0.26, 0.09);
+            braceGeom.rotateZ(0.08);
+            braceGeom.translate(-0.18, 0.52, lz);
+            parts.push(braceGeom);
+
+            // Armrest top bar
+            const armOffsetZ = lz > 0 ? lz + 0.16 : lz - 0.16;
+            const armBarGeom = new THREE.BoxGeometry(0.28, 0.04, 0.06);
+            armBarGeom.translate(0, 0.54, armOffsetZ);
+            parts.push(armBarGeom);
+
+            // Armrest front vertical support post
+            const armPostGeom = new THREE.BoxGeometry(0.05, 0.14, 0.06);
+            armPostGeom.translate(0.11, 0.47, armOffsetZ);
+            parts.push(armPostGeom);
+        });
+
+        return mergeGeometries(parts, false);
+    };
+
+    const stoneBenchGeom = createVietnameseStoneBenchGeometry();
+    const benchRotY = 0.0398; // Oriented facing street outwards across sidewalk
+
+    // Replacing former colored rectangular boxes with authentic Vietnamese stone benches
+    const benchCoords = [
+        // Spot 1: Sidewalk in front of Techcombank building (replaces 3 colored blocks)
+        [-130.56, -10.2],
         [-130.49, -8.5],
-        [-130.43, -7.0],
-        [-129.85, 7.5],
+        [-130.42, -6.8],
+        // Spot 2: Shaded sidewalk near tree between buildings (replaces 3 colored blocks)
+        [-129.86, 7.3],
         [-129.79, 9.0],
-        [-129.73, 10.5],
-        [-129.35, 20.0],
-        [-129.29, 21.5]
+        [-129.72, 10.7],
+        // Spot 3: Sidewalk in front of DongA Bank / commercial tower (replaces 2 colored blocks)
+        [-129.36, 19.8],
+        [-129.29, 21.6],
+        // Additional matching stone benches along Ly Thuong Kiet sidewalk under shade trees
+        [-128.76, 35.0],
+        [-128.24, 48.0]
     ];
-    bikeCoords.forEach(([bx, bz], bidx) => {
-        const bMat = new THREE.MeshStandardMaterial({ color: bikeColors[bidx % bikeColors.length], roughness: 0.45, metalness: 0.35 });
-        const bike = new THREE.Mesh(bikeGeom, bMat);
-        bike.position.set(bx, 0.43, bz);
-        bike.rotation.y = 1.6106 + Math.PI * 0.5 + 0.15;
-        ltkWestSidewalkGroup.add(bike);
+
+    benchCoords.forEach(([bx, bz]) => {
+        const benchMesh = new THREE.Mesh(stoneBenchGeom, benchStoneMat);
+        benchMesh.position.set(bx, 0, bz);
+        benchMesh.rotation.y = benchRotY;
+        benchMesh.castShadow = true;
+        benchMesh.receiveShadow = true;
+        ltkWestSidewalkGroup.add(benchMesh);
     });
 
     ensembleGroup.add(ltkWestSidewalkGroup);
