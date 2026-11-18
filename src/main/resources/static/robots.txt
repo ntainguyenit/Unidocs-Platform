@@ -5,6 +5,8 @@ Allow: /
 Allow: /husc-campus
 Allow: /llms.txt
 Allow: /llms-full.txt
+Allow: /husc-campus/llms.txt
+Allow: /husc-campus/llms-full.txt
 
 # Allow Answer Engines and AI search grounders while keeping training opt-out
 Sitemap: https://unidocs-husc.pages.dev/sitemap.xml

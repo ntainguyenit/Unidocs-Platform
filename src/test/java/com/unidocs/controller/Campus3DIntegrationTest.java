@@ -215,6 +215,6 @@ class Campus3DIntegrationTest {
         assertTrue(jsonLdRaw.contains("\"@type\":\"HowTo\""));
         assertTrue(jsonLdRaw.contains("\"@type\":\"SpeakableSpecification\""));
         assertTrue(html.contains("class=\"sr-only aeo-campus-summary\""));
-        assertTrue(html.contains("href=\"/llms.txt\""));
+        assertTrue(html.contains("href=\"/husc-campus/llms.txt\""));
     }
 }

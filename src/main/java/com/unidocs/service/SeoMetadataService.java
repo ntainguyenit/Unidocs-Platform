@@ -85,7 +85,7 @@ public class SeoMetadataService {
         graph.add(buildFaqPageNode(siteUrl + "/#faq", List.of(
                 new FaqItem(
                         "UniDocs (UniDocs HUSC) là gì?",
-                        "UniDocs là nền tảng chia sẻ tài liệu học tập, đề thi, giáo trình và hơn 30 tiện ích sinh viên miễn phí dành cho sinh viên Trường Đại học Khoa học, Đại học Huế (HUSC, ĐHKH Huế), tích hợp bản đồ khuôn viên 3D trực tuyến tại /husc-campus."
+                        "UniDocs là nền tảng chia sẻ tài liệu học tập, đề thi đại học, giáo trình, thông báo UMS và hơn 30 tiện ích sinh viên miễn phí dành cho sinh viên Trường Đại học Khoa học, Đại học Huế (HUSC, ĐHKH Huế)."
                 ),
                 new FaqItem(
                         "Tải tài liệu và đề thi trên UniDocs có mất phí hoặc cần đăng nhập không?",
@@ -97,11 +97,11 @@ public class SeoMetadataService {
                 ),
                 new FaqItem(
                         "UniDocs có những tiện ích học tập nào nổi bật cho sinh viên HUSC?",
-                        "Ngoài kho tài liệu và đề thi theo khoa, UniDocs cung cấp hơn 30 công cụ sinh viên như giả lập phòng thi, flashcards ôn tập, thời khóa biểu, sơ đồ tư duy nhanh, đếm ngược mùa thi, nhóm học tập, thông báo UMS và bản đồ khuôn viên 3D HUSC tại /husc-campus."
+                        "Ngoài kho tài liệu và đề thi theo khoa, UniDocs cung cấp hơn 30 công cụ sinh viên như giả lập phòng thi, flashcards ôn tập, thời khóa biểu, sơ đồ tư duy nhanh, đếm ngược mùa thi, nhóm học tập và thông báo UMS."
                 ),
                 new FaqItem(
-                        "Ai là người phát triển UniDocs và HUSC Campus 3D?",
-                        "UniDocs và mô hình khuôn viên 3D HUSC được phát triển bởi Tài Nguyễn (Nguyễn Ngọc Thành Tài - ntainguyenit) nhằm hỗ trợ cộng đồng sinh viên Trường Đại học Khoa học, Đại học Huế."
+                        "Ai là người phát triển nền tảng UniDocs HUSC?",
+                        "UniDocs được phát triển bởi Tài Nguyễn (Nguyễn Ngọc Thành Tài - ntainguyenit) nhằm hỗ trợ cộng đồng sinh viên Trường Đại học Khoa học, Đại học Huế tra cứu và chia sẻ tài liệu học tập miễn phí."
                 )
         )));
         graph.add(buildHowToNode(

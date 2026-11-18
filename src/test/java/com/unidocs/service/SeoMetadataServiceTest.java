@@ -208,6 +208,8 @@ class SeoMetadataServiceTest {
         assertTrue(json.contains("\"@type\":\"SpeakableSpecification\""));
         assertTrue(json.contains("\"@type\":\"SearchAction\""));
         assertTrue(json.contains("UniDocs (UniDocs HUSC) là gì?"));
+        assertFalse(json.contains("HUSC Campus 3D"), "UniDocs homepage AEO must stay strictly separate from HUSC Campus 3D");
+        assertFalse(json.contains("/husc-campus"), "UniDocs homepage AEO must not bundle /husc-campus");
     }
 
     private void assertKeywordClusterPresent(String text) {

@@ -184,32 +184,49 @@ class SeoAndGeoIntegrationTest {
                 .andExpect(content().string(containsString("<meta property=\"og:type\" content=\"article\">")))
                 .andExpect(content().string(containsString("\"@type\":\"LearningResource\"")));
 
-        // 6. Verify AEO upgrades on Homepage, /llms.txt, /llms-full.txt, and robots.txt
+        // 6. Verify strictly separated AEO endpoints: UniDocs (/llms.txt, /llms-full.txt) vs HUSC Campus 3D (/husc-campus/llms.txt, /husc-campus/llms-full.txt)
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"section-faq\"")))
                 .andExpect(content().string(containsString("\"@type\":\"FAQPage\"")))
                 .andExpect(content().string(containsString("\"@type\":\"HowTo\"")))
                 .andExpect(content().string(containsString("\"@type\":\"SpeakableSpecification\"")))
-                .andExpect(content().string(containsString("href=\"/llms.txt\"")));
+                .andExpect(content().string(containsString("href=\"/llms.txt\"")))
+                .andExpect(content().string(not(containsString("HUSC Campus 3D"))));
 
         mockMvc.perform(get("/llms.txt"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", containsString("text/markdown")))
-                .andExpect(content().string(containsString("# UniDocs HUSC")))
-                .andExpect(content().string(containsString("/husc-campus")))
-                .andExpect(content().string(containsString("/faculty/khoa-cntt-seo")));
+                .andExpect(content().string(containsString("# UniDocs —")))
+                .andExpect(content().string(containsString("/faculty/khoa-cntt-seo")))
+                .andExpect(content().string(not(containsString("/husc-campus"))))
+                .andExpect(content().string(not(containsString("HUSC Campus 3D"))));
 
         mockMvc.perform(get("/llms-full.txt"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", containsString("text/markdown")))
                 .andExpect(content().string(containsString("/course/cau-truc-du-lieu-seo")))
                 .andExpect(content().string(not(containsString("hoc-phan-cho-duyet-seo"))))
-                .andExpect(content().string(containsString("77 Nguyễn Huệ")));
+                .andExpect(content().string(not(containsString("/husc-campus"))));
+
+        mockMvc.perform(get("/husc-campus/llms.txt"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", containsString("text/markdown")))
+                .andExpect(content().string(containsString("# HUSC Campus 3D")))
+                .andExpect(content().string(containsString("77 Nguyễn Huệ")))
+                .andExpect(content().string(not(containsString("/faculty/khoa-cntt-seo"))));
+
+        mockMvc.perform(get("/husc-campus/llms-full.txt"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", containsString("text/markdown")))
+                .andExpect(content().string(containsString("# HUSC Campus 3D")))
+                .andExpect(content().string(containsString("38 Đống Đa")))
+                .andExpect(content().string(not(containsString("/course/cau-truc-du-lieu-seo"))));
 
         mockMvc.perform(get("/robots.txt"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Allow: /llms.txt")))
+                .andExpect(content().string(containsString("Allow: /husc-campus/llms.txt")))
                 .andExpect(content().string(containsString("ai-input=yes")));
     }
 }
