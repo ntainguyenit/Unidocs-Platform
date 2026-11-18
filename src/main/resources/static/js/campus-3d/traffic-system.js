@@ -766,6 +766,32 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
         inst.setMatrixAt(index, worldMat);
     };
 
+    // Share one local-to-world matrix multiply across paired wheel and rim instanced meshes
+    const setDualChildTransform = (instA, instB, index, lx, ly, lz, rotZ = 0) => {
+        childObj.position.set(lx, ly, lz);
+        childObj.rotation.set(0, 0, rotZ);
+        childObj.scale.setScalar(1);
+        childObj.updateMatrix();
+        worldMat.multiplyMatrices(parentObj.matrix, childObj.matrix);
+        instA.setMatrixAt(index, worldMat);
+        instB.setMatrixAt(index, worldMat);
+    };
+
+    // In-place O(n) insertion sort for nearly-ordered lane vehicles with zero closure/comparator allocations
+    const sortLaneByU = (list) => {
+        for (let i = 1; i < list.length; i++) {
+            const cur = list[i];
+            const curU = cur.u;
+            let j = i - 1;
+            if (list[j].u <= curU) continue;
+            while (j >= 0 && list[j].u > curU) {
+                list[j + 1] = list[j];
+                j -= 1;
+            }
+            list[j + 1] = cur;
+        }
+    };
+
     // Advance vehicles with signal stop-line braking, safe headway control, and zero-overlap clamping
     const updateTraffic = (dt, playerState = null, signalState = null) => {
         let remDt = dt > 0 ? Math.min(dt, 0.25) : 0;
@@ -780,7 +806,7 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
 
             for (const lane of lanes) {
                 const list = lane.vehicles;
-                list.sort((a, b) => a.u - b.u);
+                sortLaneByU(list);
                 const n = list.length;
                 const stopLines = lane.stopLines;
 
@@ -928,11 +954,30 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
 
         let carBrakeDirty = false;
         let motoBrakeDirty = false;
+        let carMovedDirty = false;
+        let motoMovedDirty = false;
 
         for (let i = 0; i < totalCars; i++) {
             const v = carUnits[i];
+            const brakeChanged = v.lastIsBraking !== v.isBraking;
+            if (brakeChanged) {
+                v.lastIsBraking = v.isBraking;
+                const tCol = v.isBraking ? brakeColor : cruiseTailColor;
+                carTaillightsInst.setColorAt(i * 2, tCol);
+                carTaillightsInst.setColorAt(i * 2 + 1, tCol);
+                carBrakeDirty = true;
+            }
+
+            // Skip matrix recomputation for stationary cars stopped at red lights
+            if (v.lastSyncedU === v.u && v.lastSyncedSpin === v.wheelSpin) continue;
+            v.lastSyncedU = v.u;
+            v.lastSyncedSpin = v.wheelSpin;
+            carMovedDirty = true;
+
             const wx = v.cx + v.dirX * v.u + v.perpX * v.lat;
             const wz = v.cz + v.dirZ * v.u + v.perpZ * v.lat;
+            v.wx = wx;
+            v.wz = wz;
             const distEdge = Math.min(v.u - v.minBound, v.maxBound - v.u);
             const edgeFade = Math.min(1, Math.max(0.01, distEdge / 5.0));
 
@@ -946,29 +991,35 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
             carBeamInst.setMatrixAt(i, parentObj.matrix);
 
             for (let w = 0; w < 4; w++) {
-                const [ox, oy, oz] = carWheelOffsets[w];
-                setChildTransform(carWheelsInst, i * 4 + w, ox, oy, oz, v.wheelSpin);
-                setChildTransform(carRimsInst, i * 4 + w, ox, oy, oz, v.wheelSpin);
-            }
-            const tCol = v.isBraking ? brakeColor : cruiseTailColor;
-            const brakeChanged = v.lastIsBraking !== v.isBraking;
-            if (brakeChanged) {
-                v.lastIsBraking = v.isBraking;
-                carBrakeDirty = true;
+                const wo = carWheelOffsets[w];
+                setDualChildTransform(carWheelsInst, carRimsInst, i * 4 + w, wo[0], wo[1], wo[2], v.wheelSpin);
             }
             for (let l = 0; l < 2; l++) {
-                const [hx, hy, hz] = headlightOffsets[l];
-                setChildTransform(carHeadlightsInst, i * 2 + l, hx, hy, hz);
-                const [tx, ty, tz] = taillightOffsets[l];
-                setChildTransform(carTaillightsInst, i * 2 + l, tx, ty, tz);
-                if (brakeChanged) carTaillightsInst.setColorAt(i * 2 + l, tCol);
+                const ho = headlightOffsets[l];
+                setChildTransform(carHeadlightsInst, i * 2 + l, ho[0], ho[1], ho[2]);
+                const to = taillightOffsets[l];
+                setChildTransform(carTaillightsInst, i * 2 + l, to[0], to[1], to[2]);
             }
         }
 
         for (let i = 0; i < totalMotos; i++) {
             const m = motoUnits[i];
+            if (m.lastIsBraking !== m.isBraking) {
+                m.lastIsBraking = m.isBraking;
+                motoTailLightInst.setColorAt(i, m.isBraking ? brakeColor : cruiseTailColor);
+                motoBrakeDirty = true;
+            }
+
+            // Skip matrix recomputation for stationary motorbikes stopped at red lights
+            if (m.lastSyncedU === m.u && m.lastSyncedSpin === m.wheelSpin) continue;
+            m.lastSyncedU = m.u;
+            m.lastSyncedSpin = m.wheelSpin;
+            motoMovedDirty = true;
+
             const wx = m.cx + m.dirX * m.u + m.perpX * m.lat;
             const wz = m.cz + m.dirZ * m.u + m.perpZ * m.lat;
+            m.wx = wx;
+            m.wz = wz;
             const distEdge = Math.min(m.u - m.minBound, m.maxBound - m.u);
             const edgeFade = Math.min(1, Math.max(0.01, distEdge / 5.0));
 
@@ -986,41 +1037,40 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
             motoBeamInst.setMatrixAt(i, parentObj.matrix);
             setChildTransform(motoHeadLightInst, i, 0.60, 0.68, 0);
             setChildTransform(motoTailLightInst, i, -0.70, 0.64, 0);
-            if (m.lastIsBraking !== m.isBraking) {
-                m.lastIsBraking = m.isBraking;
-                motoTailLightInst.setColorAt(i, m.isBraking ? brakeColor : cruiseTailColor);
-                motoBrakeDirty = true;
-            }
 
             for (let w = 0; w < 2; w++) {
-                const [ox, oy, oz] = motoWheelOffsets[w];
-                setChildTransform(motoWheelsInst, i * 2 + w, ox, oy, oz, m.wheelSpin);
-                setChildTransform(motoRimsInst, i * 2 + w, ox, oy, oz, m.wheelSpin);
+                const wo = motoWheelOffsets[w];
+                setDualChildTransform(motoWheelsInst, motoRimsInst, i * 2 + w, wo[0], wo[1], wo[2], m.wheelSpin);
             }
         }
 
-        carBodyInst.instanceMatrix.needsUpdate = true;
-        carGlassInst.instanceMatrix.needsUpdate = true;
-        carWheelsInst.instanceMatrix.needsUpdate = true;
-        carRimsInst.instanceMatrix.needsUpdate = true;
-        carHeadlightsInst.instanceMatrix.needsUpdate = true;
-        carTaillightsInst.instanceMatrix.needsUpdate = true;
+        if (carMovedDirty) {
+            carBodyInst.instanceMatrix.needsUpdate = true;
+            carGlassInst.instanceMatrix.needsUpdate = true;
+            carWheelsInst.instanceMatrix.needsUpdate = true;
+            carRimsInst.instanceMatrix.needsUpdate = true;
+            carHeadlightsInst.instanceMatrix.needsUpdate = true;
+            carTaillightsInst.instanceMatrix.needsUpdate = true;
+        }
         if (carBrakeDirty) carTaillightsInst.instanceColor.needsUpdate = true;
-        motoBodyInst.instanceMatrix.needsUpdate = true;
-        motoFrameInst.instanceMatrix.needsUpdate = true;
-        motoWheelsInst.instanceMatrix.needsUpdate = true;
-        motoRimsInst.instanceMatrix.needsUpdate = true;
-        motoRiderPoloInst.instanceMatrix.needsUpdate = true;
-        motoRiderNavyInst.instanceMatrix.needsUpdate = true;
-        motoRiderHeadInst.instanceMatrix.needsUpdate = true;
-        motoHelmetInst.instanceMatrix.needsUpdate = true;
-        motoHeadLightInst.instanceMatrix.needsUpdate = true;
-        motoTailLightInst.instanceMatrix.needsUpdate = true;
+
+        if (motoMovedDirty) {
+            motoBodyInst.instanceMatrix.needsUpdate = true;
+            motoFrameInst.instanceMatrix.needsUpdate = true;
+            motoWheelsInst.instanceMatrix.needsUpdate = true;
+            motoRimsInst.instanceMatrix.needsUpdate = true;
+            motoRiderPoloInst.instanceMatrix.needsUpdate = true;
+            motoRiderNavyInst.instanceMatrix.needsUpdate = true;
+            motoRiderHeadInst.instanceMatrix.needsUpdate = true;
+            motoHelmetInst.instanceMatrix.needsUpdate = true;
+            motoHeadLightInst.instanceMatrix.needsUpdate = true;
+            motoTailLightInst.instanceMatrix.needsUpdate = true;
+        }
         if (motoBrakeDirty) motoTailLightInst.instanceColor.needsUpdate = true;
 
         if (isNightMode) {
-            carBeamInst.instanceMatrix.needsUpdate = true;
-            motoBeamInst.instanceMatrix.needsUpdate = true;
+            if (carMovedDirty) carBeamInst.instanceMatrix.needsUpdate = true;
+            if (motoMovedDirty) motoBeamInst.instanceMatrix.needsUpdate = true;
 
             // Direct dynamic spotlights to illuminate road surface in front of nearest vehicles
             const px = playerState ? playerState.x : 0;

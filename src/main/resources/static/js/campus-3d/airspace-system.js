@@ -343,19 +343,30 @@ function createContrailRibbonMesh(segmentCount = 42) {
     const indices = [];
     for (let engine = 0; engine < 2; engine++) {
         const offset = engine * segmentCount * 2;
-        for (let s = 0; s < segmentCount - 1; s++) {
-            const v0 = offset + s * 2;
-            const v1 = v0 + 1;
-            const v2 = offset + (s + 1) * 2;
-            const v3 = v2 + 1;
-            indices.push(v0, v1, v2);
-            indices.push(v2, v1, v3);
+        for (let s = 0; s < segmentCount; s++) {
+            const segNorm = s / (segmentCount - 1);
+            const uvLeftIdx = (offset + s * 2) * 2;
+            const uvRightIdx = (offset + s * 2 + 1) * 2;
+            uvs[uvLeftIdx] = 0.0; uvs[uvLeftIdx + 1] = segNorm;
+            uvs[uvRightIdx] = 1.0; uvs[uvRightIdx + 1] = segNorm;
+            if (s < segmentCount - 1) {
+                const v0 = offset + s * 2;
+                const v1 = v0 + 1;
+                const v2 = offset + (s + 1) * 2;
+                const v3 = v2 + 1;
+                indices.push(v0, v1, v2);
+                indices.push(v2, v1, v3);
+            }
         }
     }
 
     const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geom.setAttribute('aAlpha', new THREE.BufferAttribute(alphas, 1));
+    const posAttr = new THREE.BufferAttribute(positions, 3);
+    posAttr.setUsage(THREE.DynamicDrawUsage);
+    const alphaAttr = new THREE.BufferAttribute(alphas, 1);
+    alphaAttr.setUsage(THREE.DynamicDrawUsage);
+    geom.setAttribute('position', posAttr);
+    geom.setAttribute('aAlpha', alphaAttr);
     geom.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
     geom.setIndex(indices);
 
@@ -510,6 +521,66 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
         sampleTimer = 0.038;
     };
 
+    // Pooled helpers avoiding per-frame allocations and closure churn
+    const lookTarget = new THREE.Vector3();
+    const fillEngineRibbon = (history, baseVertexOffset, defaultPos) => {
+        const posArr = contrail.positions;
+        const alphaArr = contrail.alphas;
+        for (let s = 0; s < SEGMENT_COUNT; s++) {
+            const pt = history[s];
+            const vLeftIdx = (baseVertexOffset + s * 2) * 3;
+            const vRightIdx = (baseVertexOffset + s * 2 + 1) * 3;
+            const aLeftIdx = baseVertexOffset + s * 2;
+            const aRightIdx = aLeftIdx + 1;
+            const segNorm = s / (SEGMENT_COUNT - 1);
+
+            // If segment has not been recorded yet or has dissipated
+            if (!pt.valid || pt.age > 16.0) {
+                if (s > 0) {
+                    // Collapse vertices to previous segment to produce 0-area degenerate triangles
+                    const prevLeftIdx = (baseVertexOffset + (s - 1) * 2) * 3;
+                    const prevRightIdx = (baseVertexOffset + (s - 1) * 2 + 1) * 3;
+                    posArr[vLeftIdx] = posArr[prevLeftIdx];
+                    posArr[vLeftIdx + 1] = posArr[prevLeftIdx + 1];
+                    posArr[vLeftIdx + 2] = posArr[prevLeftIdx + 2];
+                    posArr[vRightIdx] = posArr[prevRightIdx];
+                    posArr[vRightIdx + 1] = posArr[prevRightIdx + 1];
+                    posArr[vRightIdx + 2] = posArr[prevRightIdx + 2];
+                } else {
+                    // Initial fallback at engine nozzle position
+                    posArr[vLeftIdx] = defaultPos.x;
+                    posArr[vLeftIdx + 1] = defaultPos.y;
+                    posArr[vLeftIdx + 2] = defaultPos.z;
+                    posArr[vRightIdx] = defaultPos.x;
+                    posArr[vRightIdx + 1] = defaultPos.y;
+                    posArr[vRightIdx + 2] = defaultPos.z;
+                }
+                alphaArr[aLeftIdx] = 0;
+                alphaArr[aRightIdx] = 0;
+                continue;
+            }
+
+            // Expand contrail width gracefully from 0.44m at nozzle to 3.5m downwind
+            const halfW = 0.22 + segNorm * 1.55;
+
+            posArr[vLeftIdx] = pt.x + normal.x * halfW;
+            posArr[vLeftIdx + 1] = pt.y + 0.12;
+            posArr[vLeftIdx + 2] = pt.z + normal.z * halfW;
+
+            posArr[vRightIdx] = pt.x - normal.x * halfW;
+            posArr[vRightIdx + 1] = pt.y - 0.12;
+            posArr[vRightIdx + 2] = pt.z - normal.z * halfW;
+
+            // Delayed condensation rising quickly, then dissipating gently to 0
+            let alpha = 0.0;
+            if (s < 2) alpha = (s / 2) * 0.70;
+            else alpha = Math.max(0.0, 0.72 * (1.0 - Math.pow(segNorm, 1.25)));
+
+            alphaArr[aLeftIdx] = alpha;
+            alphaArr[aRightIdx] = alpha;
+        }
+    };
+
     // Update aircraft flight physics, strobe blink, and smooth contrail expansion
     const update = (dt, elapsedSec) => {
         const safeDt = Math.min(dt, 0.05);
@@ -533,7 +604,8 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
 
         curPos.lerpVectors(currentStart, currentEnd, flightProgress);
         aircraft.position.copy(curPos);
-        aircraft.lookAt(curPos.clone().add(currentDir));
+        lookTarget.copy(curPos).add(currentDir);
+        aircraft.lookAt(lookTarget);
 
         // Anti-collision strobe light pulses every 1.25s
         strobeLight.visible = (elapsedSec % 1.25) < 0.12;
@@ -598,77 +670,11 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
 
         // Recompute ribbon mesh vertex positions and fading alpha
         normal.set(-currentDir.z, 0, currentDir.x).normalize();
-        const posArr = contrail.positions;
-        const alphaArr = contrail.alphas;
-        const uvArr = contrail.uvs;
-
-        const fillEngineRibbon = (history, baseVertexOffset, defaultPos) => {
-            for (let s = 0; s < SEGMENT_COUNT; s++) {
-                const pt = history[s];
-                const vLeftIdx = (baseVertexOffset + s * 2) * 3;
-                const vRightIdx = (baseVertexOffset + s * 2 + 1) * 3;
-                const aLeftIdx = baseVertexOffset + s * 2;
-                const aRightIdx = aLeftIdx + 1;
-                const uvLeftIdx = (baseVertexOffset + s * 2) * 2;
-                const uvRightIdx = (baseVertexOffset + s * 2 + 1) * 2;
-
-                const segNorm = s / (SEGMENT_COUNT - 1);
-                uvArr[uvLeftIdx] = 0.0; uvArr[uvLeftIdx + 1] = segNorm;
-                uvArr[uvRightIdx] = 1.0; uvArr[uvRightIdx + 1] = segNorm;
-
-                // If segment has not been recorded yet or has dissipated
-                if (!pt.valid || pt.age > 16.0) {
-                    if (s > 0) {
-                        // Collapse vertices to previous segment to produce 0-area degenerate triangles
-                        const prevLeftIdx = (baseVertexOffset + (s - 1) * 2) * 3;
-                        const prevRightIdx = (baseVertexOffset + (s - 1) * 2 + 1) * 3;
-                        posArr[vLeftIdx] = posArr[prevLeftIdx];
-                        posArr[vLeftIdx + 1] = posArr[prevLeftIdx + 1];
-                        posArr[vLeftIdx + 2] = posArr[prevLeftIdx + 2];
-                        posArr[vRightIdx] = posArr[prevRightIdx];
-                        posArr[vRightIdx + 1] = posArr[prevRightIdx + 1];
-                        posArr[vRightIdx + 2] = posArr[prevRightIdx + 2];
-                    } else {
-                        // Initial fallback at engine nozzle position
-                        posArr[vLeftIdx] = defaultPos.x;
-                        posArr[vLeftIdx + 1] = defaultPos.y;
-                        posArr[vLeftIdx + 2] = defaultPos.z;
-                        posArr[vRightIdx] = defaultPos.x;
-                        posArr[vRightIdx + 1] = defaultPos.y;
-                        posArr[vRightIdx + 2] = defaultPos.z;
-                    }
-                    alphaArr[aLeftIdx] = 0;
-                    alphaArr[aRightIdx] = 0;
-                    continue;
-                }
-
-                // Expand contrail width gracefully from 0.44m at nozzle to 3.5m downwind
-                const halfW = 0.22 + segNorm * 1.55;
-
-                posArr[vLeftIdx] = pt.x + normal.x * halfW;
-                posArr[vLeftIdx + 1] = pt.y + 0.12;
-                posArr[vLeftIdx + 2] = pt.z + normal.z * halfW;
-
-                posArr[vRightIdx] = pt.x - normal.x * halfW;
-                posArr[vRightIdx + 1] = pt.y - 0.12;
-                posArr[vRightIdx + 2] = pt.z - normal.z * halfW;
-
-                // Delayed condensation rising quickly, then dissipating gently to 0
-                let alpha = 0.0;
-                if (s < 2) alpha = (s / 2) * 0.70;
-                else alpha = Math.max(0.0, 0.72 * (1.0 - Math.pow(segNorm, 1.25)));
-
-                alphaArr[aLeftIdx] = alpha;
-                alphaArr[aRightIdx] = alpha;
-            }
-        };
-
         fillEngineRibbon(contrail.leftHistory, 0, leftWorld);
         fillEngineRibbon(contrail.rightHistory, SEGMENT_COUNT * 2, rightWorld);
 
         contrail.geom.attributes.position.needsUpdate = true;
         contrail.geom.attributes.aAlpha.needsUpdate = true;
-        contrail.geom.attributes.uv.needsUpdate = true;
     };
 
     return { update };
@@ -797,6 +803,8 @@ function createFlockingBirdsSystem(scene, hardwareProfile = { tier: 'high' }) {
     const flockCenterTarget = new THREE.Vector3();
     const desiredVel = new THREE.Vector3();
     const forwardVec = new THREE.Vector3();
+    const targetPos = new THREE.Vector3();
+    const diffVec = new THREE.Vector3();
     const rootObj = new THREE.Object3D();
     const wingObj = new THREE.Object3D();
     const tipObj = new THREE.Object3D();
@@ -818,23 +826,24 @@ function createFlockingBirdsSystem(scene, hardwareProfile = { tier: 'high' }) {
         for (let i = 0; i < BIRD_COUNT; i++) {
             const b = birds[i];
 
-            // Cohesion to individual slot in flock
-            const targetPos = flockCenterTarget.clone().add(b.offset);
+            // Cohesion to individual slot in flock without heap allocations
+            targetPos.copy(flockCenterTarget).add(b.offset);
             desiredVel.subVectors(targetPos, b.pos);
             desiredVel.normalize();
 
             const cruiseSpeed = 11.5 + Math.sin(elapsedSec + i) * 1.5;
             desiredVel.multiplyScalar(cruiseSpeed);
 
-            // Separation from neighboring birds
+            // Separation from neighboring birds using squared-distance filter and pooled scratch vector
             for (let j = 0; j < BIRD_COUNT; j++) {
                 if (i === j) continue;
                 const other = birds[j];
-                const diff = b.pos.clone().sub(other.pos);
-                const d = diff.length();
-                if (d > 0.01 && d < 3.2) {
-                    diff.normalize().multiplyScalar((3.2 - d) * 7.5);
-                    desiredVel.add(diff);
+                diffVec.subVectors(b.pos, other.pos);
+                const dSq = diffVec.lengthSq();
+                if (dSq > 0.0001 && dSq < 10.24) {
+                    const d = Math.sqrt(dSq);
+                    diffVec.multiplyScalar(((3.2 - d) * 7.5) / d);
+                    desiredVel.add(diffVec);
                 }
             }
 

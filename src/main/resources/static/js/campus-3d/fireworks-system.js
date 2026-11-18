@@ -17,6 +17,7 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
     for (let i = 0; i < MAX_STREAKS; i++) {
         streaks.push({
             active: false,
+            cleared: true,
             type: 'dead',
             padId: 0,
             x: 0, y: -200, z: 0,
@@ -110,10 +111,16 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
         { core: { r: 0.95, g: 0.88, b: 1.0 }, main: { r: 0.72, g: 0.24, b: 1.0 }, tail: { r: 0.48, g: 0.08, b: 0.92 } }
     ];
 
-    // Allocate first available inactive or oldest expiring streak
+    // Allocate first available inactive slot in O(1) amortized time using rolling cursor
+    let allocCursor = 0;
     const obtainStreak = () => {
-        for (let i = 0; i < MAX_STREAKS; i++) {
-            if (!streaks[i].active) return streaks[i];
+        for (let step = 0; step < MAX_STREAKS; step++) {
+            const idx = (allocCursor + step) % MAX_STREAKS;
+            if (!streaks[idx].active) {
+                allocCursor = (idx + 1) % MAX_STREAKS;
+                streaks[idx].cleared = false;
+                return streaks[idx];
+            }
         }
         let oldest = streaks[0];
         let maxProg = 0;
@@ -125,6 +132,7 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
                 oldest = s;
             }
         }
+        oldest.cleared = false;
         return oldest;
     };
 
@@ -228,12 +236,21 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
         rk.palette = PALETTES[Math.floor(Math.random() * PALETTES.length)];
     };
 
-    // Buffer geometry holding pair vertices per slender line streak
+    // Buffer geometry holding pair vertices per slender line streak with DynamicDrawUsage hint
     const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geom.setAttribute('aAlpha', new THREE.BufferAttribute(alphas, 1));
-    geom.setAttribute('aIntensity', new THREE.BufferAttribute(intensities, 1));
+    const posAttr = new THREE.BufferAttribute(positions, 3);
+    const colAttr = new THREE.BufferAttribute(colors, 3);
+    const alphaAttr = new THREE.BufferAttribute(alphas, 1);
+    const intAttr = new THREE.BufferAttribute(intensities, 1);
+    posAttr.setUsage(THREE.DynamicDrawUsage);
+    colAttr.setUsage(THREE.DynamicDrawUsage);
+    alphaAttr.setUsage(THREE.DynamicDrawUsage);
+    intAttr.setUsage(THREE.DynamicDrawUsage);
+    geom.setAttribute('position', posAttr);
+    geom.setAttribute('color', colAttr);
+    geom.setAttribute('aAlpha', alphaAttr);
+    geom.setAttribute('aIntensity', intAttr);
+    geom.setDrawRange(0, 0);
 
     // Shader rendering luminous needle-sharp streaks with incandescent core and fading tail
     const mat = new THREE.ShaderMaterial({
@@ -287,23 +304,37 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
         const GRAVITY = 2.8;
         const ROCKET_GRAVITY = 7.5;
         const STAR_DRAG = 0.978;
+        const starDragFactor = Math.pow(STAR_DRAG, safeDt * 60.0);
+
+        let anyDirty = false;
+        let maxActiveIdx = -1;
 
         for (let i = 0; i < MAX_STREAKS; i++) {
             const s = streaks[i];
+            if (!s.active) {
+                if (!s.cleared) {
+                    const vHead = (i * 2) * 3;
+                    const vTail = (i * 2 + 1) * 3;
+                    const aHead = i * 2;
+                    const aTail = i * 2 + 1;
+                    positions[vHead] = 0; positions[vHead + 1] = -200; positions[vHead + 2] = 0;
+                    positions[vTail] = 0; positions[vTail + 1] = -200; positions[vTail + 2] = 0;
+                    alphas[aHead] = 0;
+                    alphas[aTail] = 0;
+                    intensities[aHead] = 0;
+                    intensities[aTail] = 0;
+                    s.cleared = true;
+                    anyDirty = true;
+                }
+                continue;
+            }
+
+            anyDirty = true;
+            maxActiveIdx = i;
             const vHead = (i * 2) * 3;
             const vTail = (i * 2 + 1) * 3;
             const aHead = i * 2;
             const aTail = i * 2 + 1;
-
-            if (!s.active) {
-                positions[vHead] = 0; positions[vHead + 1] = -200; positions[vHead + 2] = 0;
-                positions[vTail] = 0; positions[vTail + 1] = -200; positions[vTail + 2] = 0;
-                alphas[aHead] = 0;
-                alphas[aTail] = 0;
-                intensities[aHead] = 0;
-                intensities[aTail] = 0;
-                continue;
-            }
 
             s.life += safeDt;
 
@@ -388,10 +419,9 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
 
             } else if (s.type === 'star') {
                 // Isotropic air drag applied equally to all axes preserving circular roundness
-                const dragFactor = Math.pow(STAR_DRAG, safeDt * 60.0);
-                s.vx *= dragFactor;
-                s.vy *= dragFactor;
-                s.vz *= dragFactor;
+                s.vx *= starDragFactor;
+                s.vy *= starDragFactor;
+                s.vz *= starDragFactor;
                 s.vy -= GRAVITY * safeDt;
 
                 s.x += s.vx * safeDt;
@@ -443,10 +473,13 @@ export function createRooftopFireworks(scene, hardwareProfile = { tier: 'high' }
             colors[vTail + 2] = s.b;
         }
 
-        geom.attributes.position.needsUpdate = true;
-        geom.attributes.color.needsUpdate = true;
-        geom.attributes.aAlpha.needsUpdate = true;
-        geom.attributes.aIntensity.needsUpdate = true;
+        geom.setDrawRange(0, maxActiveIdx >= 0 ? (maxActiveIdx + 1) * 2 : 0);
+        if (anyDirty) {
+            posAttr.needsUpdate = true;
+            colAttr.needsUpdate = true;
+            alphaAttr.needsUpdate = true;
+            intAttr.needsUpdate = true;
+        }
     };
 
     return { update };

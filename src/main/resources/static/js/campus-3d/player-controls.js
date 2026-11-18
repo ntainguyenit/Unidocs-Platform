@@ -4,6 +4,23 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CAMPUS_START_POSE, CAMPUS_COLLIDERS, CAMPUS_BOUNDS_POLY } from './world-data.js';
 import { createHuscStudentAvatar } from './student-avatar.js';
 
+// Precompute trigonometric collider tables once at module load for fast per-frame collision checks
+const PRECOMP_COLLIDERS = CAMPUS_COLLIDERS.map((c) => ({
+    cx: c.cx,
+    cz: c.cz,
+    halfW: c.halfW,
+    halfD: c.halfD,
+    cos: Math.cos(c.angle),
+    sin: Math.sin(c.angle),
+    blocksCamera: !(c.id.startsWith('col_fence') || c.id.startsWith('col_garden'))
+}));
+const CAMERA_WALL_COLLIDERS = PRECOMP_COLLIDERS.filter((c) => c.blocksCamera);
+
+// Pooled vectors eliminating per-frame heap allocations in camera wall clamping
+const _camDir = new THREE.Vector3();
+const _camSample = new THREE.Vector3();
+const _safeCamOut = new THREE.Vector3();
+
 // Point-in-polygon parity test inside XZ campus perimeter
 function pointInPolygon(px, pz, poly) {
     let inside = false;
@@ -18,9 +35,11 @@ function pointInPolygon(px, pz, poly) {
     return inside;
 }
 
-// Project point smoothly onto closest polygon boundary segment if outside perimeter
-function clampToPolygon(px, pz, poly) {
-    if (pointInPolygon(px, pz, poly)) return { x: px, z: pz };
+// Project point smoothly onto closest polygon boundary segment in place without object allocation
+function clampToPolygonInPlace(pos, poly) {
+    const px = pos.x;
+    const pz = pos.z;
+    if (pointInPolygon(px, pz, poly)) return;
     let bestDistSq = Infinity;
     let bestX = px;
     let bestZ = pz;
@@ -42,19 +61,22 @@ function clampToPolygon(px, pz, poly) {
             bestZ = cz;
         }
     }
-    return { x: bestX, z: bestZ };
+    pos.x = bestX;
+    pos.z = bestZ;
 }
 
 // Resolve circle vs oriented bounding box (OBB) collision in XZ plane with multi-pass sliding
 function resolveOBBCollisions(pos, radius) {
+    const radSq = radius * radius;
     for (let iter = 0; iter < 3; iter++) {
         let collided = false;
         let x = pos.x;
         let z = pos.z;
 
-        for (const c of CAMPUS_COLLIDERS) {
-            const cos = Math.cos(c.angle);
-            const sin = Math.sin(c.angle);
+        for (let i = 0; i < PRECOMP_COLLIDERS.length; i++) {
+            const c = PRECOMP_COLLIDERS[i];
+            const cos = c.cos;
+            const sin = c.sin;
             const dx = x - c.cx;
             const dz = z - c.cz;
 
@@ -68,7 +90,7 @@ function resolveOBBCollisions(pos, radius) {
             const offZ = lz - clampedZ;
             const distSq = offX * offX + offZ * offZ;
 
-            if (distSq < radius * radius) {
+            if (distSq < radSq) {
                 collided = true;
                 let pushLx = lx;
                 let pushLz = lz;
@@ -93,41 +115,38 @@ function resolveOBBCollisions(pos, radius) {
             }
         }
 
-        const clampedPoly = clampToPolygon(x, z, CAMPUS_BOUNDS_POLY);
-        pos.x = clampedPoly.x;
-        pos.z = clampedPoly.z;
+        pos.x = x;
+        pos.z = z;
+        clampToPolygonInPlace(pos, CAMPUS_BOUNDS_POLY);
         if (!collided) break;
     }
 }
 
-// Clamp camera segment from lookTarget so it never sits inside solid walls
+// Clamp camera segment from lookTarget so it never sits inside solid walls without per-frame allocations
 function clampCameraAgainstWalls(targetPos, desiredCamPos) {
-    const dir = new THREE.Vector3().subVectors(desiredCamPos, targetPos);
-    const totalLen = dir.length();
-    if (totalLen < 0.1) return desiredCamPos;
-    dir.normalize();
+    _camDir.subVectors(desiredCamPos, targetPos);
+    const totalLen = _camDir.length();
+    if (totalLen < 0.1) return _safeCamOut.copy(desiredCamPos);
+    _camDir.multiplyScalar(1 / totalLen);
 
     let minT = 1.0;
-    const sample = new THREE.Vector3();
     for (let s = 1; s <= 10; s++) {
-        const t = s / 10;
-        sample.copy(targetPos).addScaledVector(dir, totalLen * t);
-        if (sample.y > 14.5) continue;
-        for (const c of CAMPUS_COLLIDERS) {
-            if (c.id.startsWith('col_fence') || c.id.startsWith('col_garden')) continue;
-            const cos = Math.cos(c.angle);
-            const sin = Math.sin(c.angle);
-            const dx = sample.x - c.cx;
-            const dz = sample.z - c.cz;
-            const lx = dx * cos - dz * sin;
-            const lz = dx * sin + dz * cos;
+        const t = s * 0.1;
+        _camSample.copy(targetPos).addScaledVector(_camDir, totalLen * t);
+        if (_camSample.y > 14.5) continue;
+        for (let i = 0; i < CAMERA_WALL_COLLIDERS.length; i++) {
+            const c = CAMERA_WALL_COLLIDERS[i];
+            const dx = _camSample.x - c.cx;
+            const dz = _camSample.z - c.cz;
+            const lx = dx * c.cos - dz * c.sin;
+            const lz = dx * c.sin + dz * c.cos;
             if (Math.abs(lx) < c.halfW && Math.abs(lz) < c.halfD) {
                 minT = Math.min(minT, Math.max(0.25, t - 0.1));
                 break;
             }
         }
     }
-    return new THREE.Vector3().copy(targetPos).addScaledVector(dir, totalLen * minT);
+    return _safeCamOut.copy(targetPos).addScaledVector(_camDir, totalLen * minT);
 }
 
 // Create avatar controller, intro flycam spline, keyboard/pointer inputs, and camera switcher
@@ -504,6 +523,21 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
 
     const _desiredCamPos = new THREE.Vector3();
     const _lookTarget = new THREE.Vector3();
+    const _nextPos = { x: 0, z: 0 };
+    const _tryX = { x: 0, z: 0 };
+    const _tryZ = { x: 0, z: 0 };
+    const _publicState = {
+        x: CAMPUS_START_POSE.x,
+        z: CAMPUS_START_POSE.z,
+        focusX: CAMPUS_START_POSE.x,
+        focusZ: CAMPUS_START_POSE.z,
+        yaw: CAMPUS_START_POSE.yaw,
+        camYaw: state.camYaw,
+        cameraMode: state.cameraMode,
+        introPlaying: state.introPlaying,
+        sprintToggle: false,
+        isSprinting: false
+    };
 
     // Advance player kinematics, OBB sliding physics, or flycam intro each frame
     const update = (dt) => {
@@ -596,34 +630,34 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
             const startX = avatar.root.position.x;
             const startZ = avatar.root.position.z;
 
-            // Attempt full movement first with human-scale collision radius
-            const nextPos = {
-                x: startX + moveX * stepLen,
-                z: startZ + moveZ * stepLen
-            };
-            resolveOBBCollisions(nextPos, 0.48);
+            // Attempt full movement first with human-scale collision radius without object allocation
+            _nextPos.x = startX + moveX * stepLen;
+            _nextPos.z = startZ + moveZ * stepLen;
+            resolveOBBCollisions(_nextPos, 0.48);
 
             // If full diagonal move is obstructed, attempt sliding along free component axes
-            const movedDistSq = (nextPos.x - startX) ** 2 + (nextPos.z - startZ) ** 2;
+            const movedDistSq = (_nextPos.x - startX) ** 2 + (_nextPos.z - startZ) ** 2;
             if (movedDistSq < 1e-5 && stepLen > 0.001) {
-                const tryX = { x: startX + moveX * stepLen, z: startZ };
-                resolveOBBCollisions(tryX, 0.48);
-                const distXSq = (tryX.x - startX) ** 2 + (tryX.z - startZ) ** 2;
+                _tryX.x = startX + moveX * stepLen;
+                _tryX.z = startZ;
+                resolveOBBCollisions(_tryX, 0.48);
+                const distXSq = (_tryX.x - startX) ** 2 + (_tryX.z - startZ) ** 2;
 
-                const tryZ = { x: startX, z: startZ + moveZ * stepLen };
-                resolveOBBCollisions(tryZ, 0.48);
-                const distZSq = (tryZ.x - startX) ** 2 + (tryZ.z - startZ) ** 2;
+                _tryZ.x = startX;
+                _tryZ.z = startZ + moveZ * stepLen;
+                resolveOBBCollisions(_tryZ, 0.48);
+                const distZSq = (_tryZ.x - startX) ** 2 + (_tryZ.z - startZ) ** 2;
 
                 if (distXSq >= distZSq && distXSq > 1e-5) {
-                    nextPos.x = tryX.x;
-                    nextPos.z = tryX.z;
+                    _nextPos.x = _tryX.x;
+                    _nextPos.z = _tryX.z;
                 } else if (distZSq > 1e-5) {
-                    nextPos.x = tryZ.x;
-                    nextPos.z = tryZ.z;
+                    _nextPos.x = _tryZ.x;
+                    _nextPos.z = _tryZ.z;
                 }
             }
 
-            avatar.root.position.set(nextPos.x, 0, nextPos.z);
+            avatar.root.position.set(_nextPos.x, 0, _nextPos.z);
 
             // Smooth shortest-arc avatar yaw interpolation toward heading
             const targetYaw = Math.atan2(-moveX, -moveZ);
@@ -738,17 +772,16 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         setJoystickInput,
         setSprintToggle,
         update,
-        getState: () => ({
-            x: avatar.root.position.x,
-            z: avatar.root.position.z,
-            focusX: state.cameraMode === 'fly' ? orbitControls.target.x : avatar.root.position.x,
-            focusZ: state.cameraMode === 'fly' ? orbitControls.target.z : avatar.root.position.z,
-            yaw: avatar.root.rotation.y,
-            camYaw: state.camYaw,
-            cameraMode: state.cameraMode,
-            introPlaying: state.introPlaying,
-            sprintToggle: false,
-            isSprinting: false
-        })
+        getState: () => {
+            _publicState.x = avatar.root.position.x;
+            _publicState.z = avatar.root.position.z;
+            _publicState.focusX = state.cameraMode === 'fly' ? orbitControls.target.x : avatar.root.position.x;
+            _publicState.focusZ = state.cameraMode === 'fly' ? orbitControls.target.z : avatar.root.position.z;
+            _publicState.yaw = avatar.root.rotation.y;
+            _publicState.camYaw = state.camYaw;
+            _publicState.cameraMode = state.cameraMode;
+            _publicState.introPlaying = state.introPlaying;
+            return _publicState;
+        }
     };
 }
