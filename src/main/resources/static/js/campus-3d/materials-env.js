@@ -3679,15 +3679,21 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     glBodyMesh.receiveShadow = true;
     glGroup.add(glBodyMesh);
 
-    // 3D White Colonnade exterior pillars along front facade
+    // 3D White Colonnade exterior pillars batched into 1 InstancedMesh
     const colGeom = new THREE.BoxGeometry(0.85, glH, 0.85);
+    const glColInst = new THREE.InstancedMesh(colGeom, whiteTrimMat, numBays + 1);
+    glColInst.castShadow = true;
+    const glTmp = new THREE.Object3D();
     for (let c = 0; c <= numBays; c++) {
         const cz = -glW * 0.5 + c * (glW / numBays);
-        const colMesh = new THREE.Mesh(colGeom, whiteTrimMat);
-        colMesh.position.set(glD * 0.5 + 0.42, glH * 0.5, cz);
-        colMesh.castShadow = true;
-        glGroup.add(colMesh);
+        glTmp.position.set(glD * 0.5 + 0.42, glH * 0.5, cz);
+        glTmp.rotation.set(0, 0, 0);
+        glTmp.scale.setScalar(1);
+        glTmp.updateMatrix();
+        glColInst.setMatrixAt(c, glTmp.matrix);
     }
+    glColInst.instanceMatrix.needsUpdate = true;
+    glGroup.add(glColInst);
 
     // Ground floor cantilevered canopy projecting towards street
     const glCanopyGeom = new THREE.BoxGeometry(3.5, 0.26, glW + 1.2);
@@ -3696,44 +3702,57 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     glCanopyMesh.position.set(glD * 0.5 + 1.75, 4.2, 0);
     glGroup.add(glCanopyMesh);
 
-    // 6 Outdoor cafe umbrellas (Highlands Coffee) in rich dark espresso brown (Photos 1 & 3)
+    // 6 Outdoor cafe umbrellas (Highlands Coffee) batched into 3 InstancedMeshes instead of 36 meshes
     const umbrellaMat = new THREE.MeshStandardMaterial({ color: 0x582f1e, roughness: 0.72 });
     const darkPoleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
     const tableMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.4, roughness: 0.5 });
     const umbrellaCanopyGeom = new THREE.ConeGeometry(1.65, 0.48, 8);
-    const umbrellaPoleGeom = new THREE.CylinderGeometry(0.038, 0.038, 2.5, 8);
     const tableGeom = new THREE.CylinderGeometry(0.48, 0.48, 0.045, 12);
-    const stoolGeom = new THREE.CylinderGeometry(0.18, 0.18, 0.42, 8);
+
+    // Merge umbrella center pole and 3 surrounding stools into 1 local cluster geometry per table
+    const darkClusterParts = [];
+    const polePart = new THREE.CylinderGeometry(0.038, 0.038, 2.5, 8);
+    polePart.translate(0, 1.25, 0);
+    darkClusterParts.push(polePart);
+    for (let s = 0; s < 3; s++) {
+        const sang = (s / 3) * Math.PI * 2;
+        const stoolPart = new THREE.CylinderGeometry(0.18, 0.18, 0.42, 8);
+        stoolPart.translate(Math.cos(sang) * 0.65, 0.21, Math.sin(sang) * 0.65);
+        darkClusterParts.push(stoolPart);
+    }
+    const darkClusterGeom = mergeGeometries(darkClusterParts, false);
+    darkClusterParts.forEach((p) => p.dispose());
 
     const umbrellaSpots = [
         [glD * 0.5 + 3.2, -12.0], [glD * 0.5 + 3.2, -4.0], [glD * 0.5 + 3.2, 4.0], [glD * 0.5 + 3.2, 12.0],
         [glD * 0.5 + 6.4, -8.0], [glD * 0.5 + 6.4, 8.0]
     ];
 
-    for (const [ux, uz] of umbrellaSpots) {
-        const uGroup = new THREE.Group();
-        const pole = new THREE.Mesh(umbrellaPoleGeom, darkPoleMat);
-        pole.position.set(0, 1.25, 0);
-        uGroup.add(pole);
+    const uDarkInst = new THREE.InstancedMesh(darkClusterGeom, darkPoleMat, umbrellaSpots.length);
+    const uCanopyInst = new THREE.InstancedMesh(umbrellaCanopyGeom, umbrellaMat, umbrellaSpots.length);
+    const uTableInst = new THREE.InstancedMesh(tableGeom, tableMat, umbrellaSpots.length);
+    uCanopyInst.castShadow = true;
 
-        const canopy = new THREE.Mesh(umbrellaCanopyGeom, umbrellaMat);
-        canopy.position.set(0, 2.35, 0);
-        canopy.castShadow = true;
-        uGroup.add(canopy);
+    umbrellaSpots.forEach(([ux, uz], idx) => {
+        glTmp.rotation.set(0, 0, 0);
+        glTmp.scale.setScalar(1);
 
-        const table = new THREE.Mesh(tableGeom, tableMat);
-        table.position.set(0, 0.72, 0);
-        uGroup.add(table);
+        glTmp.position.set(ux, 0, uz);
+        glTmp.updateMatrix();
+        uDarkInst.setMatrixAt(idx, glTmp.matrix);
 
-        for (let s = 0; s < 3; s++) {
-            const sang = (s / 3) * Math.PI * 2;
-            const stool = new THREE.Mesh(stoolGeom, darkPoleMat);
-            stool.position.set(Math.cos(sang) * 0.65, 0.21, Math.sin(sang) * 0.65);
-            uGroup.add(stool);
-        }
-        uGroup.position.set(ux, 0, uz);
-        glGroup.add(uGroup);
-    }
+        glTmp.position.set(ux, 2.35, uz);
+        glTmp.updateMatrix();
+        uCanopyInst.setMatrixAt(idx, glTmp.matrix);
+
+        glTmp.position.set(ux, 0.72, uz);
+        glTmp.updateMatrix();
+        uTableInst.setMatrixAt(idx, glTmp.matrix);
+    });
+    uDarkInst.instanceMatrix.needsUpdate = true;
+    uCanopyInst.instanceMatrix.needsUpdate = true;
+    uTableInst.instanceMatrix.needsUpdate = true;
+    glGroup.add(uDarkInst, uCanopyInst, uTableInst);
 
     // GOLDLAND PLAZA polished granite entrance monument sign (Photo 1)
     const signCanvas = document.createElement('canvas');
@@ -4307,6 +4326,11 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         { uStart: 52.0, uEnd: 176.0 }
     ];
 
+    // Collect world matrices for all median shrubs across both segments to render in 2 InstancedMeshes
+    const shrubMatrices = [];
+    const medParentObj = new THREE.Object3D();
+    const medChildObj = new THREE.Object3D();
+
     medianSegments.forEach((seg) => {
         const segLen = seg.uEnd - seg.uStart;
         const uMid = (seg.uStart + seg.uEnd) * 0.5;
@@ -4338,54 +4362,87 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         lawnMesh.position.set(0, medH + 0.008, 0);
         segGroup.add(lawnMesh);
 
-        // Sculpted dense botanical ornamental shrubs spaced every 7.5m along median island
+        segGroup.position.set(cx, 0, cz);
+        segGroup.rotation.y = ddRotY;
+        medianIslandGroup.add(segGroup);
+
+        medParentObj.position.set(cx, 0, cz);
+        medParentObj.rotation.set(0, ddRotY, 0);
+        medParentObj.scale.setScalar(1);
+        medParentObj.updateMatrix();
+
+        // Record instanced matrices for sculpted botanical shrubs spaced every 7.5m along median island
         for (let sx = -segLen * 0.46; sx <= segLen * 0.46; sx += 7.5) {
-            const shrubGroup = new THREE.Group();
-            shrubGroup.position.set(sx, medH, 0);
-
-            // Woody root stem rooted firmly in median lawn
-            const stem = new THREE.Mesh(shrubStemGeom, shrubStemMat);
-            stem.castShadow = true;
-            stem.receiveShadow = true;
-            shrubGroup.add(stem);
-
-            // Dense botanical leaf cluster cards using the exact campus tree leaf texture (static, no wind motion)
-            const leaves = new THREE.Mesh(shrubLeafGeom, shrubLeafMat);
-            if (tier === 'high' || tier === 'medium') {
-                leaves.customDepthMaterial = shrubLeafDepthMat;
-                leaves.castShadow = true;
-            }
-            leaves.receiveShadow = true;
-            shrubGroup.add(leaves);
-
-            // Organic scale and yaw variation per shrub
             const sIdx = Math.floor((sx + 200) * 1.7);
             const rotY = (sIdx * 1.37) % (Math.PI * 2);
             const scaleY = 0.95 + ((sIdx * 31) % 15) * 0.01;
             const scaleXZ = 0.96 + ((sIdx * 47) % 12) * 0.01;
-            shrubGroup.rotation.y = rotY;
-            shrubGroup.scale.set(scaleXZ, scaleY, scaleXZ);
-
-            segGroup.add(shrubGroup);
+            medChildObj.position.set(sx, medH, 0);
+            medChildObj.rotation.set(0, rotY, 0);
+            medChildObj.scale.set(scaleXZ, scaleY, scaleXZ);
+            medChildObj.updateMatrix();
+            shrubMatrices.push(new THREE.Matrix4().multiplyMatrices(medParentObj.matrix, medChildObj.matrix));
         }
-
-        segGroup.position.set(cx, 0, cz);
-        segGroup.rotation.y = ddRotY;
-        medianIslandGroup.add(segGroup);
     });
 
-    // Streetlamp poles with double luminaire arms and festive banners along median island
+    if (shrubMatrices.length > 0) {
+        const shrubStemInst = new THREE.InstancedMesh(shrubStemGeom, shrubStemMat, shrubMatrices.length);
+        const shrubLeafInst = new THREE.InstancedMesh(shrubLeafGeom, shrubLeafMat, shrubMatrices.length);
+        shrubStemInst.castShadow = true;
+        shrubStemInst.receiveShadow = true;
+        if (tier === 'high') {
+            shrubLeafInst.customDepthMaterial = shrubLeafDepthMat;
+            shrubLeafInst.castShadow = true;
+        }
+        shrubLeafInst.receiveShadow = true;
+        shrubMatrices.forEach((mat, idx) => {
+            shrubStemInst.setMatrixAt(idx, mat);
+            shrubLeafInst.setMatrixAt(idx, mat);
+        });
+        shrubStemInst.instanceMatrix.needsUpdate = true;
+        shrubLeafInst.instanceMatrix.needsUpdate = true;
+        medianIslandGroup.add(shrubStemInst, shrubLeafInst);
+    }
+
+    // Streetlamp poles with double luminaire arms and festive banners batched into 4 InstancedMeshes
     const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.75, roughness: 0.35 });
     const lumMat = new THREE.MeshBasicMaterial({ color: 0xfef9c3 });
     const poleH = 9.5;
-    const poleGeom = new THREE.CylinderGeometry(0.08, 0.16, poleH, 8);
-    const armGeom = new THREE.CylinderGeometry(0.035, 0.035, 2.2, 8);
-    armGeom.rotateZ(Math.PI * 0.35);
-    const lumGeom = new THREE.BoxGeometry(0.65, 0.12, 0.28);
 
-    // Downward volumetric white light cone for night streetlamp illumination
+    // Merge vertical pole and both outreach arms into 1 reusable geometry
+    const poleBodyPart = new THREE.CylinderGeometry(0.08, 0.16, poleH, 8);
+    poleBodyPart.translate(0, poleH * 0.5, 0);
+    const armPart1 = new THREE.CylinderGeometry(0.035, 0.035, 2.2, 8);
+    armPart1.rotateZ(Math.PI * 0.35);
+    armPart1.rotateY(Math.PI * 0.5);
+    armPart1.translate(0, poleH - 0.3, -1.0);
+    const armPart2 = new THREE.CylinderGeometry(0.035, 0.035, 2.2, 8);
+    armPart2.rotateZ(Math.PI * 0.35);
+    armPart2.rotateY(-Math.PI * 0.5);
+    armPart2.translate(0, poleH - 0.3, 1.0);
+    const poleAssemblyGeom = mergeGeometries([poleBodyPart, armPart1, armPart2], false);
+    poleBodyPart.dispose();
+    armPart1.dispose();
+    armPart2.dispose();
+
+    // Merge twin luminaire boxes into 1 reusable geometry
+    const lumPart1 = new THREE.BoxGeometry(0.65, 0.12, 0.28);
+    lumPart1.translate(0, poleH - 0.55, -1.95);
+    const lumPart2 = new THREE.BoxGeometry(0.65, 0.12, 0.28);
+    lumPart2.translate(0, poleH - 0.55, 1.95);
+    const lumPairGeom = mergeGeometries([lumPart1, lumPart2], false);
+    lumPart1.dispose();
+    lumPart2.dispose();
+
+    // Merge twin downward volumetric white light cones for night streetlamp illumination
     streetlampDownlights.length = 0;
-    const streetlampBeamGeom = new THREE.CylinderGeometry(0.30, 2.40, 8.925, 24, 1, true);
+    const beamPart1 = new THREE.CylinderGeometry(0.30, 2.40, 8.925, 24, 1, true);
+    beamPart1.translate(0, 4.4875, -1.95);
+    const beamPart2 = new THREE.CylinderGeometry(0.30, 2.40, 8.925, 24, 1, true);
+    beamPart2.translate(0, 4.4875, 1.95);
+    const streetlampBeamPairGeom = mergeGeometries([beamPart1, beamPart2], false);
+    beamPart1.dispose();
+    beamPart2.dispose();
 
     streetlampBeamMat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
@@ -4440,76 +4497,49 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         metalness: 0.1
     });
 
+    // Merge all 4 non-flipped festive banner faces per pole into 1 geometry
     const banW = 1.15;
     const banH = 2.6;
-    const banGeom = new THREE.PlaneGeometry(banW, banH);
+    const bannerParts = [];
+    for (const zPos of [-0.68, 0.68]) {
+        const f1 = new THREE.PlaneGeometry(banW, banH);
+        f1.rotateY(-Math.PI * 0.5);
+        f1.translate(-0.005, 5.0, zPos);
+        bannerParts.push(f1);
 
-    // Helper to create non-flipped double-sided banner with both directions readable
-    const createDoubleSidedBanner = (zPos) => {
-        const bg = new THREE.Group();
-        // Face 1 facing oncoming traffic (towards -X in lGroup)
-        const f1 = new THREE.Mesh(banGeom, bannerMat);
-        f1.position.set(-0.005, 5.0, zPos);
-        f1.rotation.y = -Math.PI * 0.5;
-        bg.add(f1);
-
-        // Face 2 facing departing traffic (towards +X in lGroup)
-        const f2 = new THREE.Mesh(banGeom, bannerMat);
-        f2.position.set(0.005, 5.0, zPos);
-        f2.rotation.y = Math.PI * 0.5;
-        bg.add(f2);
-
-        return bg;
-    };
+        const f2 = new THREE.PlaneGeometry(banW, banH);
+        f2.rotateY(Math.PI * 0.5);
+        f2.translate(0.005, 5.0, zPos);
+        bannerParts.push(f2);
+    }
+    const bannerPairGeom = mergeGeometries(bannerParts, false);
+    bannerParts.forEach((p) => p.dispose());
 
     const lampPositionsU = [-70.0, -22.0, 26.0, 80.0, 135.0, 170.0];
-    lampPositionsU.forEach((uPos) => {
+    const lampPoleInst = new THREE.InstancedMesh(poleAssemblyGeom, poleMat, lampPositionsU.length);
+    const lampLumInst = new THREE.InstancedMesh(lumPairGeom, lumMat, lampPositionsU.length);
+    const lampBannerInst = new THREE.InstancedMesh(bannerPairGeom, bannerMat, lampPositionsU.length);
+    const lampBeamInst = new THREE.InstancedMesh(streetlampBeamPairGeom, streetlampBeamMat, lampPositionsU.length);
+    lampBeamInst.visible = false;
+    streetlampDownlights.push(lampBeamInst);
+
+    lampPositionsU.forEach((uPos, idx) => {
         const lx = ddDef.cx + uPos * ddUx;
         const lz = ddDef.cz + uPos * ddUz;
-
-        const lGroup = new THREE.Group();
-        const poleMesh = new THREE.Mesh(poleGeom, poleMat);
-        poleMesh.position.set(0, poleH * 0.5, 0);
-        lGroup.add(poleMesh);
-
-        // Double outreach arms reaching across both lanes
-        const arm1 = new THREE.Mesh(armGeom, poleMat);
-        arm1.position.set(0, poleH - 0.3, -1.0);
-        arm1.rotation.y = Math.PI * 0.5;
-        lGroup.add(arm1);
-
-        const arm2 = new THREE.Mesh(armGeom, poleMat);
-        arm2.position.set(0, poleH - 0.3, 1.0);
-        arm2.rotation.y = -Math.PI * 0.5;
-        lGroup.add(arm2);
-
-        const lum1 = new THREE.Mesh(lumGeom, lumMat);
-        lum1.position.set(0, poleH - 0.55, -1.95);
-        lGroup.add(lum1);
-
-        const lum2 = new THREE.Mesh(lumGeom, lumMat);
-        lum2.position.set(0, poleH - 0.55, 1.95);
-        lGroup.add(lum2);
-
-        // Downlight volumetric light beams for both lanes (activated at night/sunset, without ground rings)
-        const downlightGroup = new THREE.Group();
-        for (const zOffset of [-1.95, 1.95]) {
-            const beamMesh = new THREE.Mesh(streetlampBeamGeom, streetlampBeamMat);
-            beamMesh.position.set(0, 4.4875, zOffset);
-            downlightGroup.add(beamMesh);
-        }
-        downlightGroup.visible = false;
-        lGroup.add(downlightGroup);
-        streetlampDownlights.push(downlightGroup);
-
-        // Attach 2 festive banners to all lamp posts along Dong Da median island
-        lGroup.add(createDoubleSidedBanner(-0.68));
-        lGroup.add(createDoubleSidedBanner(0.68));
-
-        lGroup.position.set(lx, 0, lz);
-        lGroup.rotation.y = ddRotY;
-        medianIslandGroup.add(lGroup);
+        medParentObj.position.set(lx, 0, lz);
+        medParentObj.rotation.set(0, ddRotY, 0);
+        medParentObj.scale.setScalar(1);
+        medParentObj.updateMatrix();
+        lampPoleInst.setMatrixAt(idx, medParentObj.matrix);
+        lampLumInst.setMatrixAt(idx, medParentObj.matrix);
+        lampBannerInst.setMatrixAt(idx, medParentObj.matrix);
+        lampBeamInst.setMatrixAt(idx, medParentObj.matrix);
     });
+    lampPoleInst.instanceMatrix.needsUpdate = true;
+    lampLumInst.instanceMatrix.needsUpdate = true;
+    lampBannerInst.instanceMatrix.needsUpdate = true;
+    lampBeamInst.instanceMatrix.needsUpdate = true;
+    medianIslandGroup.add(lampPoleInst, lampLumInst, lampBannerInst, lampBeamInst);
 
     ensembleGroup.add(medianIslandGroup);
 
@@ -4675,18 +4705,24 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     lipMesh.position.set(tcbCornerX, tcbPodiumH + 3.25, tcbCornerZ);
     tcbGroup.add(lipMesh);
 
-    // Slender support columns for circular pergola
+    // Slender support columns for circular pergola batched into 1 InstancedMesh
     const ringColGeom = new THREE.CylinderGeometry(0.10, 0.10, 3.0, 8);
+    const ringColInst = new THREE.InstancedMesh(ringColGeom, whiteTrimMat, 8);
+    const tcbColTmp = new THREE.Object3D();
     for (let rc = 0; rc < 8; rc++) {
         const rAng = (rc / 8) * Math.PI * 2;
-        const rCol = new THREE.Mesh(ringColGeom, whiteTrimMat);
-        rCol.position.set(
+        tcbColTmp.position.set(
             tcbCornerX + Math.cos(rAng) * (ringRadius - 0.4),
             tcbPodiumH + 1.5,
             tcbCornerZ + Math.sin(rAng) * (ringRadius - 0.4)
         );
-        tcbGroup.add(rCol);
+        tcbColTmp.rotation.set(0, 0, 0);
+        tcbColTmp.scale.setScalar(1);
+        tcbColTmp.updateMatrix();
+        ringColInst.setMatrixAt(rc, tcbColTmp.matrix);
     }
+    ringColInst.instanceMatrix.needsUpdate = true;
+    tcbGroup.add(ringColInst);
 
     // 4. Upper tower main rectangular block (floors 5-10)
     const tcbTowerLen = 11.5;
@@ -5074,10 +5110,8 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     // 11. West sidewalk along Ly Thuong Kiet, mature shade trees with wooden braces, and streetscape props (Photos 1, 3)
     const ltkWestSidewalkGroup = new THREE.Group();
 
-    // Wooden tree brace stakes for urban storm protection around the 6 synchronized trees (Photos 1, 3)
+    // Wooden tree brace stakes batched into 1 merged cluster InstancedMesh (36 meshes -> 1 draw call)
     const stakeLen = 1.90;
-    const stakeGeom = new THREE.CylinderGeometry(0.038, 0.045, stakeLen, 8);
-    const collarGeom = new THREE.BoxGeometry(0.05, 0.08, 0.82);
     const woodBraceMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.82, metalness: 0.05 });
 
     const treeCoords = [
@@ -5094,40 +5128,50 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const yBot = 0.02;
     const yTop = 1.70;
 
-    treeCoords.forEach(([tx, tz]) => {
-        const trGroup = new THREE.Group();
+    // Build single merged 4-stake + 2-collar wooden brace geometry
+    const braceParts = [];
+    const braceTmpObj = new THREE.Object3D();
+    for (let s = 0; s < 4; s++) {
+        const sang = (s / 4) * Math.PI * 2;
+        const dirX = Math.cos(sang);
+        const dirZ = Math.sin(sang);
 
-        // 4 Wooden support stakes planted firmly into ground and angled inward to prop trunk
-        for (let s = 0; s < 4; s++) {
-            const sang = (s / 4) * Math.PI * 2;
-            const dirX = Math.cos(sang);
-            const dirZ = Math.sin(sang);
+        const botPt = new THREE.Vector3(dirX * rBot, yBot, dirZ * rBot);
+        const topPt = new THREE.Vector3(dirX * rTop, yTop, dirZ * rTop);
+        const midPt = new THREE.Vector3().addVectors(botPt, topPt).multiplyScalar(0.5);
+        const axisDir = new THREE.Vector3().subVectors(topPt, botPt).normalize();
 
-            const botPt = new THREE.Vector3(dirX * rBot, yBot, dirZ * rBot);
-            const topPt = new THREE.Vector3(dirX * rTop, yTop, dirZ * rTop);
-            const midPt = new THREE.Vector3().addVectors(botPt, topPt).multiplyScalar(0.5);
-            const axisDir = new THREE.Vector3().subVectors(topPt, botPt).normalize();
+        const stakePart = new THREE.CylinderGeometry(0.038, 0.045, stakeLen, 8);
+        braceTmpObj.position.copy(midPt);
+        braceTmpObj.quaternion.setFromUnitVectors(upVector, axisDir);
+        braceTmpObj.scale.setScalar(1);
+        braceTmpObj.updateMatrix();
+        stakePart.applyMatrix4(braceTmpObj.matrix);
+        braceParts.push(stakePart);
+    }
+    const collarPart1 = new THREE.BoxGeometry(0.05, 0.08, 0.82);
+    collarPart1.translate(0, 1.65, 0);
+    braceParts.push(collarPart1);
 
-            const stake = new THREE.Mesh(stakeGeom, woodBraceMat);
-            stake.position.copy(midPt);
-            stake.quaternion.setFromUnitVectors(upVector, axisDir);
-            stake.castShadow = true;
-            trGroup.add(stake);
-        }
+    const collarPart2 = new THREE.BoxGeometry(0.05, 0.08, 0.82);
+    collarPart2.rotateY(Math.PI * 0.5);
+    collarPart2.translate(0, 1.65, 0);
+    braceParts.push(collarPart2);
 
-        // Horizontal wooden cross-collar securing the stakes around the trunk
-        const c1 = new THREE.Mesh(collarGeom, woodBraceMat);
-        c1.position.set(0, 1.65, 0);
-        trGroup.add(c1);
+    const mergedBraceGeom = mergeGeometries(braceParts, false);
+    braceParts.forEach((p) => p.dispose());
 
-        const c2 = new THREE.Mesh(collarGeom, woodBraceMat);
-        c2.rotation.y = Math.PI * 0.5;
-        c2.position.set(0, 1.65, 0);
-        trGroup.add(c2);
-
-        trGroup.position.set(tx, 0, tz);
-        ltkWestSidewalkGroup.add(trGroup);
+    const woodBraceInst = new THREE.InstancedMesh(mergedBraceGeom, woodBraceMat, treeCoords.length);
+    woodBraceInst.castShadow = true;
+    treeCoords.forEach(([tx, tz], idx) => {
+        braceTmpObj.position.set(tx, 0, tz);
+        braceTmpObj.rotation.set(0, 0, 0);
+        braceTmpObj.scale.setScalar(1);
+        braceTmpObj.updateMatrix();
+        woodBraceInst.setMatrixAt(idx, braceTmpObj.matrix);
     });
+    woodBraceInst.instanceMatrix.needsUpdate = true;
+    ltkWestSidewalkGroup.add(woodBraceInst);
 
     // Authentic Vietnamese polished granito stone benches (ghe da cong vien / ghe da hoa cuong) on sidewalk
     const createGranitoTexture = (aniso = 4) => {
@@ -5251,13 +5295,15 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
             parts.push(armPostGeom);
         });
 
-        return mergeGeometries(parts, false);
+        const mergedBench = mergeGeometries(parts, false);
+        parts.forEach((p) => p.dispose());
+        return mergedBench;
     };
 
     const stoneBenchGeom = createVietnameseStoneBenchGeometry();
     const benchRotY = 0.0398; // Oriented facing street outwards across sidewalk
 
-    // Replacing former colored rectangular boxes with authentic Vietnamese stone benches
+    // Replacing former colored rectangular boxes with authentic Vietnamese stone benches batched into 1 InstancedMesh
     const benchCoords = [
         // Spot 1: Sidewalk in front of Techcombank building (replaces 3 colored blocks)
         [-130.56, -10.2],
@@ -5275,14 +5321,18 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         [-128.24, 48.0]
     ];
 
-    benchCoords.forEach(([bx, bz]) => {
-        const benchMesh = new THREE.Mesh(stoneBenchGeom, benchStoneMat);
-        benchMesh.position.set(bx, 0, bz);
-        benchMesh.rotation.y = benchRotY;
-        benchMesh.castShadow = true;
-        benchMesh.receiveShadow = true;
-        ltkWestSidewalkGroup.add(benchMesh);
+    const sidewalkBenchInst = new THREE.InstancedMesh(stoneBenchGeom, benchStoneMat, benchCoords.length);
+    sidewalkBenchInst.castShadow = true;
+    sidewalkBenchInst.receiveShadow = true;
+    benchCoords.forEach(([bx, bz], idx) => {
+        braceTmpObj.position.set(bx, 0, bz);
+        braceTmpObj.rotation.set(0, benchRotY, 0);
+        braceTmpObj.scale.setScalar(1);
+        braceTmpObj.updateMatrix();
+        sidewalkBenchInst.setMatrixAt(idx, braceTmpObj.matrix);
     });
+    sidewalkBenchInst.instanceMatrix.needsUpdate = true;
+    ltkWestSidewalkGroup.add(sidewalkBenchInst);
 
     ensembleGroup.add(ltkWestSidewalkGroup);
 
@@ -5848,6 +5898,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         vegController.setShadowTier(level);
         intersectionSignals.setShadowTier(level);
         if (updateTraffic.setShadowTier) updateTraffic.setShadowTier(level);
+        if (updatePedestrians && updatePedestrians.setShadowTier) updatePedestrians.setShadowTier(level);
     };
 
     // Allow adaptive FPS governor to throttle or freeze static shadow maps with zero shader recompiles
@@ -5856,6 +5907,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             vegController.setShadowTier('low');
             intersectionSignals.setShadowTier('low');
             if (updateTraffic.setShadowTier) updateTraffic.setShadowTier('off');
+            if (updatePedestrians && updatePedestrians.setShadowTier) updatePedestrians.setShadowTier('low');
             shadowUpdateStride = 0;
             renderer.shadowMap.autoUpdate = false;
             renderer.shadowMap.needsUpdate = true;

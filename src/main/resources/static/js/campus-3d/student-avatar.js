@@ -546,7 +546,6 @@ function createHuscUniformCap(hairMat) {
     // Dark navy curved visor over forehead
     const visor = new THREE.Mesh(createCurvedCapVisorGeometry(), navyVisorMat);
     visor.position.set(0, 0.005, -0.105);
-    visor.castShadow = true;
     capGroup.add(visor);
 
     // HUSC blue shield crest emblem hugging front spherical crown panel facing -Z
@@ -643,7 +642,6 @@ export function createHuscStudentAvatar() {
         soleGeom.scale(1.06, 0.38, 1.0);
         const sole = new THREE.Mesh(soleGeom, soleMat);
         sole.position.y = -0.024;
-        sole.castShadow = true;
         shoeGroup.add(sole);
 
         const upperGeom = new THREE.CapsuleGeometry(0.053, 0.10, 6, 12);
@@ -705,7 +703,6 @@ export function createHuscStudentAvatar() {
         });
     }
     const collarMesh = new THREE.Mesh(mergeAvatarParts(collarParts, false), collarNavyMat);
-    collarMesh.castShadow = true;
     torsoGroup.add(collarMesh);
 
     // 3. White HUSC Flat Lanyard Ribbon (tucked neatly under rear collar) + Clasp + Hanging Rectangular Student ID Card
@@ -724,7 +721,6 @@ export function createHuscStudentAvatar() {
 
     const lanyardGeom = createLanyardRibbonGeometry(lanyardCurve, 0.021, 36);
     const lanyardMesh = new THREE.Mesh(lanyardGeom, lanyardMat);
-    lanyardMesh.castShadow = true;
     torsoGroup.add(lanyardMesh);
 
     const badgePivot = new THREE.Group();
@@ -736,7 +732,6 @@ export function createHuscStudentAvatar() {
     // Rectangular ID badge facing forward -Z using single front card face + navy body (2 draw calls instead of 6)
     const idCardBody = new THREE.Mesh(new THREE.BoxGeometry(0.118, 0.076, 0.004), collarNavyMat);
     idCardBody.position.set(0, -0.056, -0.002);
-    idCardBody.castShadow = true;
     const idCardFace = new THREE.Mesh(new THREE.PlaneGeometry(0.118, 0.076), idCardMat);
     idCardFace.position.set(0, -0.056, -0.0048);
     idCardFace.rotation.y = Math.PI;
@@ -762,7 +757,6 @@ export function createHuscStudentAvatar() {
         // Navy blue branded sleeve cuff trim matching HUSC polo design
         const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.060, 0.062, 0.028, 12), collarNavyMat);
         cuff.position.y = -0.165;
-        cuff.castShadow = true;
         armPivot.add(cuff);
 
         // Seamless upper bicep segment overlapping gently into elbow joint
@@ -796,7 +790,6 @@ export function createHuscStudentAvatar() {
     // 5. Natural Neck, Rounded Head, Hair & HUSC Uniform Cap
     const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.056, 0.066, 0.12, 12), skinMat);
     neck.position.set(0, 1.47, 0.005);
-    neck.castShadow = true;
     bodyPivot.add(neck);
 
     const headGroup = new THREE.Group();

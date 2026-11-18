@@ -1,5 +1,19 @@
-// Dynamic high-altitude jetliner with smooth ribbon contrails and organic flocking birds
+// Dynamic high-altitude jetliner with smooth ribbon contrails and instanced organic flocking birds
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+// Normalize and merge untextured geometries sharing a single material into one draw call
+function mergeUntexturedGeoms(parts) {
+    const normalized = parts.map((raw) => {
+        const g = raw.index ? raw.toNonIndexed() : raw.clone();
+        if (g.attributes.uv) g.deleteAttribute('uv');
+        if (!g.attributes.normal) g.computeVertexNormals();
+        return g;
+    });
+    const merged = mergeGeometries(normalized, false);
+    normalized.forEach((g) => g.dispose());
+    return merged;
+}
 
 // Build streamlined aerodynamic jetliner with curved fuselage, swept wings, engines, and lights
 function createJetAircraftModel() {
@@ -97,6 +111,9 @@ function createJetAircraftModel() {
     const visorMesh = new THREE.Mesh(visorGeom, visorMat);
     root.add(visorMesh);
 
+    // Collect static airframe subparts into a temporary hierarchy, then merge by material into 5 draw calls
+    const staticAssembly = new THREE.Group();
+
     // Aerodynamic swept wings with beveled edges angled back towards the tail (-Z)
     const wingShape = new THREE.Shape();
     wingShape.moveTo(-0.95, 1.8);
@@ -118,7 +135,7 @@ function createJetAircraftModel() {
     leftWingGeom.computeVertexNormals();
     const leftWingMesh = new THREE.Mesh(leftWingGeom, aviationWhiteMat);
     leftWingMesh.position.set(0, -0.12, 0);
-    root.add(leftWingMesh);
+    staticAssembly.add(leftWingMesh);
 
     // Symmetrical right swept wing
     const rightWingShape = new THREE.Shape();
@@ -133,26 +150,27 @@ function createJetAircraftModel() {
     rightWingGeom.computeVertexNormals();
     const rightWingMesh = new THREE.Mesh(rightWingGeom, aviationWhiteMat);
     rightWingMesh.position.set(0, -0.12, 0);
-    root.add(rightWingMesh);
+    staticAssembly.add(rightWingMesh);
 
     // Left and right wingtip winglets angled upward in Vietnam Airlines Lotus Blue with golden tip
     const wingletGeom = new THREE.BoxGeometry(0.12, 0.85, 1.1);
     wingletGeom.translate(0, 0.42, 0);
+    const wingletTipGeom = new THREE.BoxGeometry(0.13, 0.16, 1.12);
     const leftWinglet = new THREE.Mesh(wingletGeom, vnaBlueMat);
     leftWinglet.position.set(-9.35, -0.05, -3.8);
     leftWinglet.rotation.z = -0.18;
-    root.add(leftWinglet);
+    staticAssembly.add(leftWinglet);
 
-    const leftWingletTip = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.16, 1.12), vnaGoldMat);
+    const leftWingletTip = new THREE.Mesh(wingletTipGeom, vnaGoldMat);
     leftWingletTip.position.set(0, 0.78, 0);
     leftWinglet.add(leftWingletTip);
 
     const rightWinglet = new THREE.Mesh(wingletGeom, vnaBlueMat);
     rightWinglet.position.set(9.35, -0.05, -3.8);
     rightWinglet.rotation.z = 0.18;
-    root.add(rightWinglet);
+    staticAssembly.add(rightWinglet);
 
-    const rightWingletTip = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.16, 1.12), vnaGoldMat);
+    const rightWingletTip = new THREE.Mesh(wingletTipGeom, vnaGoldMat);
     rightWingletTip.position.set(0, 0.78, 0);
     rightWinglet.add(rightWingletTip);
 
@@ -179,8 +197,8 @@ function createJetAircraftModel() {
         engGroup.position.set(x, -0.62, -0.8);
         return engGroup;
     };
-    root.add(createTurbofan(-3.4));
-    root.add(createTurbofan(3.4));
+    staticAssembly.add(createTurbofan(-3.4));
+    staticAssembly.add(createTurbofan(3.4));
 
     // Vertical swept tail fin stabilizer seated cleanly on top rear fuselage with zero orphaned geometry
     const finGeom = new THREE.BufferGeometry();
@@ -206,13 +224,13 @@ function createJetAircraftModel() {
     finGeom.setIndex(finIndices);
     finGeom.computeVertexNormals();
     const finMesh = new THREE.Mesh(finGeom, vnaBlueMat);
-    root.add(finMesh);
+    staticAssembly.add(finMesh);
 
     // Vietnam Airlines Golden Lotus emblem attached to both sides of the tail fin
+    const petalGeom = new THREE.ConeGeometry(0.22, 0.88, 6);
+    petalGeom.scale(0.25, 1.0, 0.14);
     const createGoldenLotus = (sideSign) => {
         const lotusGroup = new THREE.Group();
-        const petalGeom = new THREE.ConeGeometry(0.22, 0.88, 6);
-        petalGeom.scale(0.25, 1.0, 0.14);
 
         const centerPetal = new THREE.Mesh(petalGeom, vnaGoldMat);
         centerPetal.position.set(0, 0.08, 0);
@@ -233,8 +251,8 @@ function createJetAircraftModel() {
         lotusGroup.position.set(sideSign * 0.042, 2.65, -8.85);
         return lotusGroup;
     };
-    root.add(createGoldenLotus(-1));
-    root.add(createGoldenLotus(1));
+    staticAssembly.add(createGoldenLotus(-1));
+    staticAssembly.add(createGoldenLotus(1));
 
     // Horizontal tail stabilizers at the rear fuselage
     const hTailShape = new THREE.Shape();
@@ -248,7 +266,7 @@ function createJetAircraftModel() {
     leftHTailGeom.computeVertexNormals();
     const leftHTail = new THREE.Mesh(leftHTailGeom, aviationWhiteMat);
     leftHTail.position.set(0, 0.48, 0);
-    root.add(leftHTail);
+    staticAssembly.add(leftHTail);
 
     const hTailRightShape = new THREE.Shape();
     hTailRightShape.moveTo(0, -8.2);
@@ -261,7 +279,42 @@ function createJetAircraftModel() {
     rightHTailGeom.computeVertexNormals();
     const rightHTail = new THREE.Mesh(rightHTailGeom, aviationWhiteMat);
     rightHTail.position.set(0, 0.48, 0);
-    root.add(rightHTail);
+    staticAssembly.add(rightHTail);
+
+    // Bake static airframe subparts into one merged mesh per material
+    staticAssembly.updateMatrixWorld(true);
+    const jetBuckets = new Map();
+    staticAssembly.traverse((child) => {
+        if (!child.isMesh || !child.geometry || !child.material) return;
+        const baked = child.geometry.clone();
+        baked.applyMatrix4(child.matrixWorld);
+        let list = jetBuckets.get(child.material);
+        if (!list) {
+            list = [];
+            jetBuckets.set(child.material, list);
+        }
+        list.push(baked);
+    });
+    for (const [mat, geoms] of jetBuckets.entries()) {
+        const merged = mergeUntexturedGeoms(geoms);
+        geoms.forEach((g) => g.dispose());
+        if (merged) {
+            const mesh = new THREE.Mesh(merged, mat);
+            mesh.castShadow = false;
+            root.add(mesh);
+        }
+    }
+    leftWingGeom.dispose();
+    rightWingGeom.dispose();
+    wingletGeom.dispose();
+    wingletTipGeom.dispose();
+    engineNacelleGeom.dispose();
+    engineRimGeom.dispose();
+    engineIntakeGeom.dispose();
+    finGeom.dispose();
+    petalGeom.dispose();
+    leftHTailGeom.dispose();
+    rightHTailGeom.dispose();
 
     // Navigation and anti-collision strobe beacon lights
     const navLightGeom = new THREE.SphereGeometry(0.12, 6, 6);
@@ -621,32 +674,21 @@ function createJetAircraftSystem(scene, hardwareProfile = { tier: 'high' }) {
     return { update };
 }
 
-// Build organic bird model with curved dihedral wings and dual-segment flapping joints
-function createBirdModel(featherColorHex = 0x1e293b) {
-    const root = new THREE.Group();
-
-    // Streamlined aerodynamic avian torso
+// Build shared bird part geometries (merged body+head and 4 dual-segment wing meshes) for instanced flock
+function createBirdPartGeometries() {
+    // Streamlined aerodynamic avian torso + head merged into one geometry
     const torsoGeom = new THREE.ConeGeometry(0.12, 0.78, 8);
     torsoGeom.rotateX(-Math.PI * 0.5);
     torsoGeom.translate(0, 0, 0.08);
     torsoGeom.computeVertexNormals();
 
-    const birdMat = new THREE.MeshStandardMaterial({
-        color: featherColorHex,
-        roughness: 0.42,
-        metalness: 0.18,
-        side: THREE.DoubleSide
-    });
-    const torsoMesh = new THREE.Mesh(torsoGeom, birdMat);
-    torsoMesh.castShadow = false;
-    root.add(torsoMesh);
-
-    // Beak and head
     const headGeom = new THREE.SphereGeometry(0.085, 8, 6);
     headGeom.translate(0, 0.02, -0.36);
     headGeom.computeVertexNormals();
-    const headMesh = new THREE.Mesh(headGeom, birdMat);
-    root.add(headMesh);
+
+    const bodyGeom = mergeUntexturedGeoms([torsoGeom, headGeom]);
+    torsoGeom.dispose();
+    headGeom.dispose();
 
     // Left inner wing
     const leftInnerShape = new THREE.Shape();
@@ -655,31 +697,17 @@ function createBirdModel(featherColorHex = 0x1e293b) {
     leftInnerShape.lineTo(-0.38, 0.20);
     leftInnerShape.lineTo(0, 0.16);
     leftInnerShape.closePath();
-
     const leftInnerGeom = new THREE.ShapeGeometry(leftInnerShape);
     leftInnerGeom.computeVertexNormals();
-    const leftInnerMesh = new THREE.Mesh(leftInnerGeom, birdMat);
 
-    const leftWingRoot = new THREE.Group();
-    leftWingRoot.position.set(-0.08, 0.02, 0.0);
-    leftWingRoot.add(leftInnerMesh);
-
-    // Left outer wingtip attached to elbow joint
+    // Left outer wingtip
     const leftTipShape = new THREE.Shape();
     leftTipShape.moveTo(0, -0.06);
     leftTipShape.lineTo(-0.54, 0.14);
     leftTipShape.lineTo(0, 0.20);
     leftTipShape.closePath();
-
     const leftTipGeom = new THREE.ShapeGeometry(leftTipShape);
     leftTipGeom.computeVertexNormals();
-    const leftTipMesh = new THREE.Mesh(leftTipGeom, birdMat);
-
-    const leftTipRoot = new THREE.Group();
-    leftTipRoot.position.set(-0.40, 0, 0);
-    leftTipRoot.add(leftTipMesh);
-    leftWingRoot.add(leftTipRoot);
-    root.add(leftWingRoot);
 
     // Right inner wing
     const rightInnerShape = new THREE.Shape();
@@ -688,50 +716,59 @@ function createBirdModel(featherColorHex = 0x1e293b) {
     rightInnerShape.lineTo(0.38, 0.20);
     rightInnerShape.lineTo(0, 0.16);
     rightInnerShape.closePath();
-
     const rightInnerGeom = new THREE.ShapeGeometry(rightInnerShape);
     rightInnerGeom.computeVertexNormals();
-    const rightInnerMesh = new THREE.Mesh(rightInnerGeom, birdMat);
 
-    const rightWingRoot = new THREE.Group();
-    rightWingRoot.position.set(0.08, 0.02, 0.0);
-    rightWingRoot.add(rightInnerMesh);
-
-    // Right outer wingtip attached to elbow joint
+    // Right outer wingtip
     const rightTipShape = new THREE.Shape();
     rightTipShape.moveTo(0, -0.06);
     rightTipShape.lineTo(0.54, 0.14);
     rightTipShape.lineTo(0, 0.20);
     rightTipShape.closePath();
-
     const rightTipGeom = new THREE.ShapeGeometry(rightTipShape);
     rightTipGeom.computeVertexNormals();
-    const rightTipMesh = new THREE.Mesh(rightTipGeom, birdMat);
 
-    const rightTipRoot = new THREE.Group();
-    rightTipRoot.position.set(0.40, 0, 0);
-    rightTipRoot.add(rightTipMesh);
-    rightWingRoot.add(rightTipRoot);
-    root.add(rightWingRoot);
-
-    return { root, leftWingRoot, leftTipRoot, rightWingRoot, rightTipRoot };
+    return { bodyGeom, leftInnerGeom, leftTipGeom, rightInnerGeom, rightTipGeom };
 }
 
-// Create flock of birds with natural boids trajectories, banking turns, and sine-wave flapping
+// Create instanced flock of birds (5 draw calls total instead of 72) with boids trajectories and dual-segment wing wave
 function createFlockingBirdsSystem(scene, hardwareProfile = { tier: 'high' }) {
     const isLowTier = hardwareProfile.tier === 'low';
     const BIRD_COUNT = isLowTier ? 7 : 12;
 
+    const birdParts = createBirdPartGeometries();
+    const birdMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.42,
+        metalness: 0.18,
+        side: THREE.DoubleSide
+    });
+
+    const bodyInst = new THREE.InstancedMesh(birdParts.bodyGeom, birdMat, BIRD_COUNT);
+    const leftInnerInst = new THREE.InstancedMesh(birdParts.leftInnerGeom, birdMat, BIRD_COUNT);
+    const leftTipInst = new THREE.InstancedMesh(birdParts.leftTipGeom, birdMat, BIRD_COUNT);
+    const rightInnerInst = new THREE.InstancedMesh(birdParts.rightInnerGeom, birdMat, BIRD_COUNT);
+    const rightTipInst = new THREE.InstancedMesh(birdParts.rightTipGeom, birdMat, BIRD_COUNT);
+
+    const birdInsts = [bodyInst, leftInnerInst, leftTipInst, rightInnerInst, rightTipInst];
+    for (const inst of birdInsts) {
+        inst.castShadow = false;
+        inst.receiveShadow = false;
+        inst.frustumCulled = false;
+        scene.add(inst);
+    }
+
     const birds = [];
     const birdColors = [0x1e293b, 0x334155, 0x0f172a, 0x475569];
+    const tmpColor = new THREE.Color();
 
     for (let i = 0; i < BIRD_COUNT; i++) {
-        const col = birdColors[i % birdColors.length];
-        const birdObj = createBirdModel(col);
-        scene.add(birdObj.root);
+        tmpColor.setHex(birdColors[i % birdColors.length]);
+        for (const inst of birdInsts) {
+            inst.setColorAt(i, tmpColor);
+        }
 
         birds.push({
-            model: birdObj,
             pos: new THREE.Vector3(
                 (Math.random() - 0.5) * 40,
                 32 + Math.random() * 10,
@@ -753,12 +790,20 @@ function createFlockingBirdsSystem(scene, hardwareProfile = { tier: 'high' }) {
             )
         });
     }
+    for (const inst of birdInsts) {
+        if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+    }
 
     const flockCenterTarget = new THREE.Vector3();
     const desiredVel = new THREE.Vector3();
     const forwardVec = new THREE.Vector3();
+    const rootObj = new THREE.Object3D();
+    const wingObj = new THREE.Object3D();
+    const tipObj = new THREE.Object3D();
+    const wingWorldMat = new THREE.Matrix4();
+    const tipWorldMat = new THREE.Matrix4();
 
-    // Advance flock pathing, collision avoidance, and wing flapping kinematics
+    // Advance flock pathing, collision avoidance, and instanced wing flapping kinematics
     const update = (dt, elapsedSec) => {
         const safeDt = Math.min(dt, 0.05);
 
@@ -776,7 +821,6 @@ function createFlockingBirdsSystem(scene, hardwareProfile = { tier: 'high' }) {
             // Cohesion to individual slot in flock
             const targetPos = flockCenterTarget.clone().add(b.offset);
             desiredVel.subVectors(targetPos, b.pos);
-            const distToTarget = desiredVel.length();
             desiredVel.normalize();
 
             const cruiseSpeed = 11.5 + Math.sin(elapsedSec + i) * 1.5;
@@ -818,9 +862,6 @@ function createFlockingBirdsSystem(scene, hardwareProfile = { tier: 'high' }) {
                 b.roll += (targetRoll - b.roll) * Math.min(1, safeDt * 4.5);
             }
 
-            b.model.root.position.copy(b.pos);
-            b.model.root.rotation.set(b.pitch, b.yaw, b.roll, 'YXZ');
-
             // Flapping vs gliding cycle state machine
             b.glideTimer -= safeDt;
             if (b.glideTimer <= 0) {
@@ -835,10 +876,41 @@ function createFlockingBirdsSystem(scene, hardwareProfile = { tier: 'high' }) {
             const flapAngle = Math.sin(elapsedSec * b.flapFreq + b.flapPhase) * b.flapAmp;
             const tipAngle = Math.sin(elapsedSec * b.flapFreq + b.flapPhase - 0.42) * (b.flapAmp * 0.88);
 
-            b.model.leftWingRoot.rotation.z = flapAngle;
-            b.model.leftTipRoot.rotation.z = tipAngle;
-            b.model.rightWingRoot.rotation.z = -flapAngle;
-            b.model.rightTipRoot.rotation.z = -tipAngle;
+            // Root body transform
+            rootObj.position.copy(b.pos);
+            rootObj.rotation.set(b.pitch, b.yaw, b.roll, 'YXZ');
+            rootObj.updateMatrix();
+            bodyInst.setMatrixAt(i, rootObj.matrix);
+
+            // Left inner wing and elbow-hinged outer tip
+            wingObj.position.set(-0.08, 0.02, 0.0);
+            wingObj.rotation.set(0, 0, flapAngle);
+            wingObj.updateMatrix();
+            wingWorldMat.multiplyMatrices(rootObj.matrix, wingObj.matrix);
+            leftInnerInst.setMatrixAt(i, wingWorldMat);
+
+            tipObj.position.set(-0.40, 0, 0);
+            tipObj.rotation.set(0, 0, tipAngle);
+            tipObj.updateMatrix();
+            tipWorldMat.multiplyMatrices(wingWorldMat, tipObj.matrix);
+            leftTipInst.setMatrixAt(i, tipWorldMat);
+
+            // Right inner wing and elbow-hinged outer tip
+            wingObj.position.set(0.08, 0.02, 0.0);
+            wingObj.rotation.set(0, 0, -flapAngle);
+            wingObj.updateMatrix();
+            wingWorldMat.multiplyMatrices(rootObj.matrix, wingObj.matrix);
+            rightInnerInst.setMatrixAt(i, wingWorldMat);
+
+            tipObj.position.set(0.40, 0, 0);
+            tipObj.rotation.set(0, 0, -tipAngle);
+            tipObj.updateMatrix();
+            tipWorldMat.multiplyMatrices(wingWorldMat, tipObj.matrix);
+            rightTipInst.setMatrixAt(i, tipWorldMat);
+        }
+
+        for (const inst of birdInsts) {
+            inst.instanceMatrix.needsUpdate = true;
         }
     };
 

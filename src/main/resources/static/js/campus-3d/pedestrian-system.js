@@ -1,4 +1,4 @@
-// Realistic animated low-poly pedestrians bustling on sidewalks of 3 streets and campus crosswalk
+// Realistic animated low-poly pedestrians batched into InstancedMeshes across 3 streets and campus crosswalks
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -9,13 +9,14 @@ const ROAD_SPECS = {
     dd: { cx: -27.08, cz: -77.78, rotY: -0.4461 }
 };
 
-// Transform longitudinal U and lateral V into world coordinates
-function uvToWorld(road, u, v) {
+// Transform longitudinal U and lateral V into world coordinates without array allocation
+function writeUvToWorld(road, u, v, out) {
     const ux = Math.cos(road.rotY);
     const uz = Math.sin(road.rotY);
     const px = -uz;
     const pz = ux;
-    return [road.cx + u * ux + v * px, road.cz + u * uz + v * pz];
+    out.x = road.cx + u * ux + v * px;
+    out.z = road.cz + u * uz + v * pz;
 }
 
 // Strip extraneous attributes before merging shared subparts
@@ -55,25 +56,6 @@ function createArmGeometry() {
     const hand = new THREE.SphereGeometry(0.036, 6, 6);
     hand.translate(0, -0.46, 0);
     return mergeCleanParts([arm, hand]);
-}
-
-// Shared materials cache to eliminate redundant WebGL state switches
-class MaterialCache {
-    constructor() {
-        this.cache = new Map();
-    }
-
-    get(colorHex, roughness = 0.82) {
-        const key = `${colorHex}_${roughness}`;
-        if (!this.cache.has(key)) {
-            this.cache.set(key, new THREE.MeshStandardMaterial({
-                color: colorHex,
-                roughness: roughness,
-                metalness: 0.05
-            }));
-        }
-        return this.cache.get(key);
-    }
 }
 
 // Palette presets for Hue university students and bustling city pedestrians
@@ -190,11 +172,12 @@ const PEDESTRIAN_CONFIGS = [
     { id: 'ltk-cw-nh', road: 'ltk', isCrosswalk: true, u: -58.3, v: -9.5, vMin: -9.5, vMax: 9.5, curbDist: 8.4, dir: 1, speed: 1.22, signalIntersection: 'nh', signalAxis: 'ns', headwear: 'hair', shirt: 4, pants: 0, bag: true }
 ];
 
-// Initialize and manage pedestrian crowd system across 3 campus streets
-export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
-    const matCache = new MaterialCache();
+// Initialize and manage instanced pedestrian crowd system (8 draw calls total for all 38 pedestrians)
+export function createPedestrianSystem(scene, hardwareProfile = { tier: 'medium' }) {
+    const tier = typeof hardwareProfile === 'string' ? hardwareProfile : (hardwareProfile?.tier || 'medium');
+    const castShadows = tier === 'high';
 
-    // Reusable shared geometries eliminating duplicate geometry allocations
+    // Shared part geometries
     const headGeom = new THREE.SphereGeometry(0.12, 10, 8);
     const hairGeom = new THREE.SphereGeometry(0.126, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.58);
     const nonLaGeom = new THREE.ConeGeometry(0.24, 0.11, 14);
@@ -204,90 +187,22 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
     const legGeom = createLegWithShoeGeometry();
     const armGeom = createArmGeometry();
 
-    const castShadows = hardwareProfile !== 'low';
+    // Shared materials with per-instance colors where varied across pedestrians
+    const coloredPartMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.82, metalness: 0.05 });
+    const bagMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.88, metalness: 0.05 });
+    const strawMat = new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.85, metalness: 0.05 });
 
-    // Construct individual modular pedestrian mesh hierarchy
-    function buildPedestrianCharacter(cfg) {
-        const root = new THREE.Group();
-        root.name = `pedestrian_${cfg.id}`;
+    const total = PEDESTRIAN_CONFIGS.length;
+    let bagCount = 0;
+    let nonLaCount = 0;
+    let capCount = 0;
+    let hairCount = 0;
 
-        const shirtMat = matCache.get(SHIRT_PALETTE[cfg.shirt]);
-        const pantsMat = matCache.get(PANTS_PALETTE[cfg.pants]);
-        const skinMat = matCache.get(SKIN_PALETTE[cfg.id.charCodeAt(cfg.id.length - 1) % SKIN_PALETTE.length]);
-        const hairMat = matCache.get(HAIR_PALETTE[cfg.id.charCodeAt(0) % HAIR_PALETTE.length]);
-
-        // Torso pivot node accommodating natural walking bobbing motion
-        const torsoPivot = new THREE.Group();
-        torsoPivot.position.set(0, 0.94, 0);
-
-        const torsoMesh = new THREE.Mesh(torsoGeom, shirtMat);
-        torsoMesh.castShadow = castShadows;
-        torsoMesh.position.set(0, 0, 0);
-        torsoPivot.add(torsoMesh);
-
-        // Optional student backpack attached to posterior torso
-        if (cfg.bag) {
-            const bagMesh = new THREE.Mesh(backpackGeom, matCache.get(0x1e293b, 0.88));
-            bagMesh.position.set(0, 0, 0.13);
-            bagMesh.castShadow = castShadows;
-            torsoPivot.add(bagMesh);
-        }
-
-        // Head and neck assembly
-        const headGroup = new THREE.Group();
-        headGroup.position.set(0, 0.38, 0);
-
-        const headMesh = new THREE.Mesh(headGeom, skinMat);
-        headMesh.castShadow = castShadows;
-        headGroup.add(headMesh);
-
-        // Add characteristic headwear (Vietnamese non la, baseball cap, or styled hair)
-        if (cfg.headwear === 'non_la') {
-            const strawMat = matCache.get(0xfde047, 0.85);
-            const nonLa = new THREE.Mesh(nonLaGeom, strawMat);
-            nonLa.position.set(0, 0.10, 0);
-            nonLa.castShadow = castShadows;
-            headGroup.add(nonLa);
-        } else if (cfg.headwear === 'cap') {
-            const capMat = matCache.get(PANTS_PALETTE[cfg.pants % PANTS_PALETTE.length]);
-            const cap = new THREE.Mesh(capGeom, capMat);
-            cap.position.set(0, 0.05, 0);
-            cap.castShadow = castShadows;
-            headGroup.add(cap);
-        } else {
-            const hair = new THREE.Mesh(hairGeom, hairMat);
-            hair.position.set(0, 0.03, 0);
-            hair.castShadow = castShadows;
-            headGroup.add(hair);
-        }
-        torsoPivot.add(headGroup);
-
-        // Left and right swing arms pivoting at shoulders
-        const leftArm = new THREE.Mesh(armGeom, skinMat);
-        leftArm.position.set(-0.165, 0.19, 0);
-        leftArm.castShadow = castShadows;
-        torsoPivot.add(leftArm);
-
-        const rightArm = new THREE.Mesh(armGeom, skinMat);
-        rightArm.position.set(0.165, 0.19, 0);
-        rightArm.castShadow = castShadows;
-        torsoPivot.add(rightArm);
-
-        root.add(torsoPivot);
-
-        // Left and right legs pivoting at pelvic joints
-        const leftLeg = new THREE.Mesh(legGeom, pantsMat);
-        leftLeg.position.set(-0.075, 0.72, 0);
-        leftLeg.castShadow = castShadows;
-        root.add(leftLeg);
-
-        const rightLeg = new THREE.Mesh(legGeom, pantsMat);
-        rightLeg.position.set(0.075, 0.72, 0);
-        rightLeg.castShadow = castShadows;
-        root.add(rightLeg);
-
+    // Pre-assign stable instance slots per pedestrian
+    const posScratch = { x: 0, z: 0 };
+    const pedestrians = PEDESTRIAN_CONFIGS.map((cfg, idx) => {
         const road = ROAD_SPECS[cfg.road];
-        const initPos = uvToWorld(road, cfg.u, cfg.v);
+        writeUvToWorld(road, cfg.u, cfg.v, posScratch);
         let initYaw = 0;
         if (cfg.isCrosswalk) {
             const px = -Math.sin(road.rotY) * cfg.dir;
@@ -298,40 +213,184 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
             const uz = Math.sin(road.rotY) * cfg.dir;
             initYaw = Math.atan2(-ux, -uz);
         }
-        root.position.set(initPos[0], 0.015, initPos[1]);
-        root.rotation.y = initYaw;
+
+        const bagIdx = cfg.bag ? bagCount++ : -1;
+        let headWearIdx = -1;
+        if (cfg.headwear === 'non_la') headWearIdx = nonLaCount++;
+        else if (cfg.headwear === 'cap') headWearIdx = capCount++;
+        else headWearIdx = hairCount++;
 
         return {
-            root,
-            torsoPivot,
-            headGroup,
-            leftArm,
-            rightArm,
-            leftLeg,
-            rightLeg,
+            index: idx,
+            bagIdx,
+            headWearIdx,
             config: cfg,
             u: cfg.u,
             v: cfg.v,
             dir: cfg.dir,
             speed: cfg.speed,
-            lastX: initPos[0],
-            lastZ: initPos[1],
+            lastX: posScratch.x,
+            lastZ: posScratch.z,
             targetYaw: initYaw,
             isWaiting: false,
             hasCrossedThisPhase: false,
             walkPhase: Math.random() * Math.PI * 2
         };
-    }
-
-    // Build all pedestrian instances and attach to scene
-    const pedestrians = PEDESTRIAN_CONFIGS.map((cfg) => {
-        const p = buildPedestrianCharacter(cfg);
-        scene.add(p.root);
-        return p;
     });
 
+    // Allocate 8 InstancedMeshes replacing ~304 individual character meshes
+    const torsoInst = new THREE.InstancedMesh(torsoGeom, coloredPartMat, total);
+    const headInst = new THREE.InstancedMesh(headGeom, coloredPartMat, total);
+    const armInst = new THREE.InstancedMesh(armGeom, coloredPartMat, total * 2);
+    const legInst = new THREE.InstancedMesh(legGeom, coloredPartMat, total * 2);
+    const bagInst = bagCount > 0 ? new THREE.InstancedMesh(backpackGeom, bagMat, bagCount) : null;
+    const nonLaInst = nonLaCount > 0 ? new THREE.InstancedMesh(nonLaGeom, strawMat, nonLaCount) : null;
+    const capInst = capCount > 0 ? new THREE.InstancedMesh(capGeom, coloredPartMat, capCount) : null;
+    const hairInst = hairCount > 0 ? new THREE.InstancedMesh(hairGeom, coloredPartMat, hairCount) : null;
+
+    const allInsts = [torsoInst, headInst, armInst, legInst, bagInst, nonLaInst, capInst, hairInst].filter(Boolean);
+    for (const inst of allInsts) {
+        inst.frustumCulled = false;
+        inst.castShadow = castShadows;
+        inst.receiveShadow = false;
+        scene.add(inst);
+    }
+
+    // Assign per-instance palette colors once at startup
+    const tmpColor = new THREE.Color();
+    for (let i = 0; i < pedestrians.length; i++) {
+        const p = pedestrians[i];
+        const cfg = p.config;
+        const shirtHex = SHIRT_PALETTE[cfg.shirt % SHIRT_PALETTE.length];
+        const pantsHex = PANTS_PALETTE[cfg.pants % PANTS_PALETTE.length];
+        const skinHex = SKIN_PALETTE[cfg.id.charCodeAt(cfg.id.length - 1) % SKIN_PALETTE.length];
+        const hairHex = HAIR_PALETTE[cfg.id.charCodeAt(0) % HAIR_PALETTE.length];
+
+        tmpColor.setHex(shirtHex);
+        torsoInst.setColorAt(i, tmpColor);
+
+        tmpColor.setHex(skinHex);
+        headInst.setColorAt(i, tmpColor);
+        armInst.setColorAt(i * 2, tmpColor);
+        armInst.setColorAt(i * 2 + 1, tmpColor);
+
+        tmpColor.setHex(pantsHex);
+        legInst.setColorAt(i * 2, tmpColor);
+        legInst.setColorAt(i * 2 + 1, tmpColor);
+
+        if (cfg.headwear === 'cap' && capInst) {
+            capInst.setColorAt(p.headWearIdx, tmpColor);
+        } else if (cfg.headwear !== 'non_la' && hairInst) {
+            tmpColor.setHex(hairHex);
+            hairInst.setColorAt(p.headWearIdx, tmpColor);
+        }
+    }
+    torsoInst.instanceColor.needsUpdate = true;
+    headInst.instanceColor.needsUpdate = true;
+    armInst.instanceColor.needsUpdate = true;
+    legInst.instanceColor.needsUpdate = true;
+    if (capInst && capInst.instanceColor) capInst.instanceColor.needsUpdate = true;
+    if (hairInst && hairInst.instanceColor) hairInst.instanceColor.needsUpdate = true;
+
+    // Pooled transform objects guaranteeing zero per-frame allocations
+    const rootObj = new THREE.Object3D();
+    const torsoObj = new THREE.Object3D();
+    const headObj = new THREE.Object3D();
+    const partObj = new THREE.Object3D();
+    const torsoWorldMat = new THREE.Matrix4();
+    const headWorldMat = new THREE.Matrix4();
+    const partWorldMat = new THREE.Matrix4();
+
+    // Write world instance transforms for all parts of one pedestrian
+    const syncPedestrianPose = (p, worldX, worldZ, yaw, torsoY, headYaw, legSwing, armSwing) => {
+        const i = p.index;
+        const cfg = p.config;
+
+        rootObj.position.set(worldX, 0.015, worldZ);
+        rootObj.rotation.set(0, yaw, 0);
+        rootObj.updateMatrix();
+
+        // Torso pivot
+        torsoObj.position.set(0, torsoY, 0);
+        torsoObj.rotation.set(0, 0, 0);
+        torsoObj.updateMatrix();
+        torsoWorldMat.multiplyMatrices(rootObj.matrix, torsoObj.matrix);
+        torsoInst.setMatrixAt(i, torsoWorldMat);
+
+        // Optional backpack attached to torso
+        if (p.bagIdx >= 0 && bagInst) {
+            partObj.position.set(0, 0, 0.13);
+            partObj.rotation.set(0, 0, 0);
+            partObj.updateMatrix();
+            partWorldMat.multiplyMatrices(torsoWorldMat, partObj.matrix);
+            bagInst.setMatrixAt(p.bagIdx, partWorldMat);
+        }
+
+        // Head pivot and headwear
+        headObj.position.set(0, 0.38, 0);
+        headObj.rotation.set(0, headYaw, 0);
+        headObj.updateMatrix();
+        headWorldMat.multiplyMatrices(torsoWorldMat, headObj.matrix);
+        headInst.setMatrixAt(i, headWorldMat);
+
+        if (cfg.headwear === 'non_la' && nonLaInst) {
+            partObj.position.set(0, 0.10, 0);
+            partObj.rotation.set(0, 0, 0);
+            partObj.updateMatrix();
+            partWorldMat.multiplyMatrices(headWorldMat, partObj.matrix);
+            nonLaInst.setMatrixAt(p.headWearIdx, partWorldMat);
+        } else if (cfg.headwear === 'cap' && capInst) {
+            partObj.position.set(0, 0.05, 0);
+            partObj.rotation.set(0, 0, 0);
+            partObj.updateMatrix();
+            partWorldMat.multiplyMatrices(headWorldMat, partObj.matrix);
+            capInst.setMatrixAt(p.headWearIdx, partWorldMat);
+        } else if (hairInst) {
+            partObj.position.set(0, 0.03, 0);
+            partObj.rotation.set(0, 0, 0);
+            partObj.updateMatrix();
+            partWorldMat.multiplyMatrices(headWorldMat, partObj.matrix);
+            hairInst.setMatrixAt(p.headWearIdx, partWorldMat);
+        }
+
+        // Left and right arms swinging relative to torso pivot
+        partObj.position.set(-0.165, 0.19, 0);
+        partObj.rotation.set(-armSwing, 0, 0);
+        partObj.updateMatrix();
+        partWorldMat.multiplyMatrices(torsoWorldMat, partObj.matrix);
+        armInst.setMatrixAt(i * 2, partWorldMat);
+
+        partObj.position.set(0.165, 0.19, 0);
+        partObj.rotation.set(armSwing, 0, 0);
+        partObj.updateMatrix();
+        partWorldMat.multiplyMatrices(torsoWorldMat, partObj.matrix);
+        armInst.setMatrixAt(i * 2 + 1, partWorldMat);
+
+        // Left and right legs swinging relative to root hip joint
+        partObj.position.set(-0.075, 0.72, 0);
+        partObj.rotation.set(legSwing, 0, 0);
+        partObj.updateMatrix();
+        partWorldMat.multiplyMatrices(rootObj.matrix, partObj.matrix);
+        legInst.setMatrixAt(i * 2, partWorldMat);
+
+        partObj.position.set(0.075, 0.72, 0);
+        partObj.rotation.set(-legSwing, 0, 0);
+        partObj.updateMatrix();
+        partWorldMat.multiplyMatrices(rootObj.matrix, partObj.matrix);
+        legInst.setMatrixAt(i * 2 + 1, partWorldMat);
+    };
+
+    // Seed initial poses cleanly before first render
+    for (let i = 0; i < pedestrians.length; i++) {
+        const p = pedestrians[i];
+        syncPedestrianPose(p, p.lastX, p.lastZ, p.targetYaw, 0.94, 0, 0, 0);
+    }
+    for (const inst of allInsts) {
+        inst.instanceMatrix.needsUpdate = true;
+    }
+
     // Advance walking motion, reciprocal limb swing, and strict traffic signal compliance
-    return function updatePedestrians(dt, elapsedSec = 0, signalState = null) {
+    const updatePedestrians = (dt, elapsedSec = 0, signalState = null) => {
         if (dt <= 0 || dt > 0.2) return;
 
         for (let i = 0; i < pedestrians.length; i++) {
@@ -375,9 +434,9 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
                     }
                 }
 
-                const pos = uvToWorld(road, cfg.u, p.v);
-                worldX = pos[0];
-                worldZ = pos[1];
+                writeUvToWorld(road, cfg.u, p.v, posScratch);
+                worldX = posScratch.x;
+                worldZ = posScratch.z;
 
                 // Face strictly across road in direction of crossing
                 const px = -Math.sin(road.rotY) * p.dir;
@@ -395,9 +454,9 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
                     p.u = cfg.uMin;
                     p.dir = 1;
                 }
-                const pos = uvToWorld(road, p.u, p.v);
-                worldX = pos[0];
-                worldZ = pos[1];
+                writeUvToWorld(road, cfg.u, p.v, posScratch);
+                worldX = posScratch.x;
+                worldZ = posScratch.z;
 
                 // Tangent heading strictly aligned so character model faces forward
                 const ux = Math.cos(road.rotY) * p.dir;
@@ -405,33 +464,42 @@ export function createPedestrianSystem(scene, hardwareProfile = 'medium') {
                 p.targetYaw = Math.atan2(-ux, -uz);
             }
 
-            // Stand flush on sidewalk top surface
-            p.root.position.set(worldX, 0.015, worldZ);
-            p.root.rotation.y = p.targetYaw;
             p.lastX = worldX;
             p.lastZ = worldZ;
 
             // Animate limbs: idle standing when waiting for light, natural swinging when walking
+            let torsoY;
+            let headYaw;
+            let legSwing;
+            let armSwing;
             if (p.isWaiting) {
-                p.leftLeg.rotation.x = 0;
-                p.rightLeg.rotation.x = 0;
-                p.leftArm.rotation.x = 0;
-                p.rightArm.rotation.x = 0;
-                p.torsoPivot.position.y = 0.94 + Math.sin(elapsedSec * 2.0 + i) * 0.005;
-                p.headGroup.rotation.y = Math.sin(elapsedSec * 1.2 + i) * 0.08;
+                legSwing = 0;
+                armSwing = 0;
+                torsoY = 0.94 + Math.sin(elapsedSec * 2.0 + i) * 0.005;
+                headYaw = Math.sin(elapsedSec * 1.2 + i) * 0.08;
             } else {
                 p.walkPhase += dt * p.speed * 4.2;
-                const legSwing = Math.sin(p.walkPhase) * 0.44;
-                const armSwing = Math.sin(p.walkPhase) * 0.36;
-
-                p.leftLeg.rotation.x = legSwing;
-                p.rightLeg.rotation.x = -legSwing;
-                p.leftArm.rotation.x = -armSwing;
-                p.rightArm.rotation.x = armSwing;
-
-                p.torsoPivot.position.y = 0.94 + Math.abs(Math.sin(p.walkPhase)) * 0.035;
-                p.headGroup.rotation.y = Math.sin(p.walkPhase * 0.5) * 0.08;
+                legSwing = Math.sin(p.walkPhase) * 0.44;
+                armSwing = Math.sin(p.walkPhase) * 0.36;
+                torsoY = 0.94 + Math.abs(Math.sin(p.walkPhase)) * 0.035;
+                headYaw = Math.sin(p.walkPhase * 0.5) * 0.08;
             }
+
+            syncPedestrianPose(p, worldX, worldZ, p.targetYaw, torsoY, headYaw, legSwing, armSwing);
+        }
+
+        for (const inst of allInsts) {
+            inst.instanceMatrix.needsUpdate = true;
         }
     };
+
+    // Allow dynamic graphics quality switching to toggle pedestrian shadows cleanly
+    updatePedestrians.setShadowTier = (nextTier) => {
+        const enable = nextTier === 'high';
+        for (const inst of allInsts) {
+            inst.castShadow = enable;
+        }
+    };
+
+    return updatePedestrians;
 }
