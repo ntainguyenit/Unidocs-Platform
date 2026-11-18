@@ -3043,34 +3043,35 @@ function createNhaDModernBuilding(scene, maxAniso = 4) {
     southMesh.receiveShadow = true;
     group.add(southMesh);
 
-    // 5. 4 Off-white vertical corner columns to seamlessly lock edges together
+    // 5. 4 Off-white vertical corner columns terminated cleanly beneath parapet coping to avoid overlap
     const cornerMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.42, metalness: 0.05 });
-    const cornerGeom = new THREE.BoxGeometry(0.24, bldgH, 0.24);
+    const cornerColH = bldgH - 0.18;
+    const cornerGeom = new THREE.BoxGeometry(0.24, cornerColH, 0.24);
     for (const cx of [-halfW, halfW]) {
         for (const cz of [-halfD, halfD]) {
             const col = new THREE.Mesh(cornerGeom, cornerMat);
-            col.position.set(cx, halfH, cz);
+            col.position.set(cx, cornerColH * 0.5, cz);
             col.castShadow = true;
             col.receiveShadow = true;
             group.add(col);
         }
     }
 
-    // 6. Roof parapet coping rim running continuously along perimeter
+    // 6. Roof parapet coping rim running continuously along perimeter without corner overlap
     const copingMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.35, metalness: 0.08 });
     const nCoping = new THREE.Mesh(new THREE.BoxGeometry(bldgW + 0.24, 0.36, 0.24), copingMat);
     nCoping.position.set(0, bldgH, -halfD);
     const sCoping = new THREE.Mesh(new THREE.BoxGeometry(bldgW + 0.24, 0.36, 0.24), copingMat);
     sCoping.position.set(0, bldgH, halfD);
-    const wCoping = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.36, bldgD + 0.24), copingMat);
+    const wCoping = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.36, bldgD - 0.24), copingMat);
     wCoping.position.set(-halfW, bldgH, 0);
-    const eCoping = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.36, bldgD + 0.24), copingMat);
+    const eCoping = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.36, bldgD - 0.24), copingMat);
     eCoping.position.set(halfW, bldgH, 0);
     group.add(nCoping, sCoping, wCoping, eCoping);
 
-    // Flat roof surface slab
+    // Flat roof surface slab tucked cleanly inside parapet walls with vertical clearance above inner core
     const roofSlab = new THREE.Mesh(
-        new THREE.PlaneGeometry(bldgW, bldgD),
+        new THREE.PlaneGeometry(bldgW - 0.18, bldgD - 0.18),
         new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.85, metalness: 0.05 })
     );
     roofSlab.rotation.x = -Math.PI * 0.5;
@@ -3078,11 +3079,12 @@ function createNhaDModernBuilding(scene, maxAniso = 4) {
     roofSlab.receiveShadow = true;
     group.add(roofSlab);
 
-    // 7. Interior solid light blocker box preventing any internal yellow bleed or light leak
-    const innerBoxGeom = new THREE.BoxGeometry(bldgW - 0.08, bldgH - 0.1, bldgD - 0.08);
+    // 7. Interior solid light blocker recessed below roofSlab to eliminate roof Z-fighting
+    const innerBoxH = bldgH - 0.40;
+    const innerBoxGeom = new THREE.BoxGeometry(bldgW - 0.16, innerBoxH, bldgD - 0.16);
     const innerBoxMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.90 });
     const innerBox = new THREE.Mesh(innerBoxGeom, innerBoxMat);
-    innerBox.position.set(0, halfH, 0);
+    innerBox.position.set(0, innerBoxH * 0.5, 0);
     innerBox.castShadow = true;
     innerBox.receiveShadow = true;
     group.add(innerBox);
