@@ -172,6 +172,8 @@ function batchStaticCampusModel(campusModel) {
             }
         }
     }
+    batchedGroup.matrixAutoUpdate = false;
+    batchedGroup.updateMatrix();
     return batchedGroup.children.length > 0 ? batchedGroup : campusModel;
 }
 

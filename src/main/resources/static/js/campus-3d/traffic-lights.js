@@ -355,12 +355,10 @@ export function createSmartIntersectionSystem(scene, hardwareProfile = { tier: '
     const poleSteelInst = new THREE.InstancedMesh(templates.poleSteelGeom, poleMat, poleSpecs.length);
     poleSteelInst.castShadow = true;
     poleSteelInst.receiveShadow = true;
-    poleSteelInst.frustumCulled = false;
 
     const poleCabinetInst = new THREE.InstancedMesh(templates.poleCabinetGeom, cabinetMat, poleSpecs.length);
     poleCabinetInst.castShadow = !isLowTier;
     poleCabinetInst.receiveShadow = false;
-    poleCabinetInst.frustumCulled = false;
 
     const poleObj = new THREE.Object3D();
     const localObj = new THREE.Object3D();
@@ -400,6 +398,12 @@ export function createSmartIntersectionSystem(scene, hardwareProfile = { tier: '
 
     poleSteelInst.instanceMatrix.needsUpdate = true;
     poleCabinetInst.instanceMatrix.needsUpdate = true;
+    if (typeof poleSteelInst.computeBoundingSphere === 'function') poleSteelInst.computeBoundingSphere();
+    if (typeof poleCabinetInst.computeBoundingSphere === 'function') poleCabinetInst.computeBoundingSphere();
+    poleSteelInst.matrixAutoUpdate = false;
+    poleSteelInst.updateMatrix();
+    poleCabinetInst.matrixAutoUpdate = false;
+    poleCabinetInst.updateMatrix();
     scene.add(poleSteelInst, poleCabinetInst);
 
     // Emit merged static signal overlays per intersection axis (20 static draw calls total across 8 poles)

@@ -249,11 +249,18 @@ export function createPedestrianSystem(scene, hardwareProfile = { tier: 'medium'
     const hairInst = hairCount > 0 ? new THREE.InstancedMesh(hairGeom, coloredPartMat, hairCount) : null;
 
     const allInsts = [torsoInst, headInst, armInst, legInst, bagInst, nonLaInst, capInst, hairInst].filter(Boolean);
+    const shadowInsts = [torsoInst, legInst];
     for (const inst of allInsts) {
         inst.frustumCulled = false;
-        inst.castShadow = castShadows;
+        inst.castShadow = false;
         inst.receiveShadow = false;
+        inst.matrixAutoUpdate = false;
+        inst.updateMatrix();
         scene.add(inst);
+    }
+    // Cast shadows only from primary torso and leg silhouette on high tier to avoid 6 extra shadow passes
+    for (const inst of shadowInsts) {
+        inst.castShadow = castShadows;
     }
 
     // Assign per-instance palette colors once at startup
@@ -493,10 +500,10 @@ export function createPedestrianSystem(scene, hardwareProfile = { tier: 'medium'
         }
     };
 
-    // Allow dynamic graphics quality switching to toggle pedestrian shadows cleanly
+    // Allow dynamic graphics quality switching to toggle primary pedestrian silhouette shadows cleanly
     updatePedestrians.setShadowTier = (nextTier) => {
         const enable = nextTier === 'high';
-        for (const inst of allInsts) {
+        for (const inst of shadowInsts) {
             inst.castShadow = enable;
         }
     };

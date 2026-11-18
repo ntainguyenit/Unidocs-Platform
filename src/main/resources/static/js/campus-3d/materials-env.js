@@ -9,6 +9,23 @@ import { createAirspaceSystem } from './airspace-system.js';
 import { createRooftopFireworks } from './fireworks-system.js';
 import { createPedestrianSystem } from './pedestrian-system.js';
 
+// Lock static transforms and compute tight InstancedMesh bounding spheres for frustum culling
+function freezeStaticHierarchy(root, excludeSet = null, instSpherePad = 0) {
+    if (!root) return;
+    root.updateMatrixWorld(true);
+    root.traverse((obj) => {
+        if (excludeSet && excludeSet.has(obj)) return;
+        if (obj.isLight || obj.isSprite) return;
+        if (obj.isInstancedMesh && obj.frustumCulled && typeof obj.computeBoundingSphere === 'function') {
+            obj.computeBoundingSphere();
+            if (instSpherePad > 0 && obj.boundingSphere) {
+                obj.boundingSphere.radius += instSpherePad;
+            }
+        }
+        obj.matrixAutoUpdate = false;
+    });
+}
+
 // Create crisp white 2:1 horizontal rectangular ceramic tile color & bump maps matching real Gate Tower
 function createCeramicTileTextures(maxAnisotropy = 4) {
     const size = 256;
@@ -561,6 +578,14 @@ function createCampusVegetation(scene, windUniform, hardwareProfile = { tier: 'h
     benchInst.instanceMatrix.needsUpdate = true;
     scene.add(benchInst);
 
+    freezeStaticHierarchy(trunkInst);
+    freezeStaticHierarchy(leafInst, null, 0.5);
+    freezeStaticHierarchy(coniferInst);
+    freezeStaticHierarchy(planterMesh);
+    freezeStaticHierarchy(basinRimMesh);
+    freezeStaticHierarchy(basinWaterMesh);
+    freezeStaticHierarchy(benchInst);
+
     return {
         setShadowTier: (nextTier) => {
             leafInst.castShadow = nextTier === 'high';
@@ -972,6 +997,7 @@ function createTreePitCurbTexture(maxAnisotropy = 4) {
 
 // Create crisp schematic-matched gardens, paved plaza, asphalt streets, and sports pitches
 function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
+    const groundStartIdx = scene.children.length;
     const tier = hardwareProfile.tier || 'high';
     const maxAniso = hardwareProfile.maxAnisotropy || 4;
     const isLowTier = tier === 'low';
@@ -2206,6 +2232,10 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         { x: -18.90, y: 0.028, z: -61.52, w: 11.0, h: 2.2, rz: 0.4461 },
         { x: -17.61, y: 0.028, z: -58.82, w: 11.0, h: 2.2, rz: 0.4461 }
     ], grassMat, true);
+
+    for (let i = groundStartIdx; i < scene.children.length; i++) {
+        freezeStaticHierarchy(scene.children[i]);
+    }
 }
 
 // Create textured ashlar slate stone base map for gate wall foundation
@@ -2532,6 +2562,7 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
     group.position.set(23.45, 0, -90.93);
 
     scene.add(group);
+    freezeStaticHierarchy(group, animatedFlags ? new Set(animatedFlags) : null);
 }
 
 // Create authentic 4-sided modern architectural building for Nha D (Photo 1) covering all 4 faces
@@ -3157,10 +3188,12 @@ function createNhaDModernBuilding(scene, maxAniso = 4) {
     group.position.set(-74.0, 0, -25.5);
     group.rotation.y = bldgYaw;
     scene.add(group);
+    freezeStaticHierarchy(group);
 }
 
 // Add signature signage, Main Gate inscription, Dong Da Gate sign, Nha A marquee, garage roofs, and billowing flags
 function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
+    const signStartIdx = scene.children.length;
     const animatedFlags = [];
     const maxAniso = hardwareProfile.maxAnisotropy || 4;
     const isLowTier = hardwareProfile.tier === 'low';
@@ -3520,6 +3553,12 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
         const spriteW = loc.code.length > 7 ? 7.6 : 6.4;
         sprite.scale.set(spriteW, 2.4, 1);
         scene.add(sprite);
+    }
+
+    const dynamicSignageSet = new Set(animatedFlags);
+    dynamicSignageSet.add(solidFlagInst);
+    for (let i = signStartIdx; i < scene.children.length; i++) {
+        freezeStaticHierarchy(scene.children[i], dynamicSignageSet);
     }
 
     return { animatedFlags, solidFlagInst, solidFlags };
@@ -4304,12 +4343,6 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         metalness: 0.02
     });
 
-    const shrubLeafDepthMat = new THREE.MeshDepthMaterial({
-        depthPacking: THREE.RGBADepthPacking,
-        map: shrubLeafTex,
-        alphaTest: 0.42
-    });
-
     const shrubStemMat = new THREE.MeshStandardMaterial({
         color: 0x5d4129,
         roughness: 0.92,
@@ -4390,10 +4423,8 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
         const shrubLeafInst = new THREE.InstancedMesh(shrubLeafGeom, shrubLeafMat, shrubMatrices.length);
         shrubStemInst.castShadow = true;
         shrubStemInst.receiveShadow = true;
-        if (tier === 'high') {
-            shrubLeafInst.customDepthMaterial = shrubLeafDepthMat;
-            shrubLeafInst.castShadow = true;
-        }
+        // Skip alpha-discard shadow pass on 1,536 low median leaf cards; stem shadow grounds shrubs cleanly
+        shrubLeafInst.castShadow = false;
         shrubLeafInst.receiveShadow = true;
         shrubMatrices.forEach((mat, idx) => {
             shrubStemInst.setMatrixAt(idx, mat);
@@ -5337,6 +5368,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     ensembleGroup.add(ltkWestSidewalkGroup);
 
     scene.add(ensembleGroup);
+    freezeStaticHierarchy(ensembleGroup);
 }
 
 // Create sky dome shader, instanced drifting clouds, street lamp posts, and neutral city backdrop
@@ -5374,6 +5406,7 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
     });
     const skyDome = new THREE.Mesh(skyGeom, skyMat);
     scene.add(skyDome);
+    freezeStaticHierarchy(skyDome);
 
     // Instanced puffy clouds drifting gently at high altitude (1 draw call across 18 puffs)
     const cloudMat = new THREE.MeshBasicMaterial({
@@ -5431,6 +5464,7 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
     });
     cityInst.instanceMatrix.needsUpdate = true;
     scene.add(cityInst);
+    freezeStaticHierarchy(cityInst);
 
     // Authentic detailed urban ensemble opposite Ly Thuong Kiet x Dong Da intersection (Photos 1-5)
     createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile);
@@ -5472,6 +5506,9 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
     scene.add(postInst);
     scene.add(headInst);
     scene.add(haloInst);
+    freezeStaticHierarchy(postInst);
+    freezeStaticHierarchy(headInst);
+    freezeStaticHierarchy(haloInst);
 
     // Twinkling celestial starfield for night atmosphere
     const STAR_COUNT = 650;
@@ -5532,6 +5569,7 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
     starPoints.frustumCulled = false;
     starPoints.visible = false;
     scene.add(starPoints);
+    freezeStaticHierarchy(starPoints);
 
     // Dynamic shooting star meteor streak across the night sky
     const meteorGroup = new THREE.Group();
@@ -5738,10 +5776,11 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         updateNightSky
     } = createAtmosphereAndProps(scene, hardwareProfile);
 
-    let shadowUpdateStride = initialTier === 'low' ? 4 : (initialTier === 'medium' ? 2 : 1);
+    // Throttle shadow pass cadence by default (30Hz high, 20Hz medium, 10Hz low) to halve shadow GPU cost
+    let shadowUpdateStride = initialTier === 'low' ? 6 : (initialTier === 'medium' ? 3 : 2);
     let shadowFrameCount = 0;
     let currentShadowSize = initShadowSize;
-    renderer.shadowMap.autoUpdate = shadowUpdateStride <= 1;
+    renderer.shadowMap.autoUpdate = false;
     renderer.shadowMap.needsUpdate = true;
 
     const flagDummy = new THREE.Object3D();
@@ -5756,6 +5795,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         flagController.solidFlagInst.instanceMatrix.needsUpdate = true;
     };
     syncSolidFlags(0);
+    freezeStaticHierarchy(flagController.solidFlagInst, null, 1.0);
 
     // Apply Noon, Hue Sunset, or Night atmosphere preset dynamically with zero shader recompiles
     const setLightingPreset = (mode) => {
@@ -5872,17 +5912,17 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         if (level === 'low') {
             renderer.setPixelRatio(isSoftware ? 0.9 : 1.0);
             nextShadowSize = 1024;
-            shadowUpdateStride = 4;
+            shadowUpdateStride = 6;
             targetShadowType = THREE.BasicShadowMap;
         } else if (level === 'medium') {
             renderer.setPixelRatio(Math.min(dpr, 1.25));
             nextShadowSize = 1024;
-            shadowUpdateStride = 2;
+            shadowUpdateStride = 3;
             targetShadowType = THREE.PCFShadowMap;
         } else {
             renderer.setPixelRatio(dpr);
             nextShadowSize = 2048;
-            shadowUpdateStride = 1;
+            shadowUpdateStride = 2;
             targetShadowType = THREE.PCFSoftShadowMap;
         }
         if (allowShadowTypeChange && renderer.shadowMap.type !== targetShadowType) {
@@ -5932,6 +5972,8 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
 
     let cloudAccumDt = 0;
     let envFrameCount = 0;
+    let lastShadowPx = NaN;
+    let lastShadowPz = NaN;
 
     // Advance wind uniform, drifting clouds, flag ripple, smart traffic signals, vehicle flow, and beacon pulse
     const updateEnvironment = (elapsedSec, dt, playerState = null) => {
@@ -5969,8 +6011,21 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         }
 
         if (sunLight.castShadow && renderer.shadowMap.enabled && shadowUpdateStride > 1) {
-            shadowFrameCount = (shadowFrameCount + 1) % shadowUpdateStride;
-            if (shadowFrameCount === 0) {
+            // Double shadow stride when stationary in high-altitude overview mode to skip redundant passes
+            let effectiveStride = shadowUpdateStride;
+            if (playerState) {
+                const playerMoved = Number.isNaN(lastShadowPx)
+                    || Math.abs(playerState.x - lastShadowPx) > 0.005
+                    || Math.abs(playerState.z - lastShadowPz) > 0.005;
+                lastShadowPx = playerState.x;
+                lastShadowPz = playerState.z;
+                if (!playerMoved && playerState.cameraMode === 'fly' && !playerState.introPlaying) {
+                    effectiveStride = shadowUpdateStride * 2;
+                }
+            }
+            shadowFrameCount += 1;
+            if (shadowFrameCount >= effectiveStride) {
+                shadowFrameCount = 0;
                 renderer.shadowMap.needsUpdate = true;
             }
         }
