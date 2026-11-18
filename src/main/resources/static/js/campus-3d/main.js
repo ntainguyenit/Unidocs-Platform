@@ -323,6 +323,52 @@ async function bootstrapCampus3D() {
         }
     };
 
+    // Zero-allocation rolling frame-time ring buffer powering on-demand window.__campusPerf() diagnostics
+    const PERF_RING_SIZE = 120;
+    const perfFrameBuf = new Float32Array(PERF_RING_SIZE);
+    let perfFrameIdx = 0;
+    let perfFrameCount = 0;
+
+    window.__campusPerf = () => {
+        const sampleCount = Math.min(perfFrameCount, PERF_RING_SIZE);
+        const samples = [];
+        let sum = 0;
+        for (let i = 0; i < sampleCount; i++) {
+            const v = perfFrameBuf[i];
+            samples.push(v);
+            sum += v;
+        }
+        samples.sort((a, b) => a - b);
+        const avgMs = sampleCount > 0 ? sum / sampleCount : 16.7;
+        const p50Ms = sampleCount > 0 ? samples[Math.floor(sampleCount * 0.50)] : 16.7;
+        const p95Ms = sampleCount > 0 ? samples[Math.min(sampleCount - 1, Math.floor(sampleCount * 0.95))] : 16.7;
+        const p99Ms = sampleCount > 0 ? samples[Math.min(sampleCount - 1, Math.floor(sampleCount * 0.99))] : 16.7;
+        const info = renderer.info;
+        const report = {
+            tier: effectiveTier,
+            govStage,
+            pixelRatio: Number(renderer.getPixelRatio().toFixed(2)),
+            viewport: `${canvas.width}x${canvas.height}`,
+            fpsAvg: Number((1000 / Math.max(0.1, avgMs)).toFixed(1)),
+            fpsP50: Number((1000 / Math.max(0.1, p50Ms)).toFixed(1)),
+            fpsP95: Number((1000 / Math.max(0.1, p95Ms)).toFixed(1)),
+            fpsP99: Number((1000 / Math.max(0.1, p99Ms)).toFixed(1)),
+            frameMsAvg: Number(avgMs.toFixed(2)),
+            frameMsP99: Number(p99Ms.toFixed(2)),
+            drawCalls: info.render.calls,
+            triangles: info.render.triangles,
+            lines: info.render.lines,
+            points: info.render.points,
+            geometries: info.memory.geometries,
+            textures: info.memory.textures,
+            programs: info.programs ? info.programs.length : 0,
+            shadowEnabled: renderer.shadowMap.enabled,
+            shadowAutoUpdate: renderer.shadowMap.autoUpdate
+        };
+        if (typeof console.table === 'function') console.table(report);
+        return report;
+    };
+
     const startAnimationLoop = () => {
         if (loopStarted) return;
         loopStarted = true;
@@ -336,6 +382,12 @@ async function bootstrapCampus3D() {
             const dt = Number.isFinite(rawDt) ? Math.max(0.0001, Math.min(0.25, rawDt)) : 0.016;
             lastFrameMs = nowMs;
             elapsedSec += dt;
+
+            if (rawMs > 0 && rawMs < 250) {
+                perfFrameBuf[perfFrameIdx] = rawMs;
+                perfFrameIdx = (perfFrameIdx + 1) % PERF_RING_SIZE;
+                if (perfFrameCount < PERF_RING_SIZE) perfFrameCount += 1;
+            }
 
             stepGovernor(rawMs, nowMs);
             playerController.update(dt);

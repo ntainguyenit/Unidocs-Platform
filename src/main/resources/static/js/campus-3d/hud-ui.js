@@ -318,26 +318,16 @@ export function setupCampusHud({
     const bigMapCtx = bigMapCanvas.getContext('2d');
     const mapLocationsList = document.getElementById('mapLocationsList');
 
-    const drawSchematicOnCanvas = (ctx, size, pX, pZ, pYaw, isMini) => {
-        ctx.clearRect(0, 0, size, size);
-        ctx.fillStyle = '#dce6f1';
-        ctx.fillRect(0, 0, size, size);
+    // Shared static schematic campus layer rendered once onto offscreen minimap cache and on-demand for big map
+    const MINI_ZOOM = 1.65;
+    const MINI_BG_MIN_X = -200;
+    const MINI_BG_MAX_X = 160;
+    const MINI_BG_MIN_Z = -170;
+    const MINI_BG_MAX_Z = 160;
+    const MINI_BG_W = Math.ceil((MINI_BG_MAX_X - MINI_BG_MIN_X) * MINI_ZOOM);
+    const MINI_BG_H = Math.ceil((MINI_BG_MAX_Z - MINI_BG_MIN_Z) * MINI_ZOOM);
 
-        // World bounds cover roughly [-132..+98] in X and [-108..+105] in Z matching 5-corner Plan 61a14ecc
-        const toCanvas = (wx, wz) => {
-            if (isMini) {
-                const zoom = 1.65;
-                return [
-                    size * 0.5 + (wx - pX) * zoom,
-                    size * 0.5 + (wz - pZ) * zoom
-                ];
-            }
-            const sx = size / 232;
-            const sy = size / 216;
-            return [(wx + 132) * sx, (wz + 108) * sy];
-        };
-        const scaleLen = isMini ? 1.65 : (size / 232);
-
+    const drawStaticCampusBase = (ctx, toCanvas, scaleLen) => {
         // Surrounding streets silhouette (Nguyen Hue, Ly Thuong Kiet, Dong Da)
         ctx.fillStyle = '#475569';
         const [nhx, nhy] = toCanvas(-125, 77);
@@ -435,25 +425,77 @@ export function setupCampusHud({
             ctx.restore();
         }
 
-        // Buildings & Check-in Pin Dots
+        // Static campus building footprints
+        ctx.fillStyle = '#8b2622';
         for (const loc of CAMPUS_LOCATIONS) {
             if (loc.category !== 'sport' && loc.category !== 'gate') {
                 const [bx, by] = toCanvas(loc.rect.cx, loc.rect.cz);
                 ctx.save();
                 ctx.translate(bx, by);
                 ctx.rotate(-loc.rect.angle);
-                ctx.fillStyle = '#8b2622';
                 ctx.fillRect(-(loc.rect.w * scaleLen) / 2, -(loc.rect.d * scaleLen) / 2, loc.rect.w * scaleLen, loc.rect.d * scaleLen);
                 ctx.restore();
             }
-            const [lx, ly] = toCanvas(loc.x, loc.z);
+        }
+    };
+
+    // Pre-render static tactical minimap background once into an offscreen canvas for O(1) per-frame blit
+    const miniBgCanvas = document.createElement('canvas');
+    miniBgCanvas.width = MINI_BG_W;
+    miniBgCanvas.height = MINI_BG_H;
+    const miniBgCtx = miniBgCanvas.getContext('2d');
+    miniBgCtx.fillStyle = '#dce6f1';
+    miniBgCtx.fillRect(0, 0, MINI_BG_W, MINI_BG_H);
+    drawStaticCampusBase(
+        miniBgCtx,
+        (wx, wz) => [(wx - MINI_BG_MIN_X) * MINI_ZOOM, (wz - MINI_BG_MIN_Z) * MINI_ZOOM],
+        MINI_ZOOM
+    );
+
+    const MINI_SIGNAL_COORDS = [
+        [-104.6, 75.6, 'nh', 'ewState'],
+        [-122.8, 95.4, 'nh', 'ewState'],
+        [-123.4, 75.7, 'nh', 'nsState'],
+        [-104.2, 95.3, 'nh', 'nsState'],
+        [-127.94, -19.34, 'dd', 'ewState'],
+        [-109.00, -48.81, 'dd', 'ewState'],
+        [-128.28, -46.08, 'dd', 'nsState'],
+        [-109.05, -21.83, 'dd', 'nsState']
+    ];
+
+    const sigColor = (phase) => (phase === 'green' ? '#22c55e' : phase === 'yellow' ? '#facc15' : '#ef4444');
+
+    const drawSchematicOnCanvas = (ctx, size, pX, pZ, pYaw, isMini) => {
+        ctx.fillStyle = '#dce6f1';
+        ctx.fillRect(0, 0, size, size);
+
+        const halfSize = size * 0.5;
+        const sx = size / 232;
+        const sy = size / 216;
+
+        if (isMini) {
+            // Blit pre-rendered static campus background in a single drawImage call
+            const offsetX = halfSize - (pX - MINI_BG_MIN_X) * MINI_ZOOM;
+            const offsetY = halfSize - (pZ - MINI_BG_MIN_Z) * MINI_ZOOM;
+            ctx.drawImage(miniBgCanvas, offsetX, offsetY);
+        } else {
+            drawStaticCampusBase(ctx, (wx, wz) => [(wx + 132) * sx, (wz + 108) * sy], sx);
+        }
+
+        // Dynamic Check-in Pin Dots (cull offscreen markers in minimap mode)
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#0f172a';
+        for (let i = 0; i < CAMPUS_LOCATIONS.length; i++) {
+            const loc = CAMPUS_LOCATIONS[i];
+            const lx = isMini ? (halfSize + (loc.x - pX) * MINI_ZOOM) : ((loc.x + 132) * sx);
+            const ly = isMini ? (halfSize + (loc.z - pZ) * MINI_ZOOM) : ((loc.z + 108) * sy);
+            if (isMini && (lx < -6 || lx > size + 6 || ly < -6 || ly > size + 6)) continue;
+
             const checked = state.checkedIn.has(loc.id);
             ctx.beginPath();
             ctx.arc(lx, ly, isMini ? 3.5 : 4.6, 0, Math.PI * 2);
             ctx.fillStyle = checked ? '#22c55e' : '#facc15';
             ctx.fill();
-            ctx.lineWidth = 1.5;
-            ctx.strokeStyle = '#0f172a';
             ctx.stroke();
 
             if (!isMini) {
@@ -474,32 +516,28 @@ export function setupCampusHud({
         // Live 4-corner traffic signal markers for both LTK x Nguyen Hue and LTK x Dong Da intersections
         const sigState = envController.getSignalState ? envController.getSignalState() : null;
         if (sigState) {
-            const sigColor = (phase) => (phase === 'green' ? '#22c55e' : phase === 'yellow' ? '#facc15' : '#ef4444');
             const nhSig = sigState.nh || sigState;
             const ddSig = sigState.dd || sigState;
-            for (const [sx, sz, phase] of [
-                [-104.6, 75.6, nhSig.ewState],
-                [-122.8, 95.4, nhSig.ewState],
-                [-123.4, 75.7, nhSig.nsState],
-                [-104.2, 95.3, nhSig.nsState],
-                [-127.94, -19.34, ddSig.ewState],
-                [-109.00, -48.81, ddSig.ewState],
-                [-128.28, -46.08, ddSig.nsState],
-                [-109.05, -21.83, ddSig.nsState]
-            ]) {
-                const [px, py] = toCanvas(sx, sz);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#0f172a';
+            for (let i = 0; i < MINI_SIGNAL_COORDS.length; i++) {
+                const sc = MINI_SIGNAL_COORDS[i];
+                const px = isMini ? (halfSize + (sc[0] - pX) * MINI_ZOOM) : ((sc[0] + 132) * sx);
+                const py = isMini ? (halfSize + (sc[1] - pZ) * MINI_ZOOM) : ((sc[1] + 108) * sy);
+                if (isMini && (px < -5 || px > size + 5 || py < -5 || py > size + 5)) continue;
+
+                const phase = (sc[2] === 'nh' ? nhSig : ddSig)[sc[3]];
                 ctx.beginPath();
                 ctx.arc(px, py, isMini ? 2.5 : 3.2, 0, Math.PI * 2);
                 ctx.fillStyle = sigColor(phase);
                 ctx.fill();
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = '#0f172a';
                 ctx.stroke();
             }
         }
 
         // Player directional chevron marker
-        const [mx, my] = toCanvas(pX, pZ);
+        const mx = isMini ? halfSize : ((pX + 132) * sx);
+        const my = isMini ? halfSize : ((pZ + 108) * sy);
         ctx.save();
         ctx.translate(mx, my);
         ctx.rotate(-pYaw);

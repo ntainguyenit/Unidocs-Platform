@@ -394,6 +394,7 @@
             padding: 9px;
             margin-left: -9px;
             pointer-events: auto;
+            contain: layout style paint;
         }
         .minimap-wrap {
             position: relative;
@@ -548,12 +549,11 @@
             align-items: center;
             gap: 0.55rem;
             padding: 0.35rem 0.85rem;
-            background: rgba(15, 23, 42, 0.86);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             border-radius: 999px;
             box-shadow: 0 4px 18px rgba(0, 0, 0, 0.36);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            contain: layout style paint;
         }
         .clock-pill #weatherClockLabel {
             font-size: 0.78rem;
@@ -635,12 +635,14 @@
             padding: 0.15rem 0.45rem;
             font-size: 0.68rem;
             font-weight: 800;
+            font-variant-numeric: tabular-nums;
             color: #86efac;
             background: rgba(34, 197, 94, 0.18);
             border: 1px solid rgba(74, 222, 128, 0.32);
             border-radius: 999px;
             line-height: 1.2;
             letter-spacing: 0.02em;
+            contain: layout style paint;
         }
 
         /* Left mid quest tracker panel */
