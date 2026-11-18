@@ -284,14 +284,110 @@ async function bootstrapCampus3D() {
 
     // Animation loop initialized ONLY after GLB batching, shader compile, and silent warm-up finish
     let loopStarted = false;
+    let loopPaused = false;
+    let rafId = 0;
+    let isDisposed = false;
     let lastFrameMs = performance.now();
     let elapsedSec = 0;
 
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            lastFrameMs = performance.now();
+    const pauseLoop = () => {
+        loopPaused = true;
+        if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = 0;
         }
-    });
+    };
+
+    let tickFrame = null;
+    const resumeLoop = () => {
+        if (!loopStarted || isDisposed || !loopPaused) return;
+        loopPaused = false;
+        lastFrameMs = performance.now();
+        if (tickFrame && !rafId) {
+            rafId = requestAnimationFrame(tickFrame);
+        }
+    };
+
+    // Pause render loop completely on hidden tabs or locked screens to prevent thermal drain
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            pauseLoop();
+        } else {
+            resumeLoop();
+        }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Recover gracefully if mobile GPU resets WebGL context under background memory pressure
+    const handleContextLost = (e) => {
+        e.preventDefault();
+        pauseLoop();
+    };
+    const handleContextRestored = () => {
+        envController.requestShadowRefresh();
+        resumeLoop();
+    };
+    canvas.addEventListener('webglcontextlost', handleContextLost, false);
+    canvas.addEventListener('webglcontextrestored', handleContextRestored, false);
+
+    // Dispose all geometries, materials, textures, listeners, and WebGL renderer cleanly on page exit
+    const TEXTURE_SLOTS = ['map', 'bumpMap', 'emissiveMap', 'alphaMap', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'envMap'];
+    const disposeCampusResources = () => {
+        if (isDisposed) return;
+        isDisposed = true;
+        pauseLoop();
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('pagehide', handlePageHide);
+        window.removeEventListener('pageshow', handlePageShow);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
+        canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+        if (playerController && typeof playerController.dispose === 'function') playerController.dispose();
+        if (envController && typeof envController.dispose === 'function') envController.dispose();
+
+        const disposedGeoms = new Set();
+        const disposedMats = new Set();
+        const disposedTexs = new Set();
+        scene.traverse((obj) => {
+            if (obj.geometry && !disposedGeoms.has(obj.geometry)) {
+                disposedGeoms.add(obj.geometry);
+                obj.geometry.dispose();
+            }
+            if (obj.material) {
+                const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+                for (const mat of mats) {
+                    if (!mat || disposedMats.has(mat)) continue;
+                    disposedMats.add(mat);
+                    for (const slot of TEXTURE_SLOTS) {
+                        const tex = mat[slot];
+                        if (tex && typeof tex.dispose === 'function' && !disposedTexs.has(tex)) {
+                            disposedTexs.add(tex);
+                            tex.dispose();
+                        }
+                    }
+                    if (typeof mat.dispose === 'function') mat.dispose();
+                }
+            }
+        });
+        scene.clear();
+        delete window.__campusPerf;
+        renderer.dispose();
+    };
+    const handlePageHide = (e) => {
+        if (e && e.persisted) {
+            pauseLoop();
+            return;
+        }
+        disposeCampusResources();
+    };
+    const handlePageShow = (e) => {
+        if (e && e.persisted && !document.hidden) {
+            envController.requestShadowRefresh();
+            resumeLoop();
+        }
+    };
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
 
     const stepGovernor = (rawMs, nowMs) => {
         if (playerController.getState().introPlaying) return;
@@ -370,12 +466,14 @@ async function bootstrapCampus3D() {
     };
 
     const startAnimationLoop = () => {
-        if (loopStarted) return;
+        if (loopStarted || isDisposed) return;
         loopStarted = true;
         lastFrameMs = performance.now();
         govCooldownUntil = lastFrameMs + 2500;
-        const animate = () => {
-            requestAnimationFrame(animate);
+        tickFrame = () => {
+            rafId = 0;
+            if (loopPaused || isDisposed) return;
+            rafId = requestAnimationFrame(tickFrame);
             const nowMs = performance.now();
             const rawMs = nowMs - lastFrameMs;
             const rawDt = rawMs * 0.001;
@@ -395,7 +493,11 @@ async function bootstrapCampus3D() {
             hudController.updateFrame(dt);
             renderer.render(scene, camera);
         };
-        animate();
+        if (document.hidden) {
+            loopPaused = true;
+        } else {
+            rafId = requestAnimationFrame(tickFrame);
+        }
     };
 
     // Load Meshopt-compressed HUSC architecture GLB model and pre-warm pipeline before starting Intro

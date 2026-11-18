@@ -26,6 +26,71 @@ function freezeStaticHierarchy(root, excludeSet = null, instSpherePad = 0) {
     });
 }
 
+// Merge repeated static meshes sharing identical material, shadow flags, and geometry attributes
+function batchStaticGroupByMaterial(group, excludeSet = null) {
+    if (!group) return;
+    group.updateMatrixWorld(true);
+    const invGroupMat = new THREE.Matrix4().copy(group.matrixWorld).invert();
+    const relMat = new THREE.Matrix4();
+    const geomRefCounts = new Map();
+    const buckets = new Map();
+
+    group.traverse((obj) => {
+        if (!obj.isMesh || !obj.geometry) return;
+        geomRefCounts.set(obj.geometry, (geomRefCounts.get(obj.geometry) || 0) + 1);
+        if (obj.isInstancedMesh || obj.isSkinnedMesh || !obj.visible) return;
+        if (Array.isArray(obj.material) || !obj.material) return;
+        if (excludeSet && excludeSet.has(obj)) return;
+        if (obj.geometry.morphAttributes && Object.keys(obj.geometry.morphAttributes).length > 0) return;
+
+        const attrKey = Object.keys(obj.geometry.attributes).sort().join(',');
+        const bucketKey = `${obj.material.uuid}|${obj.castShadow ? 1 : 0}|${obj.receiveShadow ? 1 : 0}|${attrKey}`;
+        let bucket = buckets.get(bucketKey);
+        if (!bucket) {
+            bucket = {
+                material: obj.material,
+                castShadow: obj.castShadow,
+                receiveShadow: obj.receiveShadow,
+                meshes: []
+            };
+            buckets.set(bucketKey, bucket);
+        }
+        bucket.meshes.push(obj);
+    });
+
+    for (const bucket of buckets.values()) {
+        if (bucket.meshes.length < 2) continue;
+        const bakedParts = [];
+        for (const m of bucket.meshes) {
+            const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+            relMat.multiplyMatrices(invGroupMat, m.matrixWorld);
+            g.applyMatrix4(relMat);
+            bakedParts.push(g);
+        }
+        const merged = mergeGeometries(bakedParts, false);
+        for (const p of bakedParts) p.dispose();
+        if (!merged) continue;
+
+        merged.computeBoundingBox();
+        merged.computeBoundingSphere();
+        const mergedMesh = new THREE.Mesh(merged, bucket.material);
+        mergedMesh.castShadow = bucket.castShadow;
+        mergedMesh.receiveShadow = bucket.receiveShadow;
+        mergedMesh.frustumCulled = true;
+        group.add(mergedMesh);
+
+        for (const m of bucket.meshes) {
+            const geom = m.geometry;
+            if (m.parent) m.parent.remove(m);
+            const nextCount = (geomRefCounts.get(geom) || 1) - 1;
+            geomRefCounts.set(geom, nextCount);
+            if (nextCount <= 0) {
+                geom.dispose();
+            }
+        }
+    }
+}
+
 // Create a tier-scaled Canvas2D surface preserving logical drawing coordinates via ctx.scale
 function createScaledCanvas(logicalW, logicalH, tier = 'high', options = {}) {
     const highScale = options.highScale ?? 1.0;
@@ -2571,6 +2636,12 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
     group.position.set(23.45, 0, -90.93);
 
     scene.add(group);
+    const gateDynamicSet = new Set(animatedFlags || []);
+    for (const sp of gateSpotlights) {
+        gateDynamicSet.add(sp.coneMesh);
+        gateDynamicSet.add(sp.glowMesh);
+    }
+    batchStaticGroupByMaterial(group, gateDynamicSet);
     freezeStaticHierarchy(group, animatedFlags ? new Set(animatedFlags) : null);
 }
 
@@ -3187,6 +3258,7 @@ function createNhaDModernBuilding(scene, maxAniso = 4, tier = 'high') {
     group.position.set(-74.0, 0, -25.5);
     group.rotation.y = bldgYaw;
     scene.add(group);
+    batchStaticGroupByMaterial(group);
     freezeStaticHierarchy(group);
 }
 
@@ -5337,6 +5409,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     ensembleGroup.add(ltkWestSidewalkGroup);
 
     scene.add(ensembleGroup);
+    batchStaticGroupByMaterial(ensembleGroup);
     freezeStaticHierarchy(ensembleGroup);
 }
 
@@ -5685,6 +5758,13 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     const initialTier = hardwareProfile.tier || 'high';
     const isSoftware = Boolean(hardwareProfile.isSoftware);
 
+    // Cap initial pixel ratio to prevent GPU fillrate overload on Retina desktop and 3x mobile displays
+    const initDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    renderer.setPixelRatio(
+        initialTier === 'low'
+            ? (isSoftware ? 0.9 : 1.0)
+            : (initialTier === 'medium' ? Math.min(initDpr, 1.25) : initDpr)
+    );
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = initialTier === 'low'
         ? THREE.BasicShadowMap
@@ -5875,7 +5955,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
 
     // Adjust renderer pixel ratio, shadow size, and shadow update cadence cleanly
     const setQualityLevel = (level, allowShadowTypeChange = true) => {
-        const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
         let nextShadowSize = 2048;
         let targetShadowType = THREE.PCFSoftShadowMap;
         if (level === 'low') {
@@ -6000,12 +6080,25 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         }
     };
 
+    // Release cached procedural textures and shadow map buffers cleanly on page unload
+    const dispose = () => {
+        if (sunLight.shadow.map) {
+            sunLight.shadow.map.dispose();
+            sunLight.shadow.map = null;
+        }
+        cachedCeramicTileTextures = null;
+        cachedLeafTexture = null;
+        gateSpotlights.length = 0;
+        streetlampDownlights.length = 0;
+    };
+
     return {
         setLightingPreset,
         setQualityLevel,
         setShadowCadence,
         requestShadowRefresh,
         updateEnvironment,
+        dispose,
         getSignalState: intersectionSignals.getSnapshot,
         teleportBeacons
     };

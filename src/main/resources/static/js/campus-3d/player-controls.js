@@ -469,28 +469,30 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         keys.d = false;
     };
 
+    const onVisibilityChange = () => {
+        if (document.hidden) resetMovementKeys();
+    };
+
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     window.addEventListener('blur', resetMovementKeys);
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) resetMovementKeys();
-    });
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     // Smooth pointer orbit drag on canvas in Third-Person and First-Person modes
     let activePointerId = null;
     let lastPx = 0;
     let lastPy = 0;
 
-    domElement.addEventListener('pointerdown', (e) => {
+    const onPointerDown = (e) => {
         if (state.introPlaying || (state.cameraMode !== 'third-person' && state.cameraMode !== 'first-person')) return;
         if (activePointerId !== null) return;
         activePointerId = e.pointerId;
         lastPx = e.clientX;
         lastPy = e.clientY;
         domElement.setPointerCapture(e.pointerId);
-    });
+    };
 
-    domElement.addEventListener('pointermove', (e) => {
+    const onPointerMove = (e) => {
         if (e.pointerId !== activePointerId || (state.cameraMode !== 'third-person' && state.cameraMode !== 'first-person')) return;
         const dx = e.clientX - lastPx;
         const dy = e.clientY - lastPy;
@@ -501,25 +503,30 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         const minPitch = state.cameraMode === 'first-person' ? -1.15 : -0.38;
         const maxPitch = state.cameraMode === 'first-person' ? 1.15 : 1.12;
         state.camPitch = Math.max(minPitch, Math.min(maxPitch, state.camPitch + pitchDelta));
-    });
+    };
 
     const releasePointer = (e) => {
         if (e.pointerId === activePointerId) {
             activePointerId = null;
         }
     };
-    domElement.addEventListener('pointerup', releasePointer);
-    domElement.addEventListener('pointercancel', releasePointer);
 
-    // Wheel zoom in Third-Person mode (allowing close-up uniform inspection down to 2.0m)
-    domElement.addEventListener('wheel', (e) => {
+    const onWheelZoom = (e) => {
         if (state.introPlaying || state.cameraMode !== 'third-person') return;
         e.preventDefault();
         state.camDist = Math.max(2.0, Math.min(19.0, state.camDist + e.deltaY * 0.008));
-    }, { passive: false });
+    };
 
+    const onContextMenu = (e) => e.preventDefault();
+
+    domElement.addEventListener('pointerdown', onPointerDown);
+    domElement.addEventListener('pointermove', onPointerMove);
+    domElement.addEventListener('pointerup', releasePointer);
+    domElement.addEventListener('pointercancel', releasePointer);
+    // Wheel zoom in Third-Person mode (allowing close-up uniform inspection down to 2.0m)
+    domElement.addEventListener('wheel', onWheelZoom, { passive: false });
     // Prevent browser context menu inside canvas so right-mouse drag feels native
-    domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+    domElement.addEventListener('contextmenu', onContextMenu);
 
     const _desiredCamPos = new THREE.Vector3();
     const _lookTarget = new THREE.Vector3();
@@ -761,6 +768,21 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
 
     const setSprintToggle = () => {};
 
+    // Unbind all global and canvas input listeners and dispose OrbitControls cleanly
+    const dispose = () => {
+        window.removeEventListener('keydown', onKeyDown);
+        window.removeEventListener('keyup', onKeyUp);
+        window.removeEventListener('blur', resetMovementKeys);
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        domElement.removeEventListener('pointerdown', onPointerDown);
+        domElement.removeEventListener('pointermove', onPointerMove);
+        domElement.removeEventListener('pointerup', releasePointer);
+        domElement.removeEventListener('pointercancel', releasePointer);
+        domElement.removeEventListener('wheel', onWheelZoom);
+        domElement.removeEventListener('contextmenu', onContextMenu);
+        orbitControls.dispose();
+    };
+
     return {
         avatar,
         sampleIntroPose,
@@ -772,6 +794,7 @@ export function setupPlayerAndCamera(scene, camera, domElement, onCallbacks = {}
         setJoystickInput,
         setSprintToggle,
         update,
+        dispose,
         getState: () => {
             _publicState.x = avatar.root.position.x;
             _publicState.z = avatar.root.position.z;
