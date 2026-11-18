@@ -26,8 +26,27 @@ function freezeStaticHierarchy(root, excludeSet = null, instSpherePad = 0) {
     });
 }
 
+// Create a tier-scaled Canvas2D surface preserving logical drawing coordinates via ctx.scale
+function createScaledCanvas(logicalW, logicalH, tier = 'high', options = {}) {
+    const highScale = options.highScale ?? 1.0;
+    const medScale = options.mediumScale ?? 0.5;
+    const lowScale = options.lowScale ?? 0.5;
+    const scale = tier === 'low' ? lowScale : (tier === 'medium' ? medScale : highScale);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(64, Math.round(logicalW * scale));
+    canvas.height = Math.max(64, Math.round(logicalH * scale));
+    const ctx = canvas.getContext('2d');
+    if (scale !== 1.0) {
+        ctx.scale(scale, scale);
+    }
+    return { canvas, ctx, scale };
+}
+
+let cachedCeramicTileTextures = null;
+
 // Create crisp white 2:1 horizontal rectangular ceramic tile color & bump maps matching real Gate Tower
 function createCeramicTileTextures(maxAnisotropy = 4) {
+    if (cachedCeramicTileTextures) return cachedCeramicTileTextures;
     const size = 256;
     const tileH = 128;
     const grout = 7;
@@ -79,7 +98,8 @@ function createCeramicTileTextures(maxAnisotropy = 4) {
     bumpTex.wrapT = THREE.RepeatWrapping;
     bumpTex.anisotropy = Math.min(8, maxAnisotropy);
 
-    return { colorTex, bumpTex };
+    cachedCeramicTileTextures = { colorTex, bumpTex };
+    return cachedCeramicTileTextures;
 }
 
 // Upgrade named GLB materials (e.g. GateCeramicTile) with crisp procedural PBR detail maps
@@ -676,12 +696,9 @@ function createMergedGroundQuads(scene, quads, material, receiveShadow = false) 
 }
 
 // Create authentic Vietnamese fan-pattern Terrazzo sidewalk tile texture (Gạch Terrazzo rẻ quạt 400x400)
-function createTerrazzoSidewalkTextures(maxAnisotropy = 4) {
+function createTerrazzoSidewalkTextures(maxAnisotropy = 4, tier = 'high') {
     const size = 512;
-    const c = document.createElement('canvas');
-    c.width = size;
-    c.height = size;
-    const ctx = c.getContext('2d');
+    const { canvas: c, ctx } = createScaledCanvas(size, size, tier, { mediumScale: 0.5, lowScale: 0.5 });
 
     const tileSize = 256;
     const grout = 4;
@@ -690,6 +707,7 @@ function createTerrazzoSidewalkTextures(maxAnisotropy = 4) {
     ctx.fillRect(0, 0, size, size);
 
     const tileShades = ['#cbd5e1', '#c2ccd6', '#d1d8e0', '#c8d1da'];
+    const speckCount = tier === 'low' ? 45 : (tier === 'medium' ? 65 : 95);
 
     for (let ty = 0; ty < 2; ty++) {
         for (let tx = 0; tx < 2; tx++) {
@@ -702,15 +720,13 @@ function createTerrazzoSidewalkTextures(maxAnisotropy = 4) {
             ctx.fillStyle = tileShades[shadeIdx];
             ctx.fillRect(ox + grout, oy + grout, w, h);
 
-            // Stippled granite aggregate specks
-            for (let s = 0; s < 95; s++) {
+            // Stippled granite aggregate specks rendered with fast fillRect micro-chips
+            for (let s = 0; s < speckCount; s++) {
                 const sx = ox + grout + Math.random() * w;
                 const sy = oy + grout + Math.random() * h;
-                const sr = 1 + Math.random() * 2;
+                const sd = 2 + Math.random() * 2.5;
                 ctx.fillStyle = Math.random() > 0.4 ? 'rgba(255, 255, 255, 0.55)' : 'rgba(30, 41, 59, 0.35)';
-                ctx.beginPath();
-                ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.fillRect(sx, sy, sd, sd);
             }
 
             // Concentric Fan / Scallop Arcs (Rẻ quạt) from 4 corners of each tile
@@ -753,10 +769,12 @@ function createTerrazzoSidewalkTextures(maxAnisotropy = 4) {
     colorTex.wrapT = THREE.RepeatWrapping;
     colorTex.anisotropy = Math.min(8, maxAnisotropy);
 
-    const bc = document.createElement('canvas');
-    bc.width = size;
-    bc.height = size;
-    const bctx = bc.getContext('2d');
+    // Skip bump map generation on low tier to save VRAM and fragment shader cost
+    if (tier === 'low') {
+        return { colorTex, bumpTex: null };
+    }
+
+    const { canvas: bc, ctx: bctx } = createScaledCanvas(size, size, tier, { mediumScale: 0.5, lowScale: 0.5 });
     bctx.fillStyle = '#808080';
     bctx.fillRect(0, 0, size, size);
 
@@ -797,7 +815,7 @@ function createTerrazzoSidewalkTextures(maxAnisotropy = 4) {
 }
 
 // Create authentic Vietnamese beveled granite/concrete curbstone texture (Bó vỉa vát cong 1m/viên)
-function createCurbstoneTextures(maxAnisotropy = 4) {
+function createCurbstoneTextures(maxAnisotropy = 4, tier = 'high') {
     const w = 256;
     const h = 128;
     const c = document.createElement('canvas');
@@ -835,6 +853,10 @@ function createCurbstoneTextures(maxAnisotropy = 4) {
     colorTex.wrapT = THREE.ClampToEdgeWrapping;
     colorTex.anisotropy = Math.min(8, maxAnisotropy);
 
+    if (tier === 'low') {
+        return { colorTex, bumpTex: null };
+    }
+
     const bc = document.createElement('canvas');
     bc.width = w;
     bc.height = h;
@@ -862,43 +884,40 @@ function createCurbstoneTextures(maxAnisotropy = 4) {
 }
 
 // Procedural rich dark organic loam soil texture with earthy clods, moisture variation, and edge moss
-function createTreeSoilTextures(maxAnisotropy = 4) {
+function createTreeSoilTextures(maxAnisotropy = 4, tier = 'high') {
     const size = 512;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
+    const { canvas, ctx } = createScaledCanvas(size, size, tier, { mediumScale: 0.5, lowScale: 0.5 });
 
     // Rich dark fertile urban garden loam base
     ctx.fillStyle = '#26190f';
     ctx.fillRect(0, 0, size, size);
 
     // Layer 1: Earth tone variations (moist loam patches, slightly lighter and darker dirt)
-    for (let i = 0; i < 45; i++) {
+    const patchCount = tier === 'low' ? 18 : (tier === 'medium' ? 28 : 45);
+    const tones = [
+        'rgba(50, 32, 18, 0.45)',
+        'rgba(24, 15, 9, 0.55)',
+        'rgba(68, 45, 26, 0.35)',
+        'rgba(38, 28, 20, 0.40)'
+    ];
+    for (let i = 0; i < patchCount; i++) {
         const cx = Math.random() * size;
         const cy = Math.random() * size;
         const rad = 25 + Math.random() * 80;
         const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-        const tones = [
-            'rgba(50, 32, 18, 0.45)',
-            'rgba(24, 15, 9, 0.55)',
-            'rgba(68, 45, 26, 0.35)',
-            'rgba(38, 28, 20, 0.40)'
-        ];
         const col = tones[Math.floor(Math.random() * tones.length)];
         grad.addColorStop(0, col);
         grad.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(cx, cy, rad, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
     }
 
-    // Layer 2: Granular dirt clods and organic soil texture (fine speckles)
-    for (let i = 0; i < 3600; i++) {
+    // Layer 2: Granular dirt clods and organic soil texture rendered with fast fillRect specks
+    const clodCount = tier === 'low' ? 500 : (tier === 'medium' ? 900 : 2000);
+    for (let i = 0; i < clodCount; i++) {
         const x = Math.random() * size;
         const y = Math.random() * size;
-        const r = 0.6 + Math.random() * 2.2;
+        const d = 1.4 + Math.random() * 3.4;
         const p = Math.random();
         if (p < 0.42) {
             ctx.fillStyle = 'rgba(16, 10, 5, 0.65)';
@@ -909,46 +928,42 @@ function createTreeSoilTextures(maxAnisotropy = 4) {
         } else {
             ctx.fillStyle = 'rgba(130, 115, 100, 0.35)';
         }
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillRect(x, y, d, d);
     }
 
     // Layer 3: Natural micro-moss and tender green accents along edges / corners
-    for (let i = 0; i < 320; i++) {
+    const mossCount = tier === 'low' ? 120 : (tier === 'medium' ? 200 : 320);
+    for (let i = 0; i < mossCount; i++) {
         const x = Math.random() * size;
         const y = Math.random() * size;
         const distFromEdge = Math.min(x, size - x, y, size - y);
         if (distFromEdge < 95 || Math.random() < 0.15) {
-            const r = 0.8 + Math.random() * 2.0;
+            const d = 1.8 + Math.random() * 3.2;
             ctx.fillStyle = Math.random() < 0.5 ? 'rgba(50, 78, 32, 0.45)' : 'rgba(38, 62, 24, 0.5)';
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillRect(x, y, d, d);
         }
-    }
-
-    // Bump map for 3D soil relief
-    const bumpCanvas = document.createElement('canvas');
-    bumpCanvas.width = size;
-    bumpCanvas.height = size;
-    const bctx = bumpCanvas.getContext('2d');
-    bctx.fillStyle = '#808080';
-    bctx.fillRect(0, 0, size, size);
-    for (let i = 0; i < 2400; i++) {
-        const x = Math.random() * size;
-        const y = Math.random() * size;
-        const r = 0.8 + Math.random() * 2.2;
-        const shade = Math.random() < 0.5 ? 'rgba(35, 35, 35, 0.5)' : 'rgba(220, 220, 220, 0.4)';
-        bctx.fillStyle = shade;
-        bctx.beginPath();
-        bctx.arc(x, y, r, 0, Math.PI * 2);
-        bctx.fill();
     }
 
     const colorTex = new THREE.CanvasTexture(canvas);
     colorTex.colorSpace = THREE.SRGBColorSpace;
     colorTex.anisotropy = Math.min(4, maxAnisotropy);
+
+    if (tier === 'low') {
+        return { colorTex, bumpTex: null };
+    }
+
+    // Bump map for 3D soil relief using fast fillRect granules
+    const { canvas: bumpCanvas, ctx: bctx } = createScaledCanvas(size, size, tier, { mediumScale: 0.5, lowScale: 0.5 });
+    bctx.fillStyle = '#808080';
+    bctx.fillRect(0, 0, size, size);
+    const bumpClods = tier === 'medium' ? 500 : 1200;
+    for (let i = 0; i < bumpClods; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const d = 1.6 + Math.random() * 3.2;
+        bctx.fillStyle = Math.random() < 0.5 ? 'rgba(35, 35, 35, 0.5)' : 'rgba(220, 220, 220, 0.4)';
+        bctx.fillRect(x, y, d, d);
+    }
 
     const bumpTex = new THREE.CanvasTexture(bumpCanvas);
     bumpTex.anisotropy = Math.min(4, maxAnisotropy);
@@ -1321,7 +1336,7 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         scene.add(asphaltPatchMesh);
     }
 
-    const { colorTex: curbColorTex, bumpTex: curbBumpTex } = createCurbstoneTextures(maxAniso);
+    const { colorTex: curbColorTex, bumpTex: curbBumpTex } = createCurbstoneTextures(maxAniso, tier);
     const curbMesh = new THREE.Mesh(
         mergeGeometries(curbGeoms, false),
         new THREE.MeshStandardMaterial({
@@ -1537,7 +1552,7 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     // Segment 3: north of Dong Da junction
     pushLtkOuterSegment(fDdNw.u2OnR2, roadDefs.ltk.uMax, 6.0);
 
-    const { colorTex: sidewalkColorTex, bumpTex: sidewalkBumpTex } = createTerrazzoSidewalkTextures(maxAniso);
+    const { colorTex: sidewalkColorTex, bumpTex: sidewalkBumpTex } = createTerrazzoSidewalkTextures(maxAniso, tier);
     const sidewalkMesh = new THREE.Mesh(
         mergeGeometries(sidewalkGeoms, false),
         new THREE.MeshStandardMaterial({
@@ -1636,7 +1651,7 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     treePitCurbMesh.castShadow = tier !== 'low';
     scene.add(treePitCurbMesh);
 
-    const { colorTex: pitSoilColorTex, bumpTex: pitSoilBumpTex } = createTreeSoilTextures(maxAniso);
+    const { colorTex: pitSoilColorTex, bumpTex: pitSoilBumpTex } = createTreeSoilTextures(maxAniso, tier);
     const treePitSoilMesh = new THREE.Mesh(
         mergeGeometries(treePitSoilGeoms, false),
         new THREE.MeshStandardMaterial({
@@ -1653,10 +1668,7 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     scene.add(treePitSoilMesh);
 
     // 4. Orthogonal Soccer Pitch (San Bong Da) with FIFA turf markings
-    const pitchCanvas = document.createElement('canvas');
-    pitchCanvas.width = 512;
-    pitchCanvas.height = 1024;
-    const fctx = pitchCanvas.getContext('2d');
+    const { canvas: pitchCanvas, ctx: fctx } = createScaledCanvas(512, 1024, tier, { mediumScale: 0.5, lowScale: 0.5 });
     for (let y = 0; y < 1024; y += 64) {
         fctx.fillStyle = (y / 64) % 2 === 0 ? '#3a6e39' : '#417a40';
         fctx.fillRect(0, y, 512, 64);
@@ -1691,10 +1703,7 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
 
     // Procedural authentic bold white square grid net texture for soccer goals
     const createGoalNetTexture = () => {
-        const netCanvas = document.createElement('canvas');
-        netCanvas.width = 512;
-        netCanvas.height = 512;
-        const nctx = netCanvas.getContext('2d');
+        const { canvas: netCanvas, ctx: nctx } = createScaledCanvas(512, 512, tier, { mediumScale: 0.5, lowScale: 0.5 });
         nctx.clearRect(0, 0, 512, 512);
 
         // Bold, bright, opaque white braided nylon square net cords
@@ -2566,17 +2575,14 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
 }
 
 // Create authentic 4-sided modern architectural building for Nha D (Photo 1) covering all 4 faces
-function createNhaDModernBuilding(scene, maxAniso = 4) {
+function createNhaDModernBuilding(scene, maxAniso = 4, tier = 'high') {
     const group = new THREE.Group();
 
     // 1. Texture generator for West (with logo & text) and East (clean) short facades (11.5m wide x 15.0m high)
     const createNhaDShortTexture = (hasSignboard = true) => {
         const sizeW = 1024;
         const sizeH = 1344;
-        const canvas = document.createElement('canvas');
-        canvas.width = sizeW;
-        canvas.height = sizeH;
-        const ctx = canvas.getContext('2d');
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
 
         // Base off-white exterior architectural finish on flanking columns
         ctx.fillStyle = '#f8fafc';
@@ -2764,12 +2770,10 @@ function createNhaDModernBuilding(scene, maxAniso = 4) {
 
     // 2. Bump texture generator for short facades (11.5m)
     const createNhaDShortBumpTexture = () => {
+        if (tier === 'low') return null;
         const sizeW = 1024;
         const sizeH = 1344;
-        const bumpCanvas = document.createElement('canvas');
-        bumpCanvas.width = sizeW;
-        bumpCanvas.height = sizeH;
-        const bctx = bumpCanvas.getContext('2d');
+        const { canvas: bumpCanvas, ctx: bctx } = createScaledCanvas(sizeW, sizeH, tier, { highScale: 0.5, mediumScale: 0.375 });
         bctx.fillStyle = '#808080';
         bctx.fillRect(0, 0, sizeW, sizeH);
 
@@ -2806,10 +2810,7 @@ function createNhaDModernBuilding(scene, maxAniso = 4) {
     const createNhaDLongTexture = () => {
         const sizeW = 2048;
         const sizeH = 1344;
-        const canvas = document.createElement('canvas');
-        canvas.width = sizeW;
-        canvas.height = sizeH;
-        const ctx = canvas.getContext('2d');
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
 
         // Base off-white exterior architectural finish
         ctx.fillStyle = '#f8fafc';
@@ -2966,12 +2967,10 @@ function createNhaDModernBuilding(scene, maxAniso = 4) {
 
     // 4. Bump texture generator for long facades (22.0m)
     const createNhaDLongBumpTexture = () => {
+        if (tier === 'low') return null;
         const sizeW = 2048;
         const sizeH = 1344;
-        const bumpCanvas = document.createElement('canvas');
-        bumpCanvas.width = sizeW;
-        bumpCanvas.height = sizeH;
-        const bctx = bumpCanvas.getContext('2d');
+        const { canvas: bumpCanvas, ctx: bctx } = createScaledCanvas(sizeW, sizeH, tier, { highScale: 0.5, mediumScale: 0.375 });
         bctx.fillStyle = '#808080';
         bctx.fillRect(0, 0, sizeW, sizeH);
 
@@ -3369,7 +3368,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
     createDongDaLeftWingGateStructure(scene, maxAniso, animatedFlags);
 
     // Authentic 4-sided Building D modern facade and entrance canopies matching Photo 1
-    createNhaDModernBuilding(scene, maxAniso);
+    createNhaDModernBuilding(scene, maxAniso, hardwareProfile.tier || 'high');
 
     const myThuatTex = createSignTexture(['PHÒNG HỌC MỸ THUẬT'], {
         w: 640, h: 112, bg: '#1f2937', border: '#facc15', color: '#fde047', fontSizes: [42], maxAnisotropy: maxAniso
@@ -3619,15 +3618,13 @@ function createTeleportBeacons(scene, hardwareProfile = { maxAnisotropy: 4 }) {
 
 // Create authentic urban ensemble opposite Ly Thuong Kiet x Dong Da intersection matching Photos 1-5
 function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
+    const tier = hardwareProfile.tier || 'high';
     const maxAniso = hardwareProfile.maxAnisotropy || 4;
     const ensembleGroup = new THREE.Group();
 
     // 1. GOLDLAND PLAZA COMPLEX (Photos 1, 3, 4)
     // Procedural PBR texture for Goldland Plaza: white structural colonnade + rich golden honeycomb lattice
-    const glCanvas = document.createElement('canvas');
-    glCanvas.width = 1024;
-    glCanvas.height = 512;
-    const glCtx = glCanvas.getContext('2d');
+    const { canvas: glCanvas, ctx: glCtx } = createScaledCanvas(1024, 512, tier, { mediumScale: 0.5, lowScale: 0.375 });
 
     // Base background and golden lattice bays
     glCtx.fillStyle = '#1e1b18';
@@ -3874,10 +3871,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const cgGroup = new THREE.Group();
 
     // Procedural texture for Corner Gabled Building (soft pastel sage-green + white mouldings)
-    const cgCanvas = document.createElement('canvas');
-    cgCanvas.width = 1024;
-    cgCanvas.height = 512;
-    const cgCtx = cgCanvas.getContext('2d');
+    const { canvas: cgCanvas, ctx: cgCtx } = createScaledCanvas(1024, 512, tier, { mediumScale: 0.5, lowScale: 0.375 });
 
     // Pastel mint / sage-green wall render
     cgCtx.fillStyle = '#bbf7d0';
@@ -4208,10 +4202,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const vpTowerH = 96.0;
 
     // Procedural glossy blue glass curtain wall texture
-    const vpCanvas = document.createElement('canvas');
-    vpCanvas.width = 512;
-    vpCanvas.height = 1024;
-    const vpCtx = vpCanvas.getContext('2d');
+    const { canvas: vpCanvas, ctx: vpCtx } = createScaledCanvas(512, 1024, tier, { mediumScale: 0.5, lowScale: 0.5 });
 
     vpCtx.fillStyle = '#0284c7';
     vpCtx.fillRect(0, 0, 512, 1024);
@@ -4329,7 +4320,6 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const medCurbMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85 });
     const medLawnMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.90 });
 
-    const tier = hardwareProfile.tier || 'high';
     const shrubLeafTex = getSharedLeafClusterTexture(tier === 'low' ? 256 : 512, maxAniso);
     const shrubCardTier = tier === 'low' ? 'low' : (tier === 'medium' ? 'medium' : 'high');
     const shrubLeafGeom = createDenseShrubCardClusterGeometry(shrubCardTier, 0.88);
@@ -4583,10 +4573,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const tcbRadius = 3.8;
 
     // Procedural PBR texture for Techcombank podium and tower facade
-    const tcbCanvas = document.createElement('canvas');
-    tcbCanvas.width = 1024;
-    tcbCanvas.height = 1024;
-    const tcbCtx = tcbCanvas.getContext('2d');
+    const { canvas: tcbCanvas, ctx: tcbCtx } = createScaledCanvas(1024, 1024, tier, { mediumScale: 0.5, lowScale: 0.375 });
 
     // Clean modern off-white building paneling
     tcbCtx.fillStyle = '#f8fafc';
@@ -4771,10 +4758,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     tcbGroup.add(tcbTowerCylinderMesh);
 
     // 6. Giant rooftop illuminated billboard frame with TECHCOMBANK sign and logo (Photos 1, 2)
-    const tcbSignCanvas = document.createElement('canvas');
-    tcbSignCanvas.width = 1024;
-    tcbSignCanvas.height = 256;
-    const tcbSignCtx = tcbSignCanvas.getContext('2d');
+    const { canvas: tcbSignCanvas, ctx: tcbSignCtx } = createScaledCanvas(1024, 256, tier, { mediumScale: 0.5, lowScale: 0.5 });
 
     // Bold red Techcombank letters
     tcbSignCtx.fillStyle = '#dc2626';
@@ -4838,10 +4822,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const daH = 26.0;
 
     // Procedural PBR texture for DongA Bank teal / sea-green facade
-    const daCanvas = document.createElement('canvas');
-    daCanvas.width = 512;
-    daCanvas.height = 1024;
-    const daCtx = daCanvas.getContext('2d');
+    const { canvas: daCanvas, ctx: daCtx } = createScaledCanvas(512, 1024, tier, { mediumScale: 0.5, lowScale: 0.5 });
 
     // Rich teal / sea-green facade paint
     daCtx.fillStyle = '#235855';
@@ -4914,10 +4895,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     daGroup.add(daP2);
 
     // Rooftop Signage: NGÂN HÀNG ĐÔNG Á + circular orange & blue sun logo (Photo 3)
-    const daSignCanvas = document.createElement('canvas');
-    daSignCanvas.width = 768;
-    daSignCanvas.height = 192;
-    const daSignCtx = daSignCanvas.getContext('2d');
+    const { canvas: daSignCanvas, ctx: daSignCtx } = createScaledCanvas(768, 192, tier, { mediumScale: 0.5, lowScale: 0.5 });
 
     // Bold blue text
     daSignCtx.fillStyle = '#0284c7';
@@ -4980,10 +4958,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const ofH = 29.0;
 
     // Procedural PBR texture for clean white modern commercial office building
-    const ofCanvas = document.createElement('canvas');
-    ofCanvas.width = 1024;
-    ofCanvas.height = 1024;
-    const ofCtx = ofCanvas.getContext('2d');
+    const { canvas: ofCanvas, ctx: ofCtx } = createScaledCanvas(1024, 1024, tier, { mediumScale: 0.5, lowScale: 0.375 });
 
     // Crisp white facade with grey architectural accents
     ofCtx.fillStyle = '#f1f5f9';
@@ -5058,10 +5033,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     const cbDepth = 18.0;
     const cbH = 22.0;
 
-    const cbCanvas = document.createElement('canvas');
-    cbCanvas.width = 1024;
-    cbCanvas.height = 1024;
-    const cbCtx = cbCanvas.getContext('2d');
+    const { canvas: cbCanvas, ctx: cbCtx } = createScaledCanvas(1024, 1024, tier, { mediumScale: 0.5, lowScale: 0.375 });
 
     // Warm contemporary commercial facade with bronze/sandstone tones
     cbCtx.fillStyle = '#f8fafc';
@@ -5206,17 +5178,15 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
 
     // Authentic Vietnamese polished granito stone benches (ghe da cong vien / ghe da hoa cuong) on sidewalk
     const createGranitoTexture = (aniso = 4) => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d');
+        const { canvas, ctx } = createScaledCanvas(512, 512, tier, { mediumScale: 0.5, lowScale: 0.5 });
 
         // Base polished terrazzo tone (bright pale gray-stone)
         ctx.fillStyle = '#f1f5f9';
         ctx.fillRect(0, 0, 512, 512);
 
         // Subtle cloudy stone grain
-        for (let c = 0; c < 14; c++) {
+        const cloudCount = tier === 'low' ? 6 : 12;
+        for (let c = 0; c < cloudCount; c++) {
             const cx = Math.random() * 512;
             const cy = Math.random() * 512;
             const cr = 45 + Math.random() * 75;
@@ -5227,11 +5197,12 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
             ctx.fillRect(cx - cr, cy - cr, cr * 2, cr * 2);
         }
 
-        // High-density granite mineral chips (dark slate, medium slate, quartz crystal, charcoal)
-        for (let i = 0; i < 2400; i++) {
+        // High-density granite mineral chips rendered via fast angular fillRect chips
+        const chipCount = tier === 'low' ? 500 : (tier === 'medium' ? 900 : 1600);
+        for (let i = 0; i < chipCount; i++) {
             const x = Math.random() * 512;
             const y = Math.random() * 512;
-            const r = 0.8 + Math.random() * 2.2;
+            const d = 1.6 + Math.random() * 3.8;
             const rnd = Math.random();
             if (rnd < 0.35) {
                 ctx.fillStyle = '#475569';
@@ -5242,9 +5213,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
             } else {
                 ctx.fillStyle = '#1e293b';
             }
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillRect(x, y, d, d);
         }
 
         const tex = new THREE.CanvasTexture(canvas);
