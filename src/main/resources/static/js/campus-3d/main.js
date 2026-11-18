@@ -364,20 +364,32 @@ async function bootstrapCampus3D() {
             if (loadingProgressBar) loadingProgressBar.style.width = '96%';
             if (loadingProgressText) loadingProgressText.textContent = 'Đang khởi tạo đồ họa WebGL...';
 
-            // Pre-compile all active shaders and upload every VBO/texture without aspect-ratio frustum gaps
+            // Pre-compile all active and night/aircraft shaders and upload every VBO/texture behind the loading curtain
             const warmupPipelineBehindCurtain = async () => {
                 const culledRestore = [];
+                const hiddenRestore = [];
                 scene.traverse((obj) => {
                     if (obj.isMesh && obj.frustumCulled) {
                         culledRestore.push(obj);
                         obj.frustumCulled = false;
                     }
+                    // Temporarily reveal hidden non-light objects so compileAsync warms Night/Sunset/Aircraft shaders once
+                    if (!obj.isLight && !obj.visible) {
+                        hiddenRestore.push(obj);
+                        obj.visible = true;
+                    }
                 });
                 envController.requestShadowRefresh();
-                if (typeof renderer.compileAsync === 'function') {
-                    await renderer.compileAsync(scene, camera);
-                } else {
-                    renderer.compile(scene, camera);
+                try {
+                    if (typeof renderer.compileAsync === 'function') {
+                        await renderer.compileAsync(scene, camera);
+                    } else {
+                        renderer.compile(scene, camera);
+                    }
+                } finally {
+                    for (const obj of hiddenRestore) {
+                        obj.visible = false;
+                    }
                 }
                 playerController.sampleIntroPose(0);
                 renderer.render(scene, camera);

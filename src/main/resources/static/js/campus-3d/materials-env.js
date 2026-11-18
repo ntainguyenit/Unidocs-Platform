@@ -2341,6 +2341,9 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
     const signTex = createHuscHighSchoolSignTexture(maxAniso);
     const signMat = new THREE.MeshStandardMaterial({
         map: signTex,
+        emissive: new THREE.Color(0xfff1cc),
+        emissiveMap: signTex,
+        emissiveIntensity: 0,
         roughness: 0.22,
         metalness: 0.08
     });
@@ -2352,7 +2355,7 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
     });
 
     const lampLensMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff
+        color: 0xcbd5e1
     });
 
     const group = new THREE.Group();
@@ -2460,14 +2463,11 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
         lensMesh.rotation.x = -Math.PI * 0.5 + 0.65;
         lensMesh.position.set(0, -0.13, 0.01);
 
-        const spotLight = new THREE.PointLight(0xfff3d0, 0, 7.5, 1.2);
-        spotLight.position.set(0, -0.12, 0);
-        spotLight.visible = false;
-
+        // Emissive signboard + additive cone/glow illuminate gate with zero PointLight shader recompiles
         const coneMesh = new THREE.Mesh(coneGeom, coneMat);
         coneMesh.visible = false;
 
-        spotGroup.add(brackMesh, lampMesh, lensMesh, spotLight, coneMesh);
+        spotGroup.add(brackMesh, lampMesh, lensMesh, coneMesh);
         group.add(spotGroup);
 
         const glowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.6), glowMat);
@@ -2475,7 +2475,7 @@ function createDongDaLeftWingGateStructure(scene, maxAniso = 4, animatedFlags = 
         glowMesh.visible = false;
         group.add(glowMesh);
 
-        gateSpotlights.push({ spotLight, coneMesh, glowMesh });
+        gateSpotlights.push({ signMat, lampLensMat, coneMat, glowMat, coneMesh, glowMesh });
     }
 
     // 6. Top Decorative Railing and 4 dynamic colored flags on 4 poles above overhead beam
@@ -5821,21 +5821,27 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             if (updateTraffic && updateTraffic.setNightMode) updateTraffic.setNightMode(false);
         }
 
-        // Under-beam gate spotlights turn off during daytime and turn on at sunset/night
+        // Under-beam gate illumination uses uniform-only emissive and additive meshes with zero shader recompiles
         for (const sp of gateSpotlights) {
             if (mode === 'night') {
-                sp.spotLight.visible = true;
-                sp.spotLight.intensity = 3.8;
+                sp.signMat.emissiveIntensity = 0.74;
+                sp.lampLensMat.color.setHex(0xffffff);
+                sp.coneMat.opacity = 0.34;
+                sp.glowMat.opacity = 0.95;
                 sp.coneMesh.visible = true;
                 sp.glowMesh.visible = true;
             } else if (mode === 'sunset') {
-                sp.spotLight.visible = true;
-                sp.spotLight.intensity = 1.6;
+                sp.signMat.emissiveIntensity = 0.34;
+                sp.lampLensMat.color.setHex(0xfff5cc);
+                sp.coneMat.opacity = 0.20;
+                sp.glowMat.opacity = 0.55;
                 sp.coneMesh.visible = true;
                 sp.glowMesh.visible = true;
             } else {
-                sp.spotLight.visible = false;
-                sp.spotLight.intensity = 0;
+                sp.signMat.emissiveIntensity = 0;
+                sp.lampLensMat.color.setHex(0xcbd5e1);
+                sp.coneMat.opacity = 0;
+                sp.glowMat.opacity = 0;
                 sp.coneMesh.visible = false;
                 sp.glowMesh.visible = false;
             }

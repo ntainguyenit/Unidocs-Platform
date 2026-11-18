@@ -697,31 +697,15 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
         scene.add(inst);
     }
 
-    // Dynamic SpotLight pool illuminating road surfaces in front of closest moving vehicles
-    const spotLights = [];
-    const spotCount = 4;
-    for (let s = 0; s < spotCount; s++) {
-        const spot = new THREE.SpotLight(0xffffee, 0, 28, Math.PI * 0.22, 0.65, 1.2);
-        spot.castShadow = false;
-        spot.visible = false;
-        scene.add(spot);
-        scene.add(spot.target);
-        spotLights.push(spot);
-    }
-
-    const spotCandidates = [];
-    for (let i = 0; i < allUnits.length; i++) {
-        spotCandidates.push({ unit: null, distSq: 999999 });
-    }
-
+    // Use instanced additive ground headlight beams exclusively to avoid SpotLight shader recompiles and fillrate spikes
     let isNightMode = false;
     const setNightMode = (night) => {
         isNightMode = Boolean(night);
         if (isNightMode) {
             carHeadlightMat.color.setHex(0xffffee);
             motoHeadLightMat.color.setHex(0xffffee);
-            carBeamMat.opacity = 0.85;
-            motoBeamMat.opacity = 0.82;
+            carBeamMat.opacity = 0.94;
+            motoBeamMat.opacity = 0.90;
             carBeamInst.visible = true;
             motoBeamInst.visible = true;
             carBeamInst.instanceMatrix.needsUpdate = true;
@@ -733,10 +717,6 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
             motoBeamMat.opacity = 0.0;
             carBeamInst.visible = false;
             motoBeamInst.visible = false;
-            for (let s = 0; s < spotCount; s++) {
-                spotLights[s].visible = false;
-                spotLights[s].intensity = 0;
-            }
         }
     };
 
@@ -1071,68 +1051,6 @@ export function createRoadTrafficSystem(scene, hardwareProfile = { tier: 'high' 
         if (isNightMode) {
             if (carMovedDirty) carBeamInst.instanceMatrix.needsUpdate = true;
             if (motoMovedDirty) motoBeamInst.instanceMatrix.needsUpdate = true;
-
-            // Direct dynamic spotlights to illuminate road surface in front of nearest vehicles
-            const px = playerState ? playerState.x : 0;
-            const pz = playerState ? playerState.z : 40;
-
-            let candCount = 0;
-            for (let i = 0; i < allUnits.length; i++) {
-                const u = allUnits[i];
-                const dx = u.wx - px;
-                const dz = u.wz - pz;
-                const distSq = dx * dx + dz * dz;
-                if (distSq < 4900) {
-                    const slot = spotCandidates[candCount++];
-                    slot.unit = u;
-                    slot.distSq = distSq;
-                }
-            }
-
-            for (let i = 0; i < candCount - 1; i++) {
-                for (let j = i + 1; j < candCount; j++) {
-                    if (spotCandidates[j].distSq < spotCandidates[i].distSq) {
-                        const tmpU = spotCandidates[i].unit;
-                        const tmpD = spotCandidates[i].distSq;
-                        spotCandidates[i].unit = spotCandidates[j].unit;
-                        spotCandidates[i].distSq = spotCandidates[j].distSq;
-                        spotCandidates[j].unit = tmpU;
-                        spotCandidates[j].distSq = tmpD;
-                    }
-                }
-            }
-
-            for (let s = 0; s < spotCount; s++) {
-                const spot = spotLights[s];
-                if (s < candCount) {
-                    const cand = spotCandidates[s];
-                    const u = cand.unit;
-                    const fwdOffset = u.isCar ? 2.15 : 0.62;
-                    const lightY = u.isCar ? 0.62 : 0.68;
-                    const targetDist = u.isCar ? 8.5 : 5.8;
-                    const fx = u.wx + u.dirX * fwdOffset;
-                    const fz = u.wz + u.dirZ * fwdOffset;
-
-                    spot.position.set(fx, lightY, fz);
-                    spot.target.position.set(fx + u.dirX * targetDist, 0.02, fz + u.dirZ * targetDist);
-                    spot.target.updateMatrixWorld();
-
-                    const dist = Math.sqrt(cand.distSq);
-                    const edgeFade = dist > 50 ? Math.max(0, (70 - dist) / 20) : 1.0;
-                    spot.intensity = (u.isCar ? 2.8 : 1.8) * edgeFade;
-                    spot.visible = spot.intensity > 0.05;
-                } else {
-                    spot.visible = false;
-                    spot.intensity = 0;
-                }
-            }
-        } else {
-            for (let s = 0; s < spotCount; s++) {
-                if (spotLights[s].visible) {
-                    spotLights[s].visible = false;
-                    spotLights[s].intensity = 0;
-                }
-            }
         }
     };
 
