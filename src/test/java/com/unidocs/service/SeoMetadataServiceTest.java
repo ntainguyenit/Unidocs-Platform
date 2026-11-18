@@ -179,6 +179,35 @@ class SeoMetadataServiceTest {
         assertTrue(authorNode.get("alternateName").toString().contains("Nguyễn Ngọc Thành Tài"));
         assertEquals("ntainguyen.it@gmail.com", authorNode.get("email").asText());
         assertEquals("https://github.com/ntainguyenit", authorNode.get("url").asText());
+
+        // Verify AEO structured data nodes (FAQPage, HowTo, SpeakableSpecification, SearchAction) on /husc-campus
+        String campusJson = seo.getJsonLd();
+        assertTrue(campusJson.contains("\"@type\":\"FAQPage\""), "Expected FAQPage in campus JSON-LD");
+        assertTrue(campusJson.contains("\"@type\":\"HowTo\""), "Expected HowTo in campus JSON-LD");
+        assertTrue(campusJson.contains("\"@type\":\"SpeakableSpecification\""), "Expected SpeakableSpecification in campus JSON-LD");
+        assertTrue(campusJson.contains("\"@type\":\"SearchAction\""), "Expected SearchAction in campus WebSite node");
+    }
+
+    @Test
+    void buildHomepageSeo_GeneratesAeoFaqHowToSpeakableAndSearchAction() throws Exception {
+        University husc = University.builder()
+                .id(1L)
+                .name("Trường Đại học Khoa học Huế")
+                .slug("truong-dai-hoc-khoa-hoc")
+                .shortName("HUSC")
+                .build();
+
+        SeoMetadataDto seo = seoMetadataService.buildHomepageSeo(List.of(husc));
+        assertTrue(seo.getRobots().contains("max-snippet:-1"));
+
+        JsonNode root = objectMapper.readTree(seo.getJsonLd());
+        assertEquals("https://schema.org", root.get("@context").asText());
+        String json = seo.getJsonLd();
+        assertTrue(json.contains("\"@type\":\"FAQPage\""));
+        assertTrue(json.contains("\"@type\":\"HowTo\""));
+        assertTrue(json.contains("\"@type\":\"SpeakableSpecification\""));
+        assertTrue(json.contains("\"@type\":\"SearchAction\""));
+        assertTrue(json.contains("UniDocs (UniDocs HUSC) là gì?"));
     }
 
     private void assertKeywordClusterPresent(String text) {

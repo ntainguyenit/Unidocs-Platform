@@ -211,5 +211,10 @@ class Campus3DIntegrationTest {
         assertTrue(jsonLdRaw.contains("Thành phố Huế"));
         assertTrue(jsonLdRaw.contains("ntainguyen.it@gmail.com"));
         assertTrue(jsonLdRaw.contains("https://github.com/ntainguyenit"));
+        assertTrue(jsonLdRaw.contains("\"@type\":\"FAQPage\""));
+        assertTrue(jsonLdRaw.contains("\"@type\":\"HowTo\""));
+        assertTrue(jsonLdRaw.contains("\"@type\":\"SpeakableSpecification\""));
+        assertTrue(html.contains("class=\"sr-only aeo-campus-summary\""));
+        assertTrue(html.contains("href=\"/llms.txt\""));
     }
 }

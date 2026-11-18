@@ -183,5 +183,33 @@ class SeoAndGeoIntegrationTest {
                 .andExpect(content().string(containsString("<link rel=\"canonical\" href=\"https://unidocs-husc.pages.dev/document/de-thi-cuoi-ky-ctdl-seo/view\">")))
                 .andExpect(content().string(containsString("<meta property=\"og:type\" content=\"article\">")))
                 .andExpect(content().string(containsString("\"@type\":\"LearningResource\"")));
+
+        // 6. Verify AEO upgrades on Homepage, /llms.txt, /llms-full.txt, and robots.txt
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"section-faq\"")))
+                .andExpect(content().string(containsString("\"@type\":\"FAQPage\"")))
+                .andExpect(content().string(containsString("\"@type\":\"HowTo\"")))
+                .andExpect(content().string(containsString("\"@type\":\"SpeakableSpecification\"")))
+                .andExpect(content().string(containsString("href=\"/llms.txt\"")));
+
+        mockMvc.perform(get("/llms.txt"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", containsString("text/markdown")))
+                .andExpect(content().string(containsString("# UniDocs HUSC")))
+                .andExpect(content().string(containsString("/husc-campus")))
+                .andExpect(content().string(containsString("/faculty/khoa-cntt-seo")));
+
+        mockMvc.perform(get("/llms-full.txt"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", containsString("text/markdown")))
+                .andExpect(content().string(containsString("/course/cau-truc-du-lieu-seo")))
+                .andExpect(content().string(not(containsString("hoc-phan-cho-duyet-seo"))))
+                .andExpect(content().string(containsString("77 Nguyễn Huệ")));
+
+        mockMvc.perform(get("/robots.txt"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Allow: /llms.txt")))
+                .andExpect(content().string(containsString("ai-input=yes")));
     }
 }

@@ -18,11 +18,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-// Builds dynamic SEO meta tags, Open Graph attributes, GEO contextual copy, and JSON-LD Schema.org payloads
+// Builds dynamic SEO meta tags, Open Graph attributes, GEO copy, and AEO Schema.org JSON-LD payloads
 @Service
 public class SeoMetadataService {
 
     private static final String DEFAULT_SITE_URL = "https://unidocs-husc.pages.dev";
+    private static final String AEO_ROBOTS_DIRECTIVE = "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1";
     private static final String HUSC_OFFICIAL_NAME = "Trường Đại học Khoa học, Đại học Huế";
     private static final List<String> BRAND_CLUSTER_KEYWORDS = List.of(
             "Trường Đại học Khoa học",
@@ -73,6 +74,46 @@ public class SeoMetadataService {
         List<Map<String, Object>> graph = new ArrayList<>();
         graph.add(buildWebsiteNode());
         graph.add(buildHuscOrganizationNode(null));
+        graph.add(buildSpeakableWebPageNode(
+                siteUrl + "/#webpage",
+                siteUrl + "/",
+                title,
+                description,
+                List.of(".aeo-speakable", "#section-faq"),
+                siteUrl + "/#faq"
+        ));
+        graph.add(buildFaqPageNode(siteUrl + "/#faq", List.of(
+                new FaqItem(
+                        "UniDocs (UniDocs HUSC) là gì?",
+                        "UniDocs là nền tảng chia sẻ tài liệu học tập, đề thi, giáo trình và hơn 30 tiện ích sinh viên miễn phí dành cho sinh viên Trường Đại học Khoa học, Đại học Huế (HUSC, ĐHKH Huế), tích hợp bản đồ khuôn viên 3D trực tuyến tại /husc-campus."
+                ),
+                new FaqItem(
+                        "Tải tài liệu và đề thi trên UniDocs có mất phí hoặc cần đăng nhập không?",
+                        "Không. Toàn bộ tài liệu, slide bài giảng và đề thi đã kiểm duyệt trên UniDocs đều hoàn toàn miễn phí và sinh viên có thể xem trực tuyến hoặc tải xuống ngay mà không cần tạo tài khoản."
+                ),
+                new FaqItem(
+                        "Làm thế nào để đóng góp tài liệu, đề thi lên UniDocs?",
+                        "Sinh viên chỉ cần mở đúng học phần hoặc nhấn nút tải lên tài liệu trên trang học phần, chọn tệp PDF/DOCX/PPTX và gửi duyệt. Tài liệu sẽ được kiểm duyệt tự động và phê duyệt nhanh trước khi công khai."
+                ),
+                new FaqItem(
+                        "UniDocs có những tiện ích học tập nào nổi bật cho sinh viên HUSC?",
+                        "Ngoài kho tài liệu và đề thi theo khoa, UniDocs cung cấp hơn 30 công cụ sinh viên như giả lập phòng thi, flashcards ôn tập, thời khóa biểu, sơ đồ tư duy nhanh, đếm ngược mùa thi, nhóm học tập, thông báo UMS và bản đồ khuôn viên 3D HUSC tại /husc-campus."
+                ),
+                new FaqItem(
+                        "Ai là người phát triển UniDocs và HUSC Campus 3D?",
+                        "UniDocs và mô hình khuôn viên 3D HUSC được phát triển bởi Tài Nguyễn (Nguyễn Ngọc Thành Tài - ntainguyenit) nhằm hỗ trợ cộng đồng sinh viên Trường Đại học Khoa học, Đại học Huế."
+                )
+        )));
+        graph.add(buildHowToNode(
+                siteUrl + "/#howto",
+                "Cách tìm và tải tài liệu, đề thi Trường Đại học Khoa học Huế trên UniDocs",
+                "Hướng dẫn 3 bước nhanh giúp sinh viên HUSC tìm kiếm và tải xuống đề thi, giáo trình miễn phí trên UniDocs.",
+                List.of(
+                        new HowToStepItem("Chọn Trường và Khoa trực thuộc", "Truy cập trang chủ UniDocs và chọn Trường Đại học Khoa học, Đại học Huế cùng Khoa tương ứng."),
+                        new HowToStepItem("Mở Học phần cần ôn tập", "Chọn đúng học phần trong danh sách môn học của khoa hoặc tìm trực tiếp theo tên học phần."),
+                        new HowToStepItem("Xem trực tuyến hoặc tải xuống miễn phí", "Nhấn vào tài liệu hoặc đề thi đã kiểm duyệt để đọc trực tiếp trên trình duyệt hoặc tải về máy không cần đăng nhập.")
+                )
+        ));
 
         if (universities != null && !universities.isEmpty()) {
             List<Map<String, Object>> itemList = new ArrayList<>();
@@ -99,7 +140,7 @@ public class SeoMetadataService {
                 .canonicalUrl(siteUrl + "/")
                 .ogType("website")
                 .ogImage(siteUrl + "/favicon.svg")
-                .robots("index, follow")
+                .robots(AEO_ROBOTS_DIRECTIVE)
                 .jsonLd(serializeGraph(graph))
                 .build();
     }
@@ -159,6 +200,7 @@ public class SeoMetadataService {
         collectionPage.put("isPartOf", Map.of("@id", siteUrl + "/#website"));
         collectionPage.put("publisher", buildPublisherNode());
         collectionPage.put("author", buildAuthorNode());
+        collectionPage.put("speakable", buildSpeakableSpec(List.of("section[aria-label='Giới thiệu tổng quan các khoa trực thuộc']")));
         if (!itemListElements.isEmpty()) {
             Map<String, Object> mainEntity = new LinkedHashMap<>();
             mainEntity.put("@type", "ItemList");
@@ -185,7 +227,7 @@ public class SeoMetadataService {
                 .canonicalUrl(canonicalUrl)
                 .ogType("website")
                 .ogImage(resolveAbsoluteImageUrl(university != null ? university.getLogoUrl() : null))
-                .robots("index, follow")
+                .robots(AEO_ROBOTS_DIRECTIVE)
                 .jsonLd(serializeGraph(graph))
                 .contextualIntro(contextualIntro)
                 .build();
@@ -243,6 +285,7 @@ public class SeoMetadataService {
         collectionPage.put("isPartOf", Map.of("@id", siteUrl + "/#website"));
         collectionPage.put("publisher", buildPublisherNode());
         collectionPage.put("author", buildAuthorNode());
+        collectionPage.put("speakable", buildSpeakableSpec(List.of("section[aria-label='Giới thiệu tài liệu và học phần của khoa']")));
 
         if (courses != null && !courses.isEmpty()) {
             List<Map<String, Object>> courseItems = new ArrayList<>();
@@ -265,6 +308,17 @@ public class SeoMetadataService {
             }
         }
         graph.add(collectionPage);
+        graph.add(buildFaqPageNode(canonicalUrl + "#faq", List.of(
+                new FaqItem(
+                        facultyName + " tại Trường Đại học Khoa học Huế có những tài liệu gì trên UniDocs?",
+                        "Trang " + facultyName + " trên UniDocs hiện tổng hợp " + courseCount
+                                + " học phần với kho đề thi, giáo trình, slide bài giảng và bài tập ôn thi của sinh viên Trường Đại học Khoa học, Đại học Huế (HUSC)."
+                ),
+                new FaqItem(
+                        "Tải đề thi và giáo trình " + facultyName + " trên UniDocs có miễn phí không?",
+                        "Hoàn toàn miễn phí. Sinh viên có thể mở trực tiếp từng học phần thuộc " + facultyName + " để xem và tải tài liệu đã kiểm duyệt mà không cần đăng nhập."
+                )
+        )));
 
         List<BreadcrumbItem> crumbs = new ArrayList<>();
         crumbs.add(new BreadcrumbItem("Trang chủ", siteUrl + "/"));
@@ -285,7 +339,7 @@ public class SeoMetadataService {
                 .canonicalUrl(canonicalUrl)
                 .ogType("website")
                 .ogImage(siteUrl + "/favicon.svg")
-                .robots("index, follow")
+                .robots(AEO_ROBOTS_DIRECTIVE)
                 .jsonLd(serializeGraph(graph))
                 .contextualIntro(contextualIntro)
                 .build();
@@ -370,6 +424,7 @@ public class SeoMetadataService {
         collectionPage.put("isPartOf", Map.of("@id", siteUrl + "/#website"));
         collectionPage.put("publisher", buildPublisherNode());
         collectionPage.put("author", buildAuthorNode());
+        collectionPage.put("speakable", buildSpeakableSpec(List.of("section[aria-label='Giới thiệu ngữ cảnh học phần']")));
 
         if (approvedDocs != null && !approvedDocs.isEmpty()) {
             List<Map<String, Object>> docItems = new ArrayList<>();
@@ -392,6 +447,17 @@ public class SeoMetadataService {
             }
         }
         graph.add(collectionPage);
+        graph.add(buildFaqPageNode(canonicalUrl + "#faq", List.of(
+                new FaqItem(
+                        "Tài liệu và đề thi học phần " + courseName + " (" + facultyName + " - HUSC) gồm những gì?",
+                        "Học phần " + courseName + " thuộc " + facultyName + " — Trường Đại học Khoa học, Đại học Huế hiện có " + docCount
+                                + " tài liệu đã kiểm duyệt gồm đề thi, giáo trình, bài tập và tài liệu ôn tập chia sẻ miễn phí trên UniDocs."
+                ),
+                new FaqItem(
+                        "Tải tài liệu học phần " + courseName + " trên UniDocs có cần đăng nhập không?",
+                        "Không cần đăng nhập. Sinh viên HUSC có thể xem trước trực tuyến và tải xuống miễn phí toàn bộ tài liệu đã duyệt của học phần " + courseName + "."
+                )
+        )));
 
         List<BreadcrumbItem> crumbs = new ArrayList<>();
         crumbs.add(new BreadcrumbItem("Trang chủ", siteUrl + "/"));
@@ -420,7 +486,7 @@ public class SeoMetadataService {
                 .canonicalUrl(canonicalUrl)
                 .ogType("website")
                 .ogImage(siteUrl + "/favicon.svg")
-                .robots("index, follow")
+                .robots(AEO_ROBOTS_DIRECTIVE)
                 .jsonLd(serializeGraph(graph))
                 .contextualIntro(contextualIntro)
                 .contextualSummary(contextualSummary)
@@ -476,12 +542,12 @@ public class SeoMetadataService {
                 .canonicalUrl(canonicalUrl)
                 .ogType("article")
                 .ogImage(siteUrl + "/favicon.svg")
-                .robots("index, follow")
+                .robots(AEO_ROBOTS_DIRECTIVE)
                 .jsonLd(serializeGraph(graph))
                 .build();
     }
 
-    // Build SEO meta tags and Schema.org InteractiveModel + CollegeOrUniversity JSON-LD for /husc-campus
+    // Build SEO, GEO, and AEO (InteractiveModel, FAQPage, HowTo, Speakable WebPage) metadata for /husc-campus
     public SeoMetadataDto buildHuscCampusSeo() {
         String title = "Khám phá Khuôn viên 3D - Trường Đại học Khoa học Huế (HUSC) | UniDocs";
         String description = "Khám phá khuôn viên 3D Trường Đại học Khoa học Huế (HUSC, ĐHKH Huế) trực tuyến trên UniDocs với sơ đồ giảng đường, góc quay flycam và trải nghiệm WebGL tại 77 Nguyễn Huệ.";
@@ -528,6 +594,12 @@ public class SeoMetadataService {
         interactiveModel.put("keywords", keywords);
         interactiveModel.put("about", Map.of("@id", siteUrl + "/#husc-university"));
         interactiveModel.put("spatialCoverage", Map.of("@id", siteUrl + "/#husc-university"));
+        interactiveModel.put("featureList", List.of(
+                "Mô hình 3D WebGL toàn bộ khuôn viên Trường Đại học Khoa học, Đại học Huế tại 77 Nguyễn Huệ và 38 Đống Đa",
+                "3 góc nhìn tương tác: Toàn cảnh Flycam, Góc nhìn thứ 3 và Góc nhìn thứ 1",
+                "Bản đồ 2D tích hợp dịch chuyển nhanh tới Nhà A, A1-A2, B, C, D, E, F, G, H, K, M, Sân bóng đá, Sân bóng rổ",
+                "Chế độ Sáng, Hoàng hôn, Ban đêm sống động cùng giao thông, người đi bộ và chụp ảnh lưu niệm 3D"
+        ));
         interactiveModel.put("author", authorNode);
         interactiveModel.put("creator", Map.of("@id", siteUrl + "/#author"));
         interactiveModel.put("publisher", buildPublisherNode());
@@ -537,6 +609,43 @@ public class SeoMetadataService {
         graph.add(buildWebsiteNode(authorNode));
         graph.add(universityNode);
         graph.add(interactiveModel);
+        graph.add(buildSpeakableWebPageNode(
+                canonicalUrl + "#webpage",
+                canonicalUrl,
+                title,
+                description,
+                List.of(".aeo-campus-summary"),
+                canonicalUrl + "#model"
+        ));
+        graph.add(buildFaqPageNode(canonicalUrl + "#faq", List.of(
+                new FaqItem(
+                        "HUSC Campus 3D (/husc-campus) là gì?",
+                        "HUSC Campus 3D là mô hình 3D WebGL tương tác trực tuyến trên UniDocs tái hiện toàn bộ khuôn viên Trường Đại học Khoa học, Đại học Huế tại địa chỉ 77 Nguyễn Huệ và 38 Đống Đa, TP. Huế do Tài Nguyễn (ntainguyenit) phát triển."
+                ),
+                new FaqItem(
+                        "Khuôn viên 3D Trường Đại học Khoa học Huế gồm những tòa nhà và khu vực nào?",
+                        "Mô hình bao gồm Cổng chính 77 Nguyễn Huệ, Cổng 38 Đống Đa, dãy giảng đường Nhà A, A1-A2, B, C, D (Khoa Hóa học), E, F, G, H, K, M, Nhà Thí nghiệm, Nhà Khách, Sân bóng đá, Sân bóng rổ cùng hệ thống đường Nguyễn Huệ, Lý Thường Kiệt và Đống Đa."
+                ),
+                new FaqItem(
+                        "Làm thế nào để di chuyển và tham quan trên HUSC Campus 3D?",
+                        "Người dùng có thể chuyển đổi giữa 3 góc nhìn (Toàn cảnh Flycam, Góc nhìn thứ 3, Góc nhìn thứ 1), di chuyển bằng phím WASD hoặc mũi tên trên máy tính và joystick ảo trên điện thoại, mở bản đồ 2D để dịch chuyển tức thời, chuyển đổi chế độ Ngày/Đêm và chụp ảnh lưu niệm."
+                ),
+                new FaqItem(
+                        "HUSC Campus 3D có chạy được trên điện thoại và có miễn phí không?",
+                        "Có. HUSC Campus 3D hoàn toàn miễn phí, chạy trực tiếp trên trình duyệt Desktop và Mobile (WebGL/Three.js) không cần cài đặt ứng dụng và tự động điều chỉnh chất lượng đồ họa để giữ khung hình mượt mà."
+                )
+        )));
+        graph.add(buildHowToNode(
+                canonicalUrl + "#howto",
+                "Cách tham quan khuôn viên 3D Trường Đại học Khoa học Huế trực tuyến",
+                "Hướng dẫn 4 bước khám phá toàn bộ giảng đường, sân thể thao và khung cảnh 3D của HUSC trực tiếp trên trình duyệt.",
+                List.of(
+                        new HowToStepItem("Mở đường dẫn /husc-campus", "Truy cập trang HUSC Campus 3D trên trình duyệt máy tính hoặc điện thoại để tải mô hình WebGL."),
+                        new HowToStepItem("Chọn góc nhìn phù hợp", "Dùng nút chuyển góc nhìn để quan sát Toàn cảnh Flycam, đi bộ ở Góc nhìn thứ 3 hoặc trải nghiệm Góc nhìn thứ 1."),
+                        new HowToStepItem("Di chuyển hoặc dịch chuyển nhanh qua Bản đồ 2D", "Điều khiển bằng phím WASD/joystick ảo hoặc chạm vào bản đồ góc trên trái để dịch chuyển ngay tới từng giảng đường Nhà A đến Nhà M."),
+                        new HowToStepItem("Chuyển Ngày/Đêm và chụp ảnh lưu niệm", "Bấm biểu tượng Mặt trời/Mặt trăng để đổi ánh sáng Ngày, Hoàng hôn, Đêm và bấm nút máy ảnh để lưu lại khoảnh khắc 3D.")
+                )
+        ));
         graph.add(buildBreadcrumbList(List.of(
                 new BreadcrumbItem("Trang chủ", siteUrl + "/"),
                 new BreadcrumbItem("Khám phá Trường 3D HUSC", canonicalUrl)
@@ -554,7 +663,7 @@ public class SeoMetadataService {
                 .canonicalUrl(canonicalUrl)
                 .ogType("website")
                 .ogImage(siteUrl + "/images/campus-map.jpeg")
-                .robots("index, follow")
+                .robots(AEO_ROBOTS_DIRECTIVE)
                 .jsonLd(serializeGraph(graph))
                 .contextualIntro(contextualIntro)
                 .build();
@@ -577,7 +686,92 @@ public class SeoMetadataService {
         website.put("author", authorNode);
         website.put("creator", buildPersonSummaryNode());
         website.put("publisher", buildPublisherNode());
+        website.put("inLanguage", "vi");
+
+        // Declare SearchAction so Answer Engines and Google sitelinks understand site query routing
+        Map<String, Object> searchTarget = new LinkedHashMap<>();
+        searchTarget.put("@type", "EntryPoint");
+        searchTarget.put("urlTemplate", siteUrl + "/?q={search_term_string}");
+        Map<String, Object> searchAction = new LinkedHashMap<>();
+        searchAction.put("@type", "SearchAction");
+        searchAction.put("target", searchTarget);
+        searchAction.put("query-input", "required name=search_term_string");
+        website.put("potentialAction", searchAction);
         return website;
+    }
+
+    // Build SpeakableSpecification for voice assistants and Answer Engine direct extraction
+    private Map<String, Object> buildSpeakableSpec(List<String> cssSelectors) {
+        Map<String, Object> speakable = new LinkedHashMap<>();
+        speakable.put("@type", "SpeakableSpecification");
+        speakable.put("cssSelector", cssSelectors);
+        return speakable;
+    }
+
+    // Build WebPage node carrying SpeakableSpecification and primary entity links for AEO
+    private Map<String, Object> buildSpeakableWebPageNode(String id,
+                                                          String url,
+                                                          String name,
+                                                          String description,
+                                                          List<String> cssSelectors,
+                                                          String mainEntityId) {
+        Map<String, Object> page = new LinkedHashMap<>();
+        page.put("@type", "WebPage");
+        page.put("@id", id);
+        page.put("url", url);
+        page.put("name", name);
+        page.put("description", description);
+        page.put("inLanguage", "vi");
+        page.put("isPartOf", Map.of("@id", siteUrl + "/#website"));
+        if (hasText(mainEntityId)) {
+            page.put("mainEntity", Map.of("@id", mainEntityId));
+        }
+        page.put("speakable", buildSpeakableSpec(cssSelectors));
+        return page;
+    }
+
+    // Build FAQPage Schema.org node providing direct Q&A citations for Answer Engines
+    private Map<String, Object> buildFaqPageNode(String id, List<FaqItem> items) {
+        List<Map<String, Object>> mainEntity = new ArrayList<>();
+        for (FaqItem item : items) {
+            Map<String, Object> answer = new LinkedHashMap<>();
+            answer.put("@type", "Answer");
+            answer.put("text", item.answer);
+
+            Map<String, Object> question = new LinkedHashMap<>();
+            question.put("@type", "Question");
+            question.put("name", item.question);
+            question.put("acceptedAnswer", answer);
+            mainEntity.add(question);
+        }
+        Map<String, Object> faq = new LinkedHashMap<>();
+        faq.put("@type", "FAQPage");
+        faq.put("@id", id);
+        faq.put("inLanguage", "vi");
+        faq.put("mainEntity", mainEntity);
+        return faq;
+    }
+
+    // Build HowTo Schema.org node guiding users and AI assistants step-by-step
+    private Map<String, Object> buildHowToNode(String id, String name, String description, List<HowToStepItem> steps) {
+        List<Map<String, Object>> stepNodes = new ArrayList<>();
+        for (int i = 0; i < steps.size(); i++) {
+            HowToStepItem s = steps.get(i);
+            Map<String, Object> step = new LinkedHashMap<>();
+            step.put("@type", "HowToStep");
+            step.put("position", i + 1);
+            step.put("name", s.name);
+            step.put("text", s.text);
+            stepNodes.add(step);
+        }
+        Map<String, Object> howTo = new LinkedHashMap<>();
+        howTo.put("@type", "HowTo");
+        howTo.put("@id", id);
+        howTo.put("name", name);
+        howTo.put("description", description);
+        howTo.put("inLanguage", "vi");
+        howTo.put("step", stepNodes);
+        return howTo;
     }
 
     // Build CollegeOrUniversity Schema.org node highlighting HUSC physical campus address for GEO AI
@@ -774,6 +968,26 @@ public class SeoMetadataService {
         BreadcrumbItem(String name, String url) {
             this.name = name;
             this.url = url;
+        }
+    }
+
+    private static class FaqItem {
+        final String question;
+        final String answer;
+
+        FaqItem(String question, String answer) {
+            this.question = question;
+            this.answer = answer;
+        }
+    }
+
+    private static class HowToStepItem {
+        final String name;
+        final String text;
+
+        HowToStepItem(String name, String text) {
+            this.name = name;
+            this.text = text;
         }
     }
 }

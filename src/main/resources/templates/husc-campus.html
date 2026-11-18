@@ -9,7 +9,7 @@
                resolvedUrl=${seo != null and seo.canonicalUrl != null ? seo.canonicalUrl : resolvedSiteUrl + '/husc-campus'},
                resolvedOgImage=${seo != null and seo.ogImage != null ? seo.ogImage : resolvedSiteUrl + '/images/campus-map.jpeg'},
                resolvedOgType=${seo != null and seo.ogType != null ? seo.ogType : 'website'},
-               resolvedRobots=${seo != null and seo.robots != null ? seo.robots : 'index, follow'}">
+               resolvedRobots=${seo != null and seo.robots != null ? seo.robots : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <!-- Primary SEO meta tags declaring title, summary, keyword cluster, and author ownership -->
@@ -19,6 +19,7 @@
     <meta name="author" th:content="${resolvedAuthor}">
     <meta name="robots" th:content="${resolvedRobots}">
     <link rel="canonical" th:href="${resolvedUrl}">
+    <link rel="alternate" type="text/markdown" title="HUSC Campus 3D AEO Knowledge Base" th:href="@{/llms.txt}">
 
     <!-- Preconnect and load Google Fonts Inter with full Vietnamese glyph support -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -170,6 +171,19 @@
             cursor: grab;
         }
         #campusCanvas:active { cursor: grabbing; }
+
+        /* Accessible off-screen semantic block for screen readers and Answer Engine Optimization */
+        .sr-only {
+            position: absolute;
+            inline-size: 1px;
+            block-size: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
 
         /* Loading overlay */
         .loading-screen {
@@ -1764,6 +1778,20 @@
 <main class="game-shell">
     <!-- Fullscreen Three.js WebGL Viewport -->
     <canvas id="campusCanvas" aria-label="Bản đồ 3D tương tác Khuôn viên Trường Đại học Khoa học Huế"></canvas>
+
+    <!-- Accessible AEO summary & FAQ matching Campus FAQPage and SpeakableSpecification JSON-LD -->
+    <section class="sr-only aeo-campus-summary" aria-label="Tổng quan và Câu hỏi thường gặp HUSC Campus 3D">
+        <h2>HUSC Campus 3D — Bản đồ Khuôn viên 3D Trường Đại học Khoa học, Đại học Huế</h2>
+        <p th:text="${seo != null and seo.contextualIntro != null ? seo.contextualIntro : 'Sơ đồ mô hình 3D tương tác khuôn viên Trường Đại học Khoa học, Đại học Huế (HUSC, ĐHKH Huế) tại địa chỉ 77 Nguyễn Huệ, Thành phố Huế, phát triển bởi Tài Nguyễn (Nguyễn Ngọc Thành Tài - ntainguyenit) trên hệ thống UniDocs.'}"></p>
+        <h3>HUSC Campus 3D (/husc-campus) là gì?</h3>
+        <p>HUSC Campus 3D là mô hình 3D WebGL tương tác trực tuyến trên UniDocs tái hiện toàn bộ khuôn viên Trường Đại học Khoa học, Đại học Huế tại địa chỉ 77 Nguyễn Huệ và 38 Đống Đa, TP. Huế do Tài Nguyễn (ntainguyenit) phát triển.</p>
+        <h3>Khuôn viên 3D Trường Đại học Khoa học Huế gồm những tòa nhà và khu vực nào?</h3>
+        <p>Mô hình bao gồm Cổng chính 77 Nguyễn Huệ, Cổng 38 Đống Đa, dãy giảng đường Nhà A, A1-A2, B, C, D (Khoa Hóa học), E, F, G, H, K, M, Nhà Thí nghiệm, Nhà Khách, Sân bóng đá, Sân bóng rổ cùng hệ thống đường Nguyễn Huệ, Lý Thường Kiệt và Đống Đa.</p>
+        <h3>Làm thế nào để di chuyển và tham quan trên HUSC Campus 3D?</h3>
+        <p>Người dùng có thể chuyển đổi giữa 3 góc nhìn (Toàn cảnh Flycam, Góc nhìn thứ 3, Góc nhìn thứ 1), di chuyển bằng phím WASD hoặc mũi tên trên máy tính và joystick ảo trên điện thoại, mở bản đồ 2D để dịch chuyển tức thời, chuyển đổi chế độ Ngày/Đêm và chụp ảnh lưu niệm.</p>
+        <h3>HUSC Campus 3D có chạy được trên điện thoại và có miễn phí không?</h3>
+        <p>Có. HUSC Campus 3D hoàn toàn miễn phí, chạy trực tiếp trên trình duyệt Desktop và Mobile (WebGL/Three.js) không cần cài đặt ứng dụng và tự động điều chỉnh chất lượng đồ họa để giữ khung hình mượt mà.</p>
+    </section>
 
     <!-- Initial Model Loading Curtain -->
     <div id="loadingScreen" class="loading-screen">

@@ -2,6 +2,10 @@ User-agent: *
 Disallow: /admin/
 Disallow: /api/
 Allow: /
+Allow: /husc-campus
+Allow: /llms.txt
+Allow: /llms-full.txt
 
+# Allow Answer Engines and AI search grounders while keeping training opt-out
 Sitemap: https://unidocs-husc.pages.dev/sitemap.xml
-Content-Signal: ai-train=no, search=yes, ai-input=no
+Content-Signal: ai-train=no, search=yes, ai-input=yes
