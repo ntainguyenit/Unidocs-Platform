@@ -5489,29 +5489,11 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
     syncCloudInstances(0);
     scene.add(cloudInst);
 
-    // Background urban massing blocks beyond surrounding streets (softly blended into distance fog)
-    const cityMat = new THREE.MeshLambertMaterial({ color: 0xc2cbd4 });
-    const ctxCoords = [
-        [-80, 118, 26, 14, 18], [-15, 120, 28, 16, 16], [52, 118, 26, 15, 22],
-        [108, 48, 24, 18, 18], [98, -22, 22, 16, 20], [72, -88, 26, 15, 18],
-        [-25, -116, 28, 18, 16]
-    ];
-    const cityInst = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), cityMat, ctxCoords.length);
-    const dummy = new THREE.Object3D();
-    ctxCoords.forEach(([x, z, w, h, d], idx) => {
-        dummy.position.set(x, h * 0.5 - 0.1, z);
-        dummy.scale.set(w, h, d);
-        dummy.updateMatrix();
-        cityInst.setMatrixAt(idx, dummy.matrix);
-    });
-    cityInst.instanceMatrix.needsUpdate = true;
-    scene.add(cityInst);
-    freezeStaticHierarchy(cityInst);
-
     // Authentic detailed urban ensemble opposite Ly Thuong Kiet x Dong Da intersection (Photos 1-5)
     createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile);
 
     // Street Lamp Posts flanking Main Plaza and Central Inner Courtyard Avenue
+    const dummy = new THREE.Object3D();
     const lampCoords = [[-22.5, 60], [-3.0, 60], [-22.5, 36], [-3.0, 36], [5.4, -2.0], [9.6, -2.0], [5.4, -14.0], [9.6, -14.0]];
     const postGeom = new THREE.CylinderGeometry(0.08, 0.12, 5.2, 8);
     postGeom.translate(0, 2.6, 0);
