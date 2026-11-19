@@ -5,39 +5,41 @@
         e.preventDefault();
     });
 
-    // 2. Block DevTools shortcuts and Copy
-    document.addEventListener('keydown', function(e) {
-        // F12
-        if (e.key === 'F12' || e.keyCode === 123) {
-            e.preventDefault();
-            return false;
-        }
-        // Ctrl+Shift+I / J / C (Windows/Linux)
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-            e.preventDefault();
-            return false;
-        }
-        // Cmd+Option+I / J / C (Mac)
-        if (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-            e.preventDefault();
-            return false;
-        }
-        // Ctrl+U / Cmd+Option+U (View Source)
-        if ((e.ctrlKey || (e.metaKey && e.altKey)) && (e.key === 'U' || e.key === 'u')) {
-            e.preventDefault();
-            return false;
-        }
-    });
+    // 2. [TEMPORARILY DISABLED for Google AdSense review - re-enable when instructed]
+    // Block DevTools shortcuts (F12, Ctrl+Shift+I/J/C, Cmd+Option+I/J/C, Ctrl+U)
+    // document.addEventListener('keydown', function(e) {
+    //     // F12
+    //     if (e.key === 'F12' || e.keyCode === 123) {
+    //         e.preventDefault();
+    //         return false;
+    //     }
+    //     // Ctrl+Shift+I / J / C (Windows/Linux)
+    //     if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+    //         e.preventDefault();
+    //         return false;
+    //     }
+    //     // Cmd+Option+I / J / C (Mac)
+    //     if (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+    //         e.preventDefault();
+    //         return false;
+    //     }
+    //     // Ctrl+U / Cmd+Option+U (View Source)
+    //     if ((e.ctrlKey || (e.metaKey && e.altKey)) && (e.key === 'U' || e.key === 'u')) {
+    //         e.preventDefault();
+    //         return false;
+    //     }
+    // });
 
-    // 3. DevTools Debugger loop (Bypass mobile devices)
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (!isMobile) {
-        setInterval(function() {
-            try {
-                debugger;
-            } catch (e) {}
-        }, 1000);
-    }
+    // 3. [TEMPORARILY DISABLED for Google AdSense review - re-enable when instructed]
+    // DevTools Debugger loop
+    // const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // if (!isMobile) {
+    //     setInterval(function() {
+    //         try {
+    //             debugger;
+    //         } catch (e) {}
+    //     }, 1000);
+    // }
 
     // 4. Invisible Watermark (Steganography) on copy text
     document.addEventListener('copy', function(e) {
