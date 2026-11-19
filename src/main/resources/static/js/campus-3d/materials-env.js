@@ -215,6 +215,15 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
             });
         }
 
+        // Hide obsolete solid connector walls and windows of bldg_A_connector so authentic architectural loggia and breezeway facade covers it completely
+        if (obj.name === 'bldg_A_connector') {
+            obj.traverse((child) => {
+                if (child.isMesh) {
+                    child.visible = false;
+                }
+            });
+        }
+
         if (!obj.isMesh || !obj.material) return;
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
         for (const m of mats) {
@@ -3262,6 +3271,695 @@ function createNhaDModernBuilding(scene, maxAniso = 4, tier = 'high') {
     freezeStaticHierarchy(group);
 }
 
+// Authentic 2-story connecting building between Nha A and Nha A1-A2 featuring breezeway archway and open 2nd-floor loggia (Photo 2)
+function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
+    const group = new THREE.Group();
+
+    // 1. Canvas Texture: "Chào Mừng Ngày Nhà Giáo Việt Nam 20-11" (Left Facade Backdrop)
+    const createTeacherDayBackdropTexture = () => {
+        const sizeW = 1024;
+        const sizeH = 832;
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
+
+        // Crisp white base with soft watercolor washes (sky blue / cyan tones)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        const bgGrad = ctx.createRadialGradient(sizeW * 0.25, sizeH * 0.45, 40, sizeW * 0.3, sizeH * 0.5, sizeW * 0.65);
+        bgGrad.addColorStop(0, '#e0f2fe');
+        bgGrad.addColorStop(0.45, '#f0f9ff');
+        bgGrad.addColorStop(1, '#ffffff');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        ctx.fillStyle = 'rgba(186, 230, 253, 0.45)';
+        ctx.beginPath();
+        ctx.ellipse(sizeW * 0.22, sizeH * 0.65, 240, 160, -Math.PI * 0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(224, 242, 254, 0.55)';
+        ctx.beginPath();
+        ctx.ellipse(sizeW * 0.78, sizeH * 0.75, 210, 140, Math.PI * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Top Header: HUSC Shield Logo + University Name
+        drawHuscShield(ctx, 130, 85, 90);
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#1e3a8a';
+        ctx.font = '800 32px "Inter", sans-serif';
+        ctx.fillText('ĐẠI HỌC HUẾ', 195, 70);
+        ctx.font = '900 38px "Inter", sans-serif';
+        ctx.fillText('TRƯỜNG ĐẠI HỌC KHOA HỌC', 195, 110);
+        ctx.restore();
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(70, 145);
+        ctx.lineTo(sizeW - 70, 145);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.font = 'italic 700 62px "Georgia", "Times New Roman", serif';
+        ctx.fillStyle = '#1d4ed8';
+        ctx.textAlign = 'left';
+        ctx.fillText('Chào Mừng', 85, 240);
+
+        ctx.font = '900 78px "Georgia", "Times New Roman", serif';
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText('Ngày Nhà Giáo', 85, 340);
+
+        ctx.font = 'italic 700 68px "Georgia", serif';
+        ctx.fillStyle = '#0284c7';
+        ctx.fillText('Việt Nam', 85, 440);
+
+        const num20Grad = ctx.createLinearGradient(420, 320, 580, 460);
+        num20Grad.addColorStop(0, '#06b6d4');
+        num20Grad.addColorStop(1, '#0284c7');
+        ctx.fillStyle = num20Grad;
+        ctx.font = '900 155px "Inter", "Segoe UI", sans-serif';
+        ctx.fillText('20', 430, 440);
+
+        const num11Grad = ctx.createLinearGradient(630, 320, 780, 460);
+        num11Grad.addColorStop(0, '#a855f7');
+        num11Grad.addColorStop(1, '#ec4899');
+        ctx.fillStyle = num11Grad;
+        ctx.fillText('11', 655, 440);
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = '#0284c7';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(sizeW * 0.35, sizeH * 0.72);
+        ctx.quadraticCurveTo(sizeW * 0.45, sizeH * 0.67, sizeW * 0.55, sizeH * 0.73);
+        ctx.moveTo(sizeW * 0.55, sizeH * 0.73);
+        ctx.quadraticCurveTo(sizeW * 0.65, sizeH * 0.67, sizeW * 0.75, sizeH * 0.72);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(sizeW * 0.52, sizeH * 0.63);
+        ctx.lineTo(sizeW * 0.60, sizeH * 0.50);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(sizeW * 0.44, sizeH * 0.64);
+        ctx.bezierCurveTo(sizeW * 0.42, sizeH * 0.61, sizeW * 0.39, sizeH * 0.62, sizeW * 0.41, sizeH * 0.66);
+        ctx.bezierCurveTo(sizeW * 0.43, sizeH * 0.69, sizeW * 0.44, sizeH * 0.70, sizeW * 0.44, sizeH * 0.71);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(6, 6, sizeW - 12, sizeH - 12);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = maxAniso;
+        return tex;
+    };
+
+    // 2. Canvas Texture: "IT GAME JAM with AI" (Right Facade Backdrop)
+    const createGameJamBackdropTexture = () => {
+        const sizeW = 1024;
+        const sizeH = 832;
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
+
+        const grad = ctx.createLinearGradient(0, 0, 0, sizeH);
+        grad.addColorStop(0, '#b91c1c');
+        grad.addColorStop(0.28, '#c2410c');
+        grad.addColorStop(0.65, '#ea580c');
+        grad.addColorStop(0.88, '#f59e0b');
+        grad.addColorStop(1, '#fef08a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+        ctx.beginPath();
+        ctx.arc(sizeW * 0.18, sizeH * 0.35, 45, 0, Math.PI * 2);
+        ctx.arc(sizeW * 0.24, sizeH * 0.33, 60, 0, Math.PI * 2);
+        ctx.arc(sizeW * 0.30, sizeH * 0.36, 42, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(sizeW * 0.82, sizeH * 0.28, 48, 0, Math.PI * 2);
+        ctx.arc(sizeW * 0.88, sizeH * 0.26, 62, 0, Math.PI * 2);
+        ctx.arc(sizeW * 0.94, sizeH * 0.30, 44, 0, Math.PI * 2);
+        ctx.fill();
+
+        drawHuscShield(ctx, 110, 65, 75);
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 24px "Inter", sans-serif';
+        ctx.fillText('CUỘC THI LẬP TRÌNH GAME KHOA CÔNG NGHỆ THÔNG TIN', sizeW * 0.54, 52);
+        ctx.fillStyle = '#fef08a';
+        ctx.font = '800 26px "Inter", sans-serif';
+        ctx.fillText('CHÀO MỪNG NGÀY NHÀ GIÁO VIỆT NAM 20/11', sizeW * 0.54, 88);
+        ctx.restore();
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(30, 10, 10, 0.85)';
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 6;
+        ctx.font = '900 92px "Inter", "Impact", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('IT GAME JAM', sizeW * 0.46, 235);
+        ctx.restore();
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.font = 'italic 800 54px "Segoe Script", cursive, sans-serif';
+        ctx.fillStyle = '#fef08a';
+        ctx.shadowColor = 'rgba(254, 240, 138, 0.9)';
+        ctx.shadowBlur = 18;
+        ctx.fillText('with AI', sizeW * 0.69, 295);
+
+        ctx.fillStyle = '#ffffff';
+        const drawSparkle = (sx, sy, r) => {
+            ctx.beginPath();
+            ctx.arc(sx, sy, r, 0, Math.PI * 2);
+            ctx.fill();
+        };
+        drawSparkle(sizeW * 0.68, 275, 4);
+        drawSparkle(sizeW * 0.86, 290, 5);
+        drawSparkle(sizeW * 0.82, 335, 3);
+        ctx.restore();
+
+        const pillW = 540;
+        const pillH = 58;
+        const pillX = (sizeW - pillW) * 0.5;
+        const pillY = 350;
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 29);
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#0284c7';
+        ctx.stroke();
+
+        ctx.fillStyle = '#0284c7';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 26px "Inter", sans-serif';
+        ctx.fillText('🔍 [ < VIBE CODE YOUR GAME > 🎮 ]', sizeW * 0.5, pillY + pillH * 0.5);
+        ctx.restore();
+
+        const trophyY = 540;
+        ctx.save();
+        ctx.fillStyle = '#0284c7';
+        ctx.font = '900 72px "Inter", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('<', sizeW * 0.38, trophyY);
+        ctx.fillText('>', sizeW * 0.62, trophyY);
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.moveTo(sizeW * 0.44, trophyY - 50);
+        ctx.lineTo(sizeW * 0.56, trophyY - 50);
+        ctx.lineTo(sizeW * 0.53, trophyY);
+        ctx.quadraticCurveTo(sizeW * 0.5, trophyY + 25, sizeW * 0.47, trophyY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillRect(sizeW * 0.485, trophyY + 15, sizeW * 0.03, 30);
+        ctx.fillRect(sizeW * 0.44, trophyY + 45, sizeW * 0.12, 16);
+
+        ctx.fillStyle = '#fef08a';
+        for (let i = -2; i <= 2; i++) {
+            if (i === 0) continue;
+            ctx.beginPath();
+            ctx.arc(sizeW * 0.5 + i * 115, trophyY + Math.abs(i) * 8, 14, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 24px "Inter", sans-serif';
+        ctx.fillText('Huế, ngày 20 tháng 11 năm 2024', sizeW * 0.5, 790);
+        ctx.restore();
+
+        ctx.strokeStyle = '#fed7aa';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(6, 6, sizeW - 12, sizeH - 12);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = maxAniso;
+        return tex;
+    };
+
+    // 3. Canvas Texture: "TỌA ĐÀM" Horizontal Banner (Above Breezeway Portal)
+    const createToaDamBannerTexture = () => {
+        const sizeW = 896;
+        const sizeH = 168;
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        ctx.fillStyle = '#1e3a8a';
+        ctx.textAlign = 'center';
+        ctx.font = '800 22px "Inter", sans-serif';
+        ctx.fillText('ĐẠI HỌC HUẾ · TRƯỜNG ĐẠI HỌC KHOA HỌC · KHOA CÔNG NGHỆ THÔNG TIN', sizeW * 0.5, 34);
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(2, 132, 199, 0.10)';
+        ctx.beginPath();
+        ctx.ellipse(sizeW * 0.5, 92, 160, 36, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#0284c7';
+        ctx.stroke();
+
+        ctx.font = '900 52px "Inter", sans-serif';
+        ctx.fillStyle = '#0284c7';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('TỌA ĐÀM', sizeW * 0.5, 92);
+        ctx.restore();
+
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(0, sizeH - 12, sizeW, 6);
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(sizeW * 0.25, sizeH - 6, sizeW * 0.5, 6);
+
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(2, 2, sizeW - 4, sizeH - 4);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = maxAniso;
+        return tex;
+    };
+
+    // 4. Canvas Texture: "KHOA CÔNG NGHỆ THÔNG TIN" Overhead Illuminated Portal Signboard
+    const createPassageItSignTexture = () => {
+        const sizeW = 768;
+        const sizeH = 160;
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
+
+        const grad = ctx.createLinearGradient(0, 0, 0, sizeH);
+        grad.addColorStop(0, '#0369a1');
+        grad.addColorStop(0.5, '#0284c7');
+        grad.addColorStop(1, '#075985');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(6, 6, sizeW - 12, sizeH - 12);
+
+        drawHuscShield(ctx, 80, 80, 95);
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 42px "Inter", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 12;
+        ctx.fillText('KHOA CÔNG NGHỆ THÔNG TIN', 155, 68);
+
+        ctx.font = '800 20px "Inter", sans-serif';
+        ctx.fillStyle = '#bae6fd';
+        ctx.fillText('FACULTY OF INFORMATION TECHNOLOGY', 155, 108);
+        ctx.restore();
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = maxAniso;
+        return tex;
+    };
+
+    // 5. Canvas Texture: 2nd Floor Loggia Interior Back Wall (French Doors & HUSC Logo)
+    const createLoggiaBackWallTexture = () => {
+        const sizeW = 1024;
+        const sizeH = 512;
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        const doorY = 70;
+        const doorH = sizeH - doorY;
+        const doorW = 220;
+        const doorXs = [60, 320, 580];
+
+        doorXs.forEach((dx) => {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(dx - 8, doorY - 8, doorW + 16, doorH + 8);
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(dx - 8, doorY - 8, doorW + 16, doorH + 8);
+
+            const leafW = (doorW - 12) * 0.5;
+            for (let leaf = 0; leaf < 2; leaf++) {
+                const lx = dx + leaf * (leafW + 12);
+                const paneW = (leafW - 16) * 0.5;
+                const paneH = (doorH - 40) / 4;
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 0; c < 2; c++) {
+                        const px = lx + 4 + c * (paneW + 6);
+                        const py = doorY + 6 + r * (paneH + 6);
+
+                        const gGrad = ctx.createLinearGradient(px, py, px, py + paneH);
+                        gGrad.addColorStop(0, '#38bdf8');
+                        gGrad.addColorStop(0.3, '#0284c7');
+                        gGrad.addColorStop(1, '#0f172a');
+                        ctx.fillStyle = gGrad;
+                        ctx.fillRect(px, py, paneW, paneH);
+
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(px, py, paneW, paneH);
+                    }
+                }
+            }
+        });
+
+        const logoX = 900;
+        const logoY = 220;
+        drawHuscShield(ctx, logoX, logoY, 130);
+
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.font = '900 36px "Inter", sans-serif';
+        ctx.fillStyle = '#0284c7';
+        ctx.fillText('HUSC', logoX, logoY + 95);
+        ctx.restore();
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = maxAniso;
+        return tex;
+    };
+
+    // Shared architectural materials
+    const yellowWallMat = new THREE.MeshStandardMaterial({ color: 0xe5a93c, roughness: 0.72, metalness: 0.05 });
+    const basePlinthMat = new THREE.MeshStandardMaterial({ color: 0x8b95a2, roughness: 0.85, metalness: 0.10 });
+    const whiteTrimMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.45, metalness: 0.05 });
+    const roofTileMat = new THREE.MeshStandardMaterial({ color: 0x992419, roughness: 0.65, metalness: 0.08 });
+    const redCarpetMat = new THREE.MeshStandardMaterial({ color: 0xd32f2f, roughness: 0.82, metalness: 0.02 });
+    const passageFloorMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.88, metalness: 0.05 });
+
+    // --- Ground Floor (Tầng 1) Structure ---
+    // Ground concrete skirting plinths
+    const plinthLeft = new THREE.Mesh(new THREE.BoxGeometry(3.85, 0.35, 0.30), basePlinthMat);
+    plinthLeft.position.set(-3.35, 0.175, 4.58);
+    plinthLeft.receiveShadow = true;
+    group.add(plinthLeft);
+
+    const plinthRight = new THREE.Mesh(new THREE.BoxGeometry(3.85, 0.35, 0.30), basePlinthMat);
+    plinthRight.position.set(3.35, 0.175, 4.58);
+    plinthRight.receiveShadow = true;
+    group.add(plinthRight);
+
+    // Left and Right yellow facade walls
+    const wallLeft = new THREE.Mesh(new THREE.BoxGeometry(3.80, 3.65, 0.25), yellowWallMat);
+    wallLeft.position.set(-3.35, 2.175, 4.55);
+    wallLeft.castShadow = true;
+    wallLeft.receiveShadow = true;
+    group.add(wallLeft);
+
+    const wallRight = new THREE.Mesh(new THREE.BoxGeometry(3.80, 3.65, 0.25), yellowWallMat);
+    wallRight.position.set(3.35, 2.175, 4.55);
+    wallRight.castShadow = true;
+    wallRight.receiveShadow = true;
+    group.add(wallRight);
+
+    // Archway lintel wall above portal (y = 3.40 to 4.0)
+    const archLintel = new THREE.Mesh(new THREE.BoxGeometry(2.90, 0.60, 0.25), yellowWallMat);
+    archLintel.position.set(0, 3.70, 4.55);
+    archLintel.castShadow = true;
+    archLintel.receiveShadow = true;
+    group.add(archLintel);
+
+    // White portal architrave mouldings around the central breezeway opening
+    const portalTrimJambL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.40, 0.10), whiteTrimMat);
+    portalTrimJambL.position.set(-1.45, 1.70, 4.65);
+    group.add(portalTrimJambL);
+
+    const portalTrimJambR = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.40, 0.10), whiteTrimMat);
+    portalTrimJambR.position.set(1.45, 1.70, 4.65);
+    group.add(portalTrimJambR);
+
+    const portalTrimHead = new THREE.Mesh(new THREE.BoxGeometry(3.06, 0.16, 0.10), whiteTrimMat);
+    portalTrimHead.position.set(0, 3.40, 4.65);
+    group.add(portalTrimHead);
+
+    // Breezeway passage interior (completely open between front z = +4.55 and rear z = -4.55)
+    const passageFloor = new THREE.Mesh(new THREE.BoxGeometry(2.90, 0.04, 9.10), passageFloorMat);
+    passageFloor.position.set(0, 0.02, 0);
+    passageFloor.receiveShadow = true;
+    group.add(passageFloor);
+
+    const passageWallL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.40, 9.10), whiteTrimMat);
+    passageWallL.position.set(-1.45, 1.70, 0);
+    group.add(passageWallL);
+
+    const passageWallR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.40, 9.10), whiteTrimMat);
+    passageWallR.position.set(1.45, 1.70, 0);
+    group.add(passageWallR);
+
+    const passageCeiling = new THREE.Mesh(new THREE.BoxGeometry(2.90, 0.10, 9.10), whiteTrimMat);
+    passageCeiling.position.set(0, 3.45, 0);
+    group.add(passageCeiling);
+
+    // Ceremonial Red Carpet Runner spanning through portal threshold
+    const redCarpet = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.015, 4.2), redCarpetMat);
+    redCarpet.position.set(0, 0.025, 5.5);
+    redCarpet.receiveShadow = true;
+    group.add(redCarpet);
+
+    // Overhead illuminated blue sign: "KHOA CÔNG NGHỆ THÔNG TIN" inside portal opening
+    const passageSignTex = createPassageItSignTexture();
+    const passageSignMat = new THREE.MeshStandardMaterial({
+        map: passageSignTex,
+        roughness: 0.35,
+        metalness: 0.10,
+        emissive: new THREE.Color(0x38bdf8),
+        emissiveIntensity: 0.85
+    });
+    const passageSignMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.40, 0.44), passageSignMat);
+    passageSignMesh.position.set(0, 3.05, 3.90);
+    group.add(passageSignMesh);
+
+    // Left Event Backdrop: "Chào Mừng Ngày Nhà Giáo Việt Nam 20-11"
+    const teacherDayTex = createTeacherDayBackdropTexture();
+    const teacherDayMat = new THREE.MeshStandardMaterial({ map: teacherDayTex, roughness: 0.55, metalness: 0.02 });
+    const teacherDayMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.25, 2.65), teacherDayMat);
+    teacherDayMesh.position.set(-3.35, 2.05, 4.69);
+    teacherDayMesh.castShadow = true;
+    group.add(teacherDayMesh);
+
+    // Right Event Backdrop: "IT GAME JAM with AI"
+    const gameJamTex = createGameJamBackdropTexture();
+    const gameJamMat = new THREE.MeshStandardMaterial({ map: gameJamTex, roughness: 0.55, metalness: 0.02 });
+    const gameJamMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.25, 2.65), gameJamMat);
+    gameJamMesh.position.set(3.35, 2.05, 4.69);
+    gameJamMesh.castShadow = true;
+    group.add(gameJamMesh);
+
+    // Flanking Congratulatory Flower Stands (Kệ hoa chúc mừng)
+    const woodLegMat = new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.85 });
+    const ribbonSilkMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.60 });
+    const flowerBlossomMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.70 });
+    const createFlowerStand = (fx, fz) => {
+        const standGroup = new THREE.Group();
+        standGroup.position.set(fx, 0, fz);
+
+        // Tripod wooden easel legs
+        const legGeom = new THREE.CylinderGeometry(0.025, 0.025, 1.8, 6);
+        for (let i = 0; i < 3; i++) {
+            const leg = new THREE.Mesh(legGeom, woodLegMat);
+            const ang = (i * Math.PI * 2) / 3;
+            leg.position.set(Math.sin(ang) * 0.22, 0.9, Math.cos(ang) * 0.22);
+            leg.rotation.z = Math.sin(ang) * 0.12;
+            leg.rotation.x = Math.cos(ang) * 0.12;
+            standGroup.add(leg);
+        }
+
+        // Tiered celebratory pink silk ribbon drapery
+        const drapeMesh = new THREE.Mesh(new THREE.ConeGeometry(0.38, 0.75, 10, 1, true), ribbonSilkMat);
+        drapeMesh.position.set(0, 1.05, 0);
+        standGroup.add(drapeMesh);
+
+        // Vibrant floral bouquet dome
+        const bloomDome = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 8), flowerBlossomMat);
+        bloomDome.position.set(0, 1.62, 0);
+        standGroup.add(bloomDome);
+
+        group.add(standGroup);
+    };
+    createFlowerStand(-4.95, 4.95);
+    createFlowerStand(-1.75, 4.95);
+
+    // Mid-floor dividing beam & corbel mouldings (y = 3.90 to 4.30)
+    const midBeam = new THREE.Mesh(new THREE.BoxGeometry(10.60, 0.35, 0.30), whiteTrimMat);
+    midBeam.position.set(0, 4.10, 4.68);
+    midBeam.castShadow = true;
+    midBeam.receiveShadow = true;
+    group.add(midBeam);
+
+    // Horizontal "TỌA ĐÀM" banner mounted on the mid-floor beam
+    const toaDamTex = createToaDamBannerTexture();
+    const toaDamMat = new THREE.MeshStandardMaterial({ map: toaDamTex, roughness: 0.50, metalness: 0.05 });
+    const toaDamMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.85, 0.52), toaDamMat);
+    toaDamMesh.position.set(0, 4.18, 4.84);
+    group.add(toaDamMesh);
+
+    // --- Second Floor (Tầng 2) Open Loggia ---
+    // Floor slab of loggia (depth 4.55m from back z = 0 to front z = 4.55)
+    const loggiaFloor = new THREE.Mesh(new THREE.BoxGeometry(10.40, 0.20, 4.55), basePlinthMat);
+    loggiaFloor.position.set(0, 4.15, 2.28);
+    loggiaFloor.receiveShadow = true;
+    group.add(loggiaFloor);
+
+    // Ceiling slab of loggia
+    const loggiaCeiling = new THREE.Mesh(new THREE.BoxGeometry(10.40, 0.20, 4.55), whiteTrimMat);
+    loggiaCeiling.position.set(0, 7.75, 2.28);
+    group.add(loggiaCeiling);
+
+    // Left and Right interior white loggia sidewalls
+    const loggiaSideL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 3.40, 4.55), whiteTrimMat);
+    loggiaSideL.position.set(-5.20, 5.95, 2.28);
+    group.add(loggiaSideL);
+
+    const loggiaSideR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 3.40, 4.55), whiteTrimMat);
+    loggiaSideR.position.set(5.20, 5.95, 2.28);
+    group.add(loggiaSideR);
+
+    // Interior back wall with French doors & HUSC logo (Photo 2)
+    const loggiaBackTex = createLoggiaBackWallTexture();
+    const loggiaBackMat = new THREE.MeshStandardMaterial({ map: loggiaBackTex, roughness: 0.50, metalness: 0.05 });
+    const loggiaBackMesh = new THREE.Mesh(new THREE.PlaneGeometry(10.40, 3.40), loggiaBackMat);
+    loggiaBackMesh.position.set(0, 5.95, 0.02);
+    group.add(loggiaBackMesh);
+
+    // Front Masonry Balustrade / Lan can ban công (y = 4.15 to 5.10, height 0.95m)
+    const balustradeMesh = new THREE.Mesh(new THREE.BoxGeometry(10.50, 0.95, 0.22), whiteTrimMat);
+    balustradeMesh.position.set(0, 4.625, 4.50);
+    balustradeMesh.castShadow = true;
+    balustradeMesh.receiveShadow = true;
+    group.add(balustradeMesh);
+
+    const balustradeRail = new THREE.Mesh(new THREE.BoxGeometry(10.60, 0.08, 0.28), whiteTrimMat);
+    balustradeRail.position.set(0, 5.10, 4.50);
+    group.add(balustradeRail);
+
+    // 4 Classical White Columns (hàng 4 cột trụ trắng tạo 3 nhịp mở rộng)
+    const colXs = [-4.90, -1.60, 1.60, 4.90];
+    const colGeom = new THREE.CylinderGeometry(0.16, 0.17, 2.65, 12);
+    const colCapitalGeom = new THREE.BoxGeometry(0.40, 0.12, 0.40);
+    for (const cx of colXs) {
+        const colMesh = new THREE.Mesh(colGeom, whiteTrimMat);
+        colMesh.position.set(cx, 6.425, 4.50);
+        colMesh.castShadow = true;
+        group.add(colMesh);
+
+        // Classical capital and base
+        const capital = new THREE.Mesh(colCapitalGeom, whiteTrimMat);
+        capital.position.set(cx, 7.69, 4.50);
+        group.add(capital);
+
+        const base = new THREE.Mesh(colCapitalGeom, whiteTrimMat);
+        base.position.set(cx, 5.16, 4.50);
+        group.add(base);
+    }
+
+    // Potted Ornamental Foliage on Balcony
+    const potMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.85 });
+    const leafMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.65 });
+    const createBalconyPlant = (px, pz) => {
+        const plantGroup = new THREE.Group();
+        plantGroup.position.set(px, 5.14, pz);
+
+        const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.12, 0.35, 10), potMat);
+        pot.position.set(0, 0.175, 0);
+        plantGroup.add(pot);
+
+        const foliage = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), leafMat);
+        foliage.position.set(0, 0.45, 0);
+        plantGroup.add(foliage);
+
+        group.add(plantGroup);
+    };
+    createBalconyPlant(-4.20, 4.40);
+    createBalconyPlant(-3.60, 4.40);
+
+    // --- Upper Entablature, Cornice & Roof ---
+    // Upper concrete beam running above the 4 columns
+    const topBeam = new THREE.Mesh(new THREE.BoxGeometry(10.70, 0.40, 0.35), whiteTrimMat);
+    topBeam.position.set(0, 7.95, 4.55);
+    topBeam.castShadow = true;
+    group.add(topBeam);
+
+    // Weathered parapet ledge
+    const parapet = new THREE.Mesh(new THREE.BoxGeometry(10.60, 0.35, 0.25), whiteTrimMat);
+    parapet.position.set(0, 8.325, 4.50);
+    group.add(parapet);
+
+    // Terracotta hipped roof connecting seamlessly with Nha A and Nha A1-A2
+    const roofGeom = new THREE.ConeGeometry(7.4, 1.45, 4);
+    roofGeom.rotateY(Math.PI * 0.25);
+    roofGeom.scale(1.42, 1.0, 0.98);
+    const roofMesh = new THREE.Mesh(roofGeom, roofTileMat);
+    roofMesh.position.set(0, 9.15, 0);
+    roofMesh.castShadow = true;
+    roofMesh.receiveShadow = true;
+    group.add(roofMesh);
+
+    // --- Rear Facade (Facing Inner Courtyard - Nha E/H side) ---
+    // Yellow plaster walls flanking the rear breezeway portal
+    const rearWallL = new THREE.Mesh(new THREE.BoxGeometry(3.80, 7.80, 0.25), yellowWallMat);
+    rearWallL.position.set(-3.35, 3.90, -4.55);
+    rearWallL.castShadow = true;
+    group.add(rearWallL);
+
+    const rearWallR = new THREE.Mesh(new THREE.BoxGeometry(3.80, 7.80, 0.25), yellowWallMat);
+    rearWallR.position.set(3.35, 3.90, -4.55);
+    rearWallR.castShadow = true;
+    group.add(rearWallR);
+
+    const rearArchLintel = new THREE.Mesh(new THREE.BoxGeometry(2.90, 4.40, 0.25), yellowWallMat);
+    rearArchLintel.position.set(0, 5.60, -4.55);
+    group.add(rearArchLintel);
+
+    const rearPortalTrimL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.40, 0.10), whiteTrimMat);
+    rearPortalTrimL.position.set(-1.45, 1.70, -4.65);
+    group.add(rearPortalTrimL);
+
+    const rearPortalTrimR = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.40, 0.10), whiteTrimMat);
+    rearPortalTrimR.position.set(1.45, 1.70, -4.65);
+    group.add(rearPortalTrimR);
+
+    const rearPortalTrimHead = new THREE.Mesh(new THREE.BoxGeometry(3.06, 0.16, 0.10), whiteTrimMat);
+    rearPortalTrimHead.position.set(0, 3.40, -4.65);
+    group.add(rearPortalTrimHead);
+
+    // Position entire Nha A connector building assembly onto exact campus coordinates
+    group.position.set(15.6, 0, 10.0);
+    scene.add(group);
+    batchStaticGroupByMaterial(group);
+    freezeStaticHierarchy(group);
+}
+
+
 // Add signature signage, Main Gate inscription, Dong Da Gate sign, Nha A marquee, garage roofs, and billowing flags
 function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
     const signStartIdx = scene.children.length;
@@ -3441,6 +4139,9 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
 
     // Authentic 4-sided Building D modern facade and entrance canopies matching Photo 1
     createNhaDModernBuilding(scene, maxAniso, hardwareProfile.tier || 'high');
+
+    // Authentic Nha A - Nha A1/A2 connecting building with breezeway and 2nd-floor open loggia (Photo 2)
+    createNhaAConnectorBuilding(scene, maxAniso, hardwareProfile.tier || 'high');
 
     const myThuatTex = createSignTexture(['PHÒNG HỌC MỸ THUẬT'], {
         w: 640, h: 112, bg: '#1f2937', border: '#facc15', color: '#fde047', fontSizes: [42], maxAnisotropy: maxAniso

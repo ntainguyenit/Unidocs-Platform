@@ -28,7 +28,8 @@ export const CAMPUS_BOUNDS_POLY = [
 export const CAMPUS_COLLIDERS = [
     { id: 'col_A', cx: -13.0, cz: 10.0, halfW: 24.5, halfD: 6.0, angle: 0 },
     { id: 'col_A_portico', cx: -13.0, cz: 17.8, halfW: 6.8, halfD: 2.5, angle: 0 },
-    { id: 'col_A_conn', cx: 15.6, cz: 10.0, halfW: 4.6, halfD: 3.9, angle: 0 },
+    { id: 'col_A_conn_west', cx: 12.35, cz: 10.0, halfW: 2.0, halfD: 3.9, angle: 0 },
+    { id: 'col_A_conn_east', cx: 18.85, cz: 10.0, halfW: 2.0, halfD: 3.9, angle: 0 },
     { id: 'col_A1A2', cx: 33.8, cz: 10.0, halfW: 13.8, halfD: 5.9, angle: 0 },
     { id: 'col_E', cx: 7.5, cz: -28.0, halfW: 33.2, halfD: 6.8, angle: 0 },
     { id: 'col_M', cx: 4.0, cz: -39.2, halfW: 14.2, halfD: 2.9, angle: 0 },
