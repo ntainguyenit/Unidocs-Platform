@@ -968,6 +968,82 @@ function createTerrazzoSidewalkTextures(maxAnisotropy = 4, tier = 'high') {
     return { colorTex, bumpTex };
 }
 
+// Create authentic weathered entrance concrete & asphalt apron texture matching Gate 77 (Photo 1)
+function createEntranceApronTextures(maxAnisotropy = 4, tier = 'high') {
+    const size = 512;
+    const { canvas: c, ctx } = createScaledCanvas(size, size, tier, { mediumScale: 0.5, lowScale: 0.5 });
+
+    // Weathered roadway concrete & asphalt transition tone
+    ctx.fillStyle = '#525964';
+    ctx.fillRect(0, 0, size, size);
+
+    // Subtle aggregate flecks
+    const flecks = tier === 'low' ? 60 : 180;
+    for (let i = 0; i < flecks; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const d = 1.5 + Math.random() * 2.5;
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 255, 255, 0.28)' : 'rgba(25, 30, 38, 0.35)';
+        ctx.fillRect(x, y, d, d);
+    }
+
+    // Concrete slab expansion joints (khe co giãn tấm đan bê tông lối vào)
+    ctx.strokeStyle = 'rgba(28, 33, 40, 0.65)';
+    ctx.lineWidth = 3.0;
+    for (let x = 0; x <= size; x += 128) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, size); ctx.stroke();
+    }
+    for (let y = 0; y <= size; y += 128) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(size, y); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.lineWidth = 1.5;
+    for (let x = 0; x <= size; x += 128) {
+        ctx.beginPath(); ctx.moveTo(x + 2, 0); ctx.lineTo(x + 2, size); ctx.stroke();
+    }
+
+    // Faint vehicle tire wear paths down entrance lanes
+    const grad = ctx.createLinearGradient(0, 0, size, 0);
+    grad.addColorStop(0.00, 'rgba(0, 0, 0, 0.00)');
+    grad.addColorStop(0.25, 'rgba(20, 24, 30, 0.18)');
+    grad.addColorStop(0.38, 'rgba(0, 0, 0, 0.00)');
+    grad.addColorStop(0.62, 'rgba(20, 24, 30, 0.18)');
+    grad.addColorStop(0.75, 'rgba(0, 0, 0, 0.00)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    const colorTex = new THREE.CanvasTexture(c);
+    colorTex.colorSpace = THREE.SRGBColorSpace;
+    colorTex.wrapS = THREE.RepeatWrapping;
+    colorTex.wrapT = THREE.RepeatWrapping;
+    colorTex.repeat.set(0.35, 0.35);
+    colorTex.anisotropy = Math.min(8, maxAnisotropy);
+
+    if (tier === 'low') {
+        return { colorTex, bumpTex: null };
+    }
+
+    const { canvas: bc, ctx: bctx } = createScaledCanvas(size, size, tier, { mediumScale: 0.5, lowScale: 0.5 });
+    bctx.fillStyle = '#808080';
+    bctx.fillRect(0, 0, size, size);
+    bctx.strokeStyle = '#202020';
+    bctx.lineWidth = 3.0;
+    for (let x = 0; x <= size; x += 128) {
+        bctx.beginPath(); bctx.moveTo(x, 0); bctx.lineTo(x, size); bctx.stroke();
+    }
+    for (let y = 0; y <= size; y += 128) {
+        bctx.beginPath(); bctx.moveTo(0, y); bctx.lineTo(size, y); bctx.stroke();
+    }
+
+    const bumpTex = new THREE.CanvasTexture(bc);
+    bumpTex.wrapS = THREE.RepeatWrapping;
+    bumpTex.wrapT = THREE.RepeatWrapping;
+    bumpTex.repeat.set(0.35, 0.35);
+    bumpTex.anisotropy = Math.min(8, maxAnisotropy);
+
+    return { colorTex, bumpTex };
+}
+
 // Create authentic Vietnamese beveled granite/concrete curbstone texture (Bó vỉa vát cong 1m/viên)
 function createCurbstoneTextures(maxAnisotropy = 4, tier = 'high') {
     const w = 256;
@@ -1313,6 +1389,42 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         return out;
     };
 
+    // Build gently sloped entrance driveway apron geometry connecting street gutter to campus courtyard (Photo 1)
+    const buildSlopedDrivewayPoly = (pts, ySouth = -0.012, yNorth = 0.008, zSouth = 77.85, zNorth = 72.4, uvScale = 0.35) => {
+        let area = 0;
+        for (let i = 0; i < pts.length; i++) {
+            const [x1, z1] = pts[i];
+            const [x2, z2] = pts[(i + 1) % pts.length];
+            area += x1 * (-z2) - x2 * (-z1);
+        }
+        const ordered = area < 0 ? [...pts].reverse() : pts;
+        const shape = new THREE.Shape();
+        shape.moveTo(ordered[0][0], -ordered[0][1]);
+        for (let i = 1; i < ordered.length; i++) {
+            shape.lineTo(ordered[i][0], -ordered[i][1]);
+        }
+        shape.closePath();
+        const geom = new THREE.ShapeGeometry(shape);
+        geom.rotateX(-Math.PI * 0.5);
+        const out = geom.index ? geom.toNonIndexed() : geom;
+        if (out !== geom) geom.dispose();
+
+        const pos = out.attributes.position;
+        const uvs = new Float32Array(pos.count * 2);
+        for (let i = 0; i < pos.count; i++) {
+            const z = pos.getZ(i);
+            const t = Math.max(0, Math.min(1, (zSouth - z) / (zSouth - zNorth)));
+            const y = ySouth * (1 - t) + yNorth * t;
+            pos.setY(i, y);
+            uvs[i * 2] = pos.getX(i) * uvScale;
+            uvs[i * 2 + 1] = pos.getZ(i) * uvScale;
+        }
+        pos.needsUpdate = true;
+        out.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+        out.computeVertexNormals();
+        return out;
+    };
+
     // Roadbed surfaces (3 clean matte dark asphalt planes stepped by 0.5mm to avoid junction Z-fighting)
     const roadAsphaltMat = new THREE.MeshStandardMaterial({ color: 0x3c4046, roughness: 0.88 });
     [
@@ -1458,10 +1570,68 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
         curbGeoms.push(buildCurbQuad(p0Gutter, p1Gutter, p1Top, p0Top, uStart, uEnd));
     };
 
+    // Gate 77 Nguyen Hue authentic curved curb fillets and entrance driveway (Photo 1)
+    const gate77Fillets = (() => {
+        const R_top = 3.2;
+        const wCurb = roadDefs.nh.curb; // 0.85
+        const R_gut = R_top + wCurb; // 4.05
+        const Cw = { x: -18.5 - R_top, z: 77.0 - R_top }; // (-21.7, 73.8)
+        const Ce = { x: -5.8 + R_top, z: 77.0 - R_top };  // (-2.6, 73.8)
+        const uGateW = Cw.x - roadDefs.nh.cx; // -21.7 - (-10.0) = -11.7
+        const uGateE = Ce.x - roadDefs.nh.cx; // -2.6 - (-10.0) = +7.4
+        const segs = 16;
+
+        const topPtsW = [];
+        const gutPtsW = [];
+        for (let i = 0; i <= segs; i++) {
+            const phi = Math.PI * 0.5 - (i / segs) * Math.PI * 0.5;
+            topPtsW.push([Cw.x + R_top * Math.cos(phi), Cw.z + R_top * Math.sin(phi)]);
+            gutPtsW.push([Cw.x + R_gut * Math.cos(phi), Cw.z + R_gut * Math.sin(phi)]);
+        }
+
+        const topPtsE = [];
+        const gutPtsE = [];
+        for (let i = 0; i <= segs; i++) {
+            const phi = Math.PI * 0.5 + (i / segs) * Math.PI * 0.5;
+            topPtsE.push([Ce.x + R_top * Math.cos(phi), Ce.z + R_top * Math.sin(phi)]);
+            gutPtsE.push([Ce.x + R_gut * Math.cos(phi), Ce.z + R_gut * Math.sin(phi)]);
+        }
+
+        const arcLen = R_top * Math.PI * 0.5;
+
+        // West curved curb quads curving smoothly from Nguyen Hue into gate tower base
+        for (let i = 0; i < segs; i++) {
+            const u0 = uGateW + (i / segs) * arcLen;
+            const u1 = uGateW + ((i + 1) / segs) * arcLen;
+            curbGeoms.push(buildCurbQuad(gutPtsW[i], gutPtsW[i + 1], topPtsW[i + 1], topPtsW[i], u0, u1));
+        }
+        // West straight driveway curb quad into gate tower base
+        curbGeoms.push(buildCurbQuad([-17.65, 73.8], [-17.65, 72.4], [-18.5, 72.4], [-18.5, 73.8], uGateW + arcLen, uGateW + arcLen + 1.4));
+
+        // East curved curb quads curving smoothly from Nguyen Hue into right gate post
+        for (let i = 0; i < segs; i++) {
+            const u0 = uGateE + (i / segs) * arcLen;
+            const u1 = uGateE + ((i + 1) / segs) * arcLen;
+            curbGeoms.push(buildCurbQuad(gutPtsE[i], gutPtsE[i + 1], topPtsE[i + 1], topPtsE[i], u0, u1));
+        }
+        // East straight driveway curb quad into right gate post base
+        curbGeoms.push(buildCurbQuad([-6.65, 73.8], [-6.65, 72.4], [-5.8, 72.4], [-5.8, 73.8], uGateE + arcLen, uGateE + arcLen + 1.4));
+
+        return {
+            uGateW,
+            uGateE,
+            topPtsW,
+            gutPtsW,
+            topPtsE,
+            gutPtsE
+        };
+    })();
+
     // Straight curbstones trimmed seamlessly to corner arc tangents
     const nhCurbIn = nhHalfW - roadDefs.nh.curb;
     pushRoadSideCurb(roadDefs.nh, -nhHalfW, -nhCurbIn, roadDefs.nh.uMin, fNhNw.u1OnR1);
-    pushRoadSideCurb(roadDefs.nh, -nhHalfW, -nhCurbIn, fNhNe.u1OnR1, roadDefs.nh.uMax);
+    pushRoadSideCurb(roadDefs.nh, -nhHalfW, -nhCurbIn, fNhNe.u1OnR1, gate77Fillets.uGateW);
+    pushRoadSideCurb(roadDefs.nh, -nhHalfW, -nhCurbIn, gate77Fillets.uGateE, roadDefs.nh.uMax);
     pushRoadSideCurb(roadDefs.nh, +nhHalfW, +nhCurbIn, roadDefs.nh.uMin, fNhSw.u1OnR1);
     pushRoadSideCurb(roadDefs.nh, +nhHalfW, +nhCurbIn, fNhSe.u1OnR1, roadDefs.nh.uMax);
 
@@ -1509,6 +1679,31 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     curbMesh.matrixAutoUpdate = false;
     curbMesh.updateMatrix();
     scene.add(curbMesh);
+
+    // Authentic entrance driveway apron connecting Nguyen Hue street directly to campus courtyard (Photo 1)
+    const entranceDrivewayPoly = [
+        [-17.65, 72.4],
+        ...gate77Fillets.gutPtsW.slice().reverse(),
+        ...gate77Fillets.gutPtsE,
+        [-6.65, 72.4]
+    ];
+    const { colorTex: apronTex, bumpTex: apronBumpTex } = createEntranceApronTextures(maxAniso, tier);
+    const entranceApronGeom = buildSlopedDrivewayPoly(entranceDrivewayPoly, -0.012, 0.008, 77.85, 72.4, 0.35);
+    const entranceApronMesh = new THREE.Mesh(
+        entranceApronGeom,
+        new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            map: apronTex,
+            bumpMap: apronBumpTex,
+            bumpScale: 0.018,
+            roughness: 0.86,
+            metalness: 0.04
+        })
+    );
+    entranceApronMesh.receiveShadow = true;
+    entranceApronMesh.matrixAutoUpdate = false;
+    entranceApronMesh.updateMatrix();
+    scene.add(entranceApronMesh);
 
     // Batched crisp yellow centerline markings and white stop lines/crosswalks/parking dashed lines
     const yellowMarkingQuads = [];
@@ -1656,13 +1851,24 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     const ddSeCampus = lineIntersectPt(roadDefs.dd, +10.0, roadDefs.ltk, +10.24);
     const ddEndU = worldToUv(roadDefs.dd, 30.0, -94.0).u;
 
-    // Exterior sidewalks flanking Nguyen Hue, Ly Thuong Kiet, and Dong Da gates strictly outside curbstones
-    sidewalkGeoms.push(buildGroundPoly([
-        uvToWorld(roadDefs.nh, fNhNe.u1OnR1, -nhHalfW),
+    // Gate 77 Nguyen Hue sidewalk wings strictly flanking the entrance driveway with curved corners (Photo 1)
+    // West Wing (front of granite monument and gate tower)
+    const westSidewalkPts = [
+        uvToWorld(roadDefs.nh, fNhNe.u1OnR1, -13.1),
+        [-18.5, 72.4],
+        ...gate77Fillets.topPtsW.slice().reverse(),
+        uvToWorld(roadDefs.nh, fNhNe.u1OnR1, -nhHalfW)
+    ];
+    sidewalkGeoms.push(buildGroundPoly(westSidewalkPts, 0.005, 1.25));
+
+    // East Wing (front of guard booth, pedestrian gate, and eastern campus fence)
+    const eastSidewalkPts = [
         uvToWorld(roadDefs.nh, 94.0, -nhHalfW),
         uvToWorld(roadDefs.nh, 94.0, -13.1),
-        uvToWorld(roadDefs.nh, fNhNe.u1OnR1, -13.1)
-    ], 0.005, 1.25));
+        [-5.8, 72.4],
+        ...gate77Fillets.topPtsE.slice().reverse()
+    ];
+    sidewalkGeoms.push(buildGroundPoly(eastSidewalkPts, 0.005, 1.25));
 
     // Continuous school sidewalk along LTK including rounded corner fillets at Gate 77 and Gate 38
     const ltkSchoolSidewalkPts = [
@@ -1820,6 +2026,74 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     treePitSoilGeoms.forEach((g) => g.dispose());
     treePitSoilMesh.receiveShadow = true;
     scene.add(treePitSoilMesh);
+
+    // Authentic parked scooters on Gate 77 sidewalk flanking the entrance matching Photo 1
+    const parkedScooters = [
+        // West sidewalk in front of brown marble monument
+        { x: -28.2, z: 75.3, rotY: 0.65, color: 0xdc2626 },
+        { x: -26.9, z: 75.2, rotY: 0.58, color: 0x1e3a8a },
+        { x: -25.6, z: 75.1, rotY: 0.70, color: 0x18181b },
+        { x: -24.3, z: 75.0, rotY: 0.60, color: 0xf8fafc },
+        { x: -23.0, z: 74.9, rotY: 0.64, color: 0x64748b },
+        { x: -21.7, z: 74.8, rotY: 0.68, color: 0xdc2626 },
+        // East sidewalk in front of guard booth
+        { x: -4.8, z: 74.9, rotY: -0.65, color: 0x18181b },
+        { x: -3.5, z: 75.0, rotY: -0.58, color: 0xdc2626 },
+        { x: -2.2, z: 75.1, rotY: -0.70, color: 0x059669 },
+        { x: -0.9, z: 75.2, rotY: -0.62, color: 0xf8fafc }
+    ];
+
+    const motoGroup = new THREE.Group();
+    const bodyMatMap = new Map();
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.65, metalness: 0.35 });
+    const seatMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.85, metalness: 0.05 });
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.25, metalness: 0.85 });
+    const tireMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.90, metalness: 0.05 });
+
+    parkedScooters.forEach((s) => {
+        const bike = new THREE.Group();
+        // Body chassis
+        let bMat = bodyMatMap.get(s.color);
+        if (!bMat) {
+            bMat = new THREE.MeshStandardMaterial({ color: s.color, roughness: 0.35, metalness: 0.25 });
+            bodyMatMap.set(s.color, bMat);
+        }
+        const bodyGeom = new THREE.BoxGeometry(0.32, 0.32, 0.85);
+        bodyGeom.translate(0, 0.32, 0);
+        const bodyMesh = new THREE.Mesh(bodyGeom, bMat);
+        bodyMesh.castShadow = tier !== 'low';
+        bike.add(bodyMesh);
+
+        // Dark leather saddle
+        const seatGeom = new THREE.BoxGeometry(0.24, 0.07, 0.46);
+        seatGeom.translate(0, 0.49, -0.10);
+        bike.add(new THREE.Mesh(seatGeom, seatMat));
+
+        // Front handlebar & stem
+        const stemGeom = new THREE.CylinderGeometry(0.016, 0.016, 0.38, 6);
+        stemGeom.translate(0, 0.60, 0.28);
+        bike.add(new THREE.Mesh(stemGeom, frameMat));
+
+        const barGeom = new THREE.BoxGeometry(0.48, 0.03, 0.03);
+        barGeom.translate(0, 0.74, 0.26);
+        bike.add(new THREE.Mesh(barGeom, chromeMat));
+
+        // Front & Rear Wheels
+        const wheelGeom = new THREE.CylinderGeometry(0.17, 0.17, 0.07, 8);
+        wheelGeom.rotateZ(Math.PI * 0.5);
+        const frontWheel = new THREE.Mesh(wheelGeom, tireMat);
+        frontWheel.position.set(0, 0.17, 0.36);
+        const rearWheel = new THREE.Mesh(wheelGeom, tireMat);
+        rearWheel.position.set(0, 0.17, -0.34);
+        bike.add(frontWheel, rearWheel);
+
+        bike.position.set(s.x, 0.005, s.z);
+        bike.rotation.y = s.rotY;
+        motoGroup.add(bike);
+    });
+    scene.add(motoGroup);
+    batchStaticGroupByMaterial(motoGroup);
+    freezeStaticHierarchy(motoGroup);
 
     // 4. Orthogonal Soccer Pitch (San Bong Da) with FIFA turf markings
     const { canvas: pitchCanvas, ctx: fctx } = createScaledCanvas(512, 1024, tier, { mediumScale: 0.5, lowScale: 0.5 });
