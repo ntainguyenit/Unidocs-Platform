@@ -273,6 +273,13 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
             });
         }
 
+        // Shift bldg_A1A2 along positive X axis (+3.8m) to widen connector breezeway building between Nha A and Nha A1-A2
+        if (obj.name === 'bldg_A1A2' && !obj.userData.shiftedForConnector) {
+            obj.userData.shiftedForConnector = true;
+            obj.position.x += 3.8;
+            obj.updateMatrix();
+        }
+
         if (!obj.isMesh || !obj.material) return;
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
         for (const m of mats) {
@@ -4209,31 +4216,31 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
 
     // --- Ground Floor (Tầng 1) Structure ---
     // Ground concrete skirting plinths
-    const plinthLeft = new THREE.Mesh(new THREE.BoxGeometry(3.85, 0.35, 0.30), basePlinthMat);
-    plinthLeft.position.set(-3.35, 0.175, 4.58);
+    const plinthLeft = new THREE.Mesh(new THREE.BoxGeometry(4.65, 0.35, 0.30), basePlinthMat);
+    plinthLeft.position.set(-3.825, 0.175, 4.58);
     plinthLeft.receiveShadow = true;
     group.add(plinthLeft);
 
-    const plinthRight = new THREE.Mesh(new THREE.BoxGeometry(3.85, 0.35, 0.30), basePlinthMat);
-    plinthRight.position.set(3.35, 0.175, 4.58);
+    const plinthRight = new THREE.Mesh(new THREE.BoxGeometry(4.65, 0.35, 0.30), basePlinthMat);
+    plinthRight.position.set(3.825, 0.175, 4.58);
     plinthRight.receiveShadow = true;
     group.add(plinthRight);
 
     // Left and Right yellow facade walls
-    const wallLeft = new THREE.Mesh(new THREE.BoxGeometry(3.80, 3.65, 0.25), yellowWallMat);
-    wallLeft.position.set(-3.35, 2.175, 4.55);
+    const wallLeft = new THREE.Mesh(new THREE.BoxGeometry(4.65, 3.65, 0.25), yellowWallMat);
+    wallLeft.position.set(-3.825, 2.175, 4.55);
     wallLeft.castShadow = true;
     wallLeft.receiveShadow = true;
     group.add(wallLeft);
 
-    const wallRight = new THREE.Mesh(new THREE.BoxGeometry(3.80, 3.65, 0.25), yellowWallMat);
-    wallRight.position.set(3.35, 2.175, 4.55);
+    const wallRight = new THREE.Mesh(new THREE.BoxGeometry(4.65, 3.65, 0.25), yellowWallMat);
+    wallRight.position.set(3.825, 2.175, 4.55);
     wallRight.castShadow = true;
     wallRight.receiveShadow = true;
     group.add(wallRight);
 
     // Archway lintel wall above portal (y = 3.40 to 4.0)
-    const archLintel = new THREE.Mesh(new THREE.BoxGeometry(2.90, 0.60, 0.25), yellowWallMat);
+    const archLintel = new THREE.Mesh(new THREE.BoxGeometry(3.00, 0.60, 0.25), yellowWallMat);
     archLintel.position.set(0, 3.70, 4.55);
     archLintel.castShadow = true;
     archLintel.receiveShadow = true;
@@ -4241,32 +4248,32 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
 
     // White portal architrave mouldings around the central breezeway opening
     const portalTrimJambL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.40, 0.10), whiteTrimMat);
-    portalTrimJambL.position.set(-1.45, 1.70, 4.65);
+    portalTrimJambL.position.set(-1.50, 1.70, 4.65);
     group.add(portalTrimJambL);
 
     const portalTrimJambR = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.40, 0.10), whiteTrimMat);
-    portalTrimJambR.position.set(1.45, 1.70, 4.65);
+    portalTrimJambR.position.set(1.50, 1.70, 4.65);
     group.add(portalTrimJambR);
 
-    const portalTrimHead = new THREE.Mesh(new THREE.BoxGeometry(3.06, 0.16, 0.10), whiteTrimMat);
+    const portalTrimHead = new THREE.Mesh(new THREE.BoxGeometry(3.16, 0.16, 0.10), whiteTrimMat);
     portalTrimHead.position.set(0, 3.40, 4.65);
     group.add(portalTrimHead);
 
     // Breezeway passage interior (completely open between front z = +4.55 and rear z = -4.55)
-    const passageFloor = new THREE.Mesh(new THREE.BoxGeometry(2.90, 0.04, 9.10), passageFloorMat);
+    const passageFloor = new THREE.Mesh(new THREE.BoxGeometry(3.00, 0.04, 9.10), passageFloorMat);
     passageFloor.position.set(0, 0.02, 0);
     passageFloor.receiveShadow = true;
     group.add(passageFloor);
 
     const passageWallL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.40, 9.10), whiteTrimMat);
-    passageWallL.position.set(-1.45, 1.70, 0);
+    passageWallL.position.set(-1.50, 1.70, 0);
     group.add(passageWallL);
 
     const passageWallR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.40, 9.10), whiteTrimMat);
-    passageWallR.position.set(1.45, 1.70, 0);
+    passageWallR.position.set(1.50, 1.70, 0);
     group.add(passageWallR);
 
-    const passageCeiling = new THREE.Mesh(new THREE.BoxGeometry(2.90, 0.10, 9.10), whiteTrimMat);
+    const passageCeiling = new THREE.Mesh(new THREE.BoxGeometry(3.00, 0.10, 9.10), whiteTrimMat);
     passageCeiling.position.set(0, 3.45, 0);
     group.add(passageCeiling);
 
@@ -4285,9 +4292,29 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
         emissive: new THREE.Color(0x38bdf8),
         emissiveIntensity: 0.85
     });
-    const passageSignMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.40, 0.44), passageSignMat);
+    const passageSignMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.50, 0.44), passageSignMat);
     passageSignMesh.position.set(0, 3.05, 3.90);
     group.add(passageSignMesh);
+
+    // 4 Classical Yellow Engaged Columns on Ground Floor (4 trụ tròn màu vàng in nổi vào tường)
+    const groundColXs = [-5.85, -1.68, 1.68, 5.85];
+    const groundColGeom = new THREE.CylinderGeometry(0.17, 0.17, 3.58, 16);
+    const groundColRingGeom = new THREE.CylinderGeometry(0.20, 0.20, 0.12, 16);
+    for (const gx of groundColXs) {
+        const colMesh = new THREE.Mesh(groundColGeom, yellowWallMat);
+        colMesh.position.set(gx, 2.14, 4.66);
+        colMesh.castShadow = true;
+        colMesh.receiveShadow = true;
+        group.add(colMesh);
+
+        const capital = new THREE.Mesh(groundColRingGeom, yellowWallMat);
+        capital.position.set(gx, 3.87, 4.66);
+        group.add(capital);
+
+        const base = new THREE.Mesh(groundColRingGeom, yellowWallMat);
+        base.position.set(gx, 0.41, 4.66);
+        group.add(base);
+    }
 
     // Left Event Backdrop: "Chào Mừng Ngày Nhà Giáo Việt Nam 20-11"
     const teacherDayTex = createTeacherDayBackdropTexture();
@@ -4303,8 +4330,8 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
     teacherDayMat.userData.nightEmissiveHex = 0xffffff;
     teacherDayMat.userData.sunsetEmissiveHex = 0xfff5ea;
     registerNightMaterial(teacherDayMat);
-    const teacherDayMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.25, 2.65), teacherDayMat);
-    teacherDayMesh.position.set(-3.35, 2.05, 4.69);
+    const teacherDayMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.60, 2.75), teacherDayMat);
+    teacherDayMesh.position.set(-3.765, 2.05, 4.70);
     teacherDayMesh.castShadow = true;
     group.add(teacherDayMesh);
 
@@ -4322,8 +4349,8 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
     gameJamMat.userData.nightEmissiveHex = 0xffffff;
     gameJamMat.userData.sunsetEmissiveHex = 0xfff5ea;
     registerNightMaterial(gameJamMat);
-    const gameJamMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.25, 2.65), gameJamMat);
-    gameJamMesh.position.set(3.35, 2.05, 4.69);
+    const gameJamMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.60, 2.75), gameJamMat);
+    gameJamMesh.position.set(3.765, 2.05, 4.70);
     gameJamMesh.castShadow = true;
     group.add(gameJamMesh);
 
@@ -4358,11 +4385,11 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
 
         group.add(standGroup);
     };
-    createFlowerStand(-4.95, 4.95);
-    createFlowerStand(-1.75, 4.95);
+    createFlowerStand(-5.35, 4.95);
+    createFlowerStand(-2.15, 4.95);
 
     // Mid-floor dividing beam & corbel mouldings (y = 3.90 to 4.30)
-    const midBeam = new THREE.Mesh(new THREE.BoxGeometry(10.60, 0.35, 0.30), whiteTrimMat);
+    const midBeam = new THREE.Mesh(new THREE.BoxGeometry(12.50, 0.35, 0.30), whiteTrimMat);
     midBeam.position.set(0, 4.10, 4.68);
     midBeam.castShadow = true;
     midBeam.receiveShadow = true;
@@ -4377,23 +4404,23 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
 
     // --- Second Floor (Tầng 2) Open Loggia ---
     // Floor slab of loggia (depth 4.55m from back z = 0 to front z = 4.55)
-    const loggiaFloor = new THREE.Mesh(new THREE.BoxGeometry(10.40, 0.20, 4.55), basePlinthMat);
+    const loggiaFloor = new THREE.Mesh(new THREE.BoxGeometry(12.30, 0.20, 4.55), basePlinthMat);
     loggiaFloor.position.set(0, 4.15, 2.28);
     loggiaFloor.receiveShadow = true;
     group.add(loggiaFloor);
 
     // Ceiling slab of loggia
-    const loggiaCeiling = new THREE.Mesh(new THREE.BoxGeometry(10.40, 0.20, 4.55), whiteTrimMat);
+    const loggiaCeiling = new THREE.Mesh(new THREE.BoxGeometry(12.30, 0.20, 4.55), whiteTrimMat);
     loggiaCeiling.position.set(0, 7.75, 2.28);
     group.add(loggiaCeiling);
 
     // Left and Right interior white loggia sidewalls
     const loggiaSideL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 3.40, 4.55), whiteTrimMat);
-    loggiaSideL.position.set(-5.20, 5.95, 2.28);
+    loggiaSideL.position.set(-6.15, 5.95, 2.28);
     group.add(loggiaSideL);
 
     const loggiaSideR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 3.40, 4.55), whiteTrimMat);
-    loggiaSideR.position.set(5.20, 5.95, 2.28);
+    loggiaSideR.position.set(6.15, 5.95, 2.28);
     group.add(loggiaSideR);
 
     // Interior back wall with French doors & HUSC logo (Photo 2)
@@ -4410,37 +4437,37 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
     loggiaBackMat.userData.nightIntensity = 0.95;
     loggiaBackMat.userData.sunsetIntensity = 0.35;
     registerNightMaterial(loggiaBackMat);
-    const loggiaBackMesh = new THREE.Mesh(new THREE.PlaneGeometry(10.40, 3.40), loggiaBackMat);
+    const loggiaBackMesh = new THREE.Mesh(new THREE.PlaneGeometry(12.30, 3.40), loggiaBackMat);
     loggiaBackMesh.position.set(0, 5.95, 0.02);
     group.add(loggiaBackMesh);
 
     // Front Masonry Balustrade / Lan can ban công (y = 4.15 to 5.10, height 0.95m)
-    const balustradeMesh = new THREE.Mesh(new THREE.BoxGeometry(10.50, 0.95, 0.22), whiteTrimMat);
+    const balustradeMesh = new THREE.Mesh(new THREE.BoxGeometry(12.30, 0.95, 0.22), whiteTrimMat);
     balustradeMesh.position.set(0, 4.625, 4.50);
     balustradeMesh.castShadow = true;
     balustradeMesh.receiveShadow = true;
     group.add(balustradeMesh);
 
-    const balustradeRail = new THREE.Mesh(new THREE.BoxGeometry(10.60, 0.08, 0.28), whiteTrimMat);
+    const balustradeRail = new THREE.Mesh(new THREE.BoxGeometry(12.40, 0.08, 0.28), whiteTrimMat);
     balustradeRail.position.set(0, 5.10, 4.50);
     group.add(balustradeRail);
 
-    // 4 Classical White Columns (hàng 4 cột trụ trắng tạo 3 nhịp mở rộng)
-    const colXs = [-4.90, -1.60, 1.60, 4.90];
-    const colGeom = new THREE.CylinderGeometry(0.16, 0.17, 2.65, 12);
-    const colCapitalGeom = new THREE.BoxGeometry(0.40, 0.12, 0.40);
-    for (const cx of colXs) {
-        const colMesh = new THREE.Mesh(colGeom, whiteTrimMat);
+    // 4 Classical White Columns (4 cột trụ tròn trắng tầng trên, 2 cột ở sát mép góc)
+    const upperColXs = [-5.85, -1.68, 1.68, 5.85];
+    const upperColGeom = new THREE.CylinderGeometry(0.165, 0.175, 2.65, 16);
+    const upperColCapitalGeom = new THREE.BoxGeometry(0.42, 0.12, 0.42);
+    for (const cx of upperColXs) {
+        const colMesh = new THREE.Mesh(upperColGeom, whiteTrimMat);
         colMesh.position.set(cx, 6.425, 4.50);
         colMesh.castShadow = true;
         group.add(colMesh);
 
         // Classical capital and base
-        const capital = new THREE.Mesh(colCapitalGeom, whiteTrimMat);
+        const capital = new THREE.Mesh(upperColCapitalGeom, whiteTrimMat);
         capital.position.set(cx, 7.69, 4.50);
         group.add(capital);
 
-        const base = new THREE.Mesh(colCapitalGeom, whiteTrimMat);
+        const base = new THREE.Mesh(upperColCapitalGeom, whiteTrimMat);
         base.position.set(cx, 5.16, 4.50);
         group.add(base);
     }
@@ -4462,61 +4489,61 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
 
         group.add(plantGroup);
     };
-    createBalconyPlant(-4.20, 4.40);
-    createBalconyPlant(-3.60, 4.40);
+    createBalconyPlant(-5.0, 4.40);
+    createBalconyPlant(-4.3, 4.40);
 
     // --- Upper Entablature, Cornice & Roof ---
     // Upper concrete beam running above the 4 columns
-    const topBeam = new THREE.Mesh(new THREE.BoxGeometry(10.70, 0.40, 0.35), whiteTrimMat);
+    const topBeam = new THREE.Mesh(new THREE.BoxGeometry(12.50, 0.40, 0.35), whiteTrimMat);
     topBeam.position.set(0, 7.95, 4.55);
     topBeam.castShadow = true;
     group.add(topBeam);
 
     // Weathered parapet ledge
-    const parapet = new THREE.Mesh(new THREE.BoxGeometry(10.60, 0.35, 0.25), whiteTrimMat);
+    const parapet = new THREE.Mesh(new THREE.BoxGeometry(12.40, 0.35, 0.25), whiteTrimMat);
     parapet.position.set(0, 8.325, 4.50);
     group.add(parapet);
 
     // Terracotta hipped roof connecting seamlessly with Nha A and Nha A1-A2
-    const roofGeom = new THREE.ConeGeometry(7.4, 1.45, 4);
+    const roofGeom = new THREE.ConeGeometry(8.5, 1.55, 4);
     roofGeom.rotateY(Math.PI * 0.25);
-    roofGeom.scale(1.42, 1.0, 0.98);
+    roofGeom.scale(1.10, 1.0, 0.82);
     const roofMesh = new THREE.Mesh(roofGeom, roofTileMat);
-    roofMesh.position.set(0, 9.15, 0);
+    roofMesh.position.set(0, 9.20, 0);
     roofMesh.castShadow = true;
     roofMesh.receiveShadow = true;
     group.add(roofMesh);
 
     // --- Rear Facade (Facing Inner Courtyard - Nha E/H side) ---
     // Yellow plaster walls flanking the rear breezeway portal
-    const rearWallL = new THREE.Mesh(new THREE.BoxGeometry(3.80, 7.80, 0.25), yellowWallMat);
-    rearWallL.position.set(-3.35, 3.90, -4.55);
+    const rearWallL = new THREE.Mesh(new THREE.BoxGeometry(4.65, 7.80, 0.25), yellowWallMat);
+    rearWallL.position.set(-3.825, 3.90, -4.55);
     rearWallL.castShadow = true;
     group.add(rearWallL);
 
-    const rearWallR = new THREE.Mesh(new THREE.BoxGeometry(3.80, 7.80, 0.25), yellowWallMat);
-    rearWallR.position.set(3.35, 3.90, -4.55);
+    const rearWallR = new THREE.Mesh(new THREE.BoxGeometry(4.65, 7.80, 0.25), yellowWallMat);
+    rearWallR.position.set(3.825, 3.90, -4.55);
     rearWallR.castShadow = true;
     group.add(rearWallR);
 
-    const rearArchLintel = new THREE.Mesh(new THREE.BoxGeometry(2.90, 4.40, 0.25), yellowWallMat);
+    const rearArchLintel = new THREE.Mesh(new THREE.BoxGeometry(3.00, 4.40, 0.25), yellowWallMat);
     rearArchLintel.position.set(0, 5.60, -4.55);
     group.add(rearArchLintel);
 
     const rearPortalTrimL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.40, 0.10), whiteTrimMat);
-    rearPortalTrimL.position.set(-1.45, 1.70, -4.65);
+    rearPortalTrimL.position.set(-1.50, 1.70, -4.65);
     group.add(rearPortalTrimL);
 
     const rearPortalTrimR = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.40, 0.10), whiteTrimMat);
-    rearPortalTrimR.position.set(1.45, 1.70, -4.65);
+    rearPortalTrimR.position.set(1.50, 1.70, -4.65);
     group.add(rearPortalTrimR);
 
-    const rearPortalTrimHead = new THREE.Mesh(new THREE.BoxGeometry(3.06, 0.16, 0.10), whiteTrimMat);
+    const rearPortalTrimHead = new THREE.Mesh(new THREE.BoxGeometry(3.16, 0.16, 0.10), whiteTrimMat);
     rearPortalTrimHead.position.set(0, 3.40, -4.65);
     group.add(rearPortalTrimHead);
 
     // Position entire Nha A connector building assembly onto exact campus coordinates
-    group.position.set(15.6, 0, 10.0);
+    group.position.set(17.65, 0, 10.0);
     scene.add(group);
     batchStaticGroupByMaterial(group);
     freezeStaticHierarchy(group);
