@@ -1,9 +1,10 @@
 
 (function() {
-    // 1. Block right-click (Context Menu)
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-    });
+    // 1. [TEMPORARILY DISABLED for Google AdSense review - re-enable when instructed]
+    // Block right-click (Context Menu)
+    // document.addEventListener('contextmenu', function(e) {
+    //     e.preventDefault();
+    // });
 
     // 2. [TEMPORARILY DISABLED for Google AdSense review - re-enable when instructed]
     // Block DevTools shortcuts (F12, Ctrl+Shift+I/J/C, Cmd+Option+I/J/C, Ctrl+U)
