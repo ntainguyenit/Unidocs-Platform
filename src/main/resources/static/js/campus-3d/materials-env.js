@@ -5413,7 +5413,7 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     freezeStaticHierarchy(ensembleGroup);
 }
 
-// Create sky dome shader, instanced drifting clouds, street lamp posts, and neutral city backdrop
+// Create sky dome shader, street lamp posts, and environmental backdrop
 function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
     // Sky Dome
     const skyGeom = new THREE.SphereGeometry(420, 20, 12);
@@ -5449,45 +5449,6 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
     const skyDome = new THREE.Mesh(skyGeom, skyMat);
     scene.add(skyDome);
     freezeStaticHierarchy(skyDome);
-
-    // Instanced puffy clouds drifting gently at high altitude (1 draw call across 18 puffs)
-    const cloudMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.88
-    });
-    const puffGeom = new THREE.SphereGeometry(1, 8, 6);
-    const cloudClusters = [
-        [-120, 95, -140, 1.4], [-40, 105, -180, 1.2], [75, 98, -155, 1.5],
-        [-170, 90, 20, 1.1], [150, 102, 10, 1.3], [15, 110, 145, 1.2]
-    ].map(([cx, cy, cz, cs], i) => ({ cx, cy, cz, cs, speed: 0.55 + (i % 3) * 0.25 }));
-    const puffOffsets = [
-        [0, 0, 0, 12, 5.5, 8],
-        [-9, -1.2, 2, 8.5, 4.2, 6.5],
-        [9.5, -1.0, -1, 9, 4.5, 7]
-    ];
-    const cloudInst = new THREE.InstancedMesh(puffGeom, cloudMat, cloudClusters.length * puffOffsets.length);
-    cloudInst.frustumCulled = false;
-    const cloudDummy = new THREE.Object3D();
-
-    const syncCloudInstances = (dt) => {
-        let instIdx = 0;
-        for (const cl of cloudClusters) {
-            if (dt > 0) {
-                cl.cx += cl.speed * dt;
-                if (cl.cx > 210) cl.cx = -210;
-            }
-            for (const [ox, oy, oz, rx, ry, rz] of puffOffsets) {
-                cloudDummy.position.set(cl.cx + ox * cl.cs, cl.cy + oy * cl.cs, cl.cz + oz * cl.cs);
-                cloudDummy.scale.set(rx * cl.cs, ry * cl.cs, rz * cl.cs);
-                cloudDummy.updateMatrix();
-                cloudInst.setMatrixAt(instIdx++, cloudDummy.matrix);
-            }
-        }
-        cloudInst.instanceMatrix.needsUpdate = true;
-    };
-    syncCloudInstances(0);
-    scene.add(cloudInst);
 
     // Authentic detailed urban ensemble opposite Ly Thuong Kiet x Dong Da intersection (Photos 1-5)
     createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile);
@@ -5731,7 +5692,7 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
         }
     };
 
-    return { skyUniforms, syncCloudInstances, cloudMat, lampHeadMat, lampHaloMat, haloInst, setNightSkyActive, updateNightSky };
+    return { skyUniforms, lampHeadMat, lampHaloMat, haloInst, setNightSkyActive, updateNightSky };
 }
 
 
@@ -5798,8 +5759,6 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     const updatePedestrians = createPedestrianSystem(scene, hardwareProfile);
     const {
         skyUniforms,
-        syncCloudInstances,
-        cloudMat,
         lampHeadMat,
         lampHaloMat,
         haloInst,
@@ -5842,8 +5801,6 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             fog.color.setHex(0xf3cba8);
             fog.density = 0.0021;
             scene.background.setHex(0xf3cba8);
-            cloudMat.color.setHex(0xfde2cc);
-            cloudMat.opacity = 0.86;
             lampHeadMat.color.setHex(0xfef08a);
             lampHaloMat.opacity = 0.22;
             haloInst.visible = true;
@@ -5862,8 +5819,6 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             fog.color.setHex(0x111c36);
             fog.density = 0.0023;
             scene.background.setHex(0x111c36);
-            cloudMat.color.setHex(0x283652);
-            cloudMat.opacity = 0.55;
             lampHeadMat.color.setHex(0xfde047);
             lampHaloMat.opacity = 0.58;
             haloInst.visible = true;
@@ -5882,8 +5837,6 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
             fog.color.setHex(0xd5ecff);
             fog.density = 0.0021;
             scene.background.setHex(0xd5ecff);
-            cloudMat.color.setHex(0xffffff);
-            cloudMat.opacity = 0.88;
             lampHeadMat.color.setHex(0xfef9c3);
             lampHaloMat.opacity = 0;
             haloInst.visible = false;
@@ -6001,12 +5954,11 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         }
     };
 
-    let cloudAccumDt = 0;
     let envFrameCount = 0;
     let lastShadowPx = NaN;
     let lastShadowPz = NaN;
 
-    // Advance wind uniform, drifting clouds, flag ripple, smart traffic signals, vehicle flow, and beacon pulse
+    // Advance wind uniform, flag ripple, smart traffic signals, vehicle flow, and beacon pulse
     const updateEnvironment = (elapsedSec, dt, playerState = null) => {
         windUniform.value = elapsedSec;
         updateNightSky(elapsedSec, dt);
@@ -6017,11 +5969,8 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         if (updatePedestrians) updatePedestrians(dt, elapsedSec, signalState);
 
         envFrameCount += 1;
-        cloudAccumDt += dt;
         const propStride = shadowUpdateStride === 0 || shadowUpdateStride > 2 ? 2 : 1;
         if (envFrameCount % propStride === 0) {
-            syncCloudInstances(cloudAccumDt);
-            cloudAccumDt = 0;
             syncSolidFlags(elapsedSec);
         }
 
