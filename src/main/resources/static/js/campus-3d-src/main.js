@@ -1,0 +1,567 @@
+// Main entry point initializing adaptive Three.js WebGLRenderer, batched GLB loading, pre-warmed flycam intro, and smooth render loop
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { setupCampusEnvironment, applyCampusMaterialEnhancements } from './materials-env.js';
+import { setupPlayerAndCamera } from './player-controls.js';
+import { setupCampusHud } from './hud-ui.js';
+
+const STORAGE_KEY = 'unidocs_husc_campus_3d_v1';
+
+// Read user-overridden graphics preset safely before initializing WebGL context
+function readManualQualityOverride() {
+    const validTiers = new Set(['low', 'medium', 'high']);
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { qualityManual: false, quality: null };
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.qualityManual && validTiers.has(parsed.quality)) {
+            return { qualityManual: true, quality: parsed.quality };
+        }
+    } catch (_) {
+        // Ignore malformed localStorage state
+    }
+    return { qualityManual: false, quality: null };
+}
+
+// Probe WebGL renderer string, CPU cores, device RAM, and pointer form-factor before constructing Three.js renderer
+function detectHardwareProfile() {
+    let rendererStr = '';
+    try {
+        const probeCanvas = document.createElement('canvas');
+        probeCanvas.width = 1;
+        probeCanvas.height = 1;
+        const gl = probeCanvas.getContext('webgl2')
+            || probeCanvas.getContext('webgl')
+            || probeCanvas.getContext('experimental-webgl');
+        if (gl) {
+            const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+            const unmasked = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : '';
+            const std = gl.getParameter(gl.RENDERER) || '';
+            rendererStr = `${unmasked} ${std}`.toLowerCase();
+            gl.getExtension('WEBGL_lose_context')?.loseContext();
+        }
+    } catch (_) {
+        // Ignore restricted probe failures
+    }
+
+    const isSoftware = /swiftshader|llvmpipe|softpipe|microsoft basic|virgl|software|mesa offscreen|warp/i.test(rendererStr);
+    const isLegacyGpu = /mali-[4gt]|mali-g3|mali-g5[0-2]|adreno\s*\(tm\)\s*[1-5]\d\d|powervr|intel\(r\)\s*(hd|gma)|geforce\s*[1-7]\d0|radeon\s*(hd\s*[2-7]|r[35])/i.test(rendererStr);
+    const cores = navigator.hardwareConcurrency || 4;
+    const mem = navigator.deviceMemory || 8;
+    const isCoarsePointer = Boolean(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
+    let tier = 'high';
+    if (isSoftware || isLegacyGpu || cores <= 2 || mem <= 2) {
+        tier = 'low';
+    } else if (isCoarsePointer || cores <= 4 || mem <= 4) {
+        tier = 'medium';
+    }
+
+    const maxAnisotropy = tier === 'low' ? 1 : (tier === 'medium' ? 2 : 8);
+    return { tier, isSoftware, maxAnisotropy, rendererStr };
+}
+
+// Unpack quantized/interleaved Meshopt GLB buffers into Float32 attributes and merge by material (~24 draw calls)
+function batchStaticCampusModel(campusModel) {
+    campusModel.updateMatrixWorld(true);
+    const buckets = new Map();
+    const removableGeoms = [];
+    const tmpPos = new THREE.Vector3();
+    const tmpNorm = new THREE.Vector3();
+    const normalMat = new THREE.Matrix3();
+
+    campusModel.traverse((obj) => {
+        if (!obj.isMesh || !obj.geometry || !obj.material) return;
+        if (!obj.visible) return;
+        const mat = Array.isArray(obj.material) ? obj.material[0] : obj.material;
+        const src = obj.geometry;
+        const posAttr = src.attributes?.position;
+        if (!mat || !posAttr) return;
+
+        const needsUv = Boolean(
+            mat.name === 'GateCeramicTile'
+            || mat.map || mat.bumpMap || mat.normalMap || mat.emissiveMap
+            || mat.alphaMap || mat.roughnessMap || mat.metalnessMap || mat.aoMap
+        );
+        const normAttr = src.attributes.normal;
+        const uvAttr = needsUv ? src.attributes.uv : null;
+        const idxAttr = src.index;
+        const vertCount = idxAttr ? idxAttr.count : posAttr.count;
+        if (vertCount <= 0) return;
+
+        removableGeoms.push(src);
+
+        const posArr = new Float32Array(vertCount * 3);
+        const normArr = new Float32Array(vertCount * 3);
+        const uvArr = needsUv ? new Float32Array(vertCount * 2) : null;
+        normalMat.getNormalMatrix(obj.matrixWorld);
+
+        for (let k = 0; k < vertCount; k++) {
+            const vi = idxAttr ? idxAttr.getX(k) : k;
+            tmpPos.set(posAttr.getX(vi), posAttr.getY(vi), posAttr.getZ(vi)).applyMatrix4(obj.matrixWorld);
+            posArr[k * 3] = tmpPos.x;
+            posArr[k * 3 + 1] = tmpPos.y;
+            posArr[k * 3 + 2] = tmpPos.z;
+
+            if (normAttr) {
+                tmpNorm.set(normAttr.getX(vi), normAttr.getY(vi), normAttr.getZ(vi)).applyMatrix3(normalMat);
+                const nLenSq = tmpNorm.lengthSq();
+                if (nLenSq > 1e-8) tmpNorm.multiplyScalar(1 / Math.sqrt(nLenSq));
+                else tmpNorm.set(0, 1, 0);
+                normArr[k * 3] = tmpNorm.x;
+                normArr[k * 3 + 1] = tmpNorm.y;
+                normArr[k * 3 + 2] = tmpNorm.z;
+            } else {
+                normArr[k * 3 + 1] = 1;
+            }
+
+            if (uvArr && uvAttr) {
+                uvArr[k * 2] = uvAttr.getX(vi);
+                uvArr[k * 2 + 1] = uvAttr.getY(vi);
+            }
+        }
+
+        const unpacked = new THREE.BufferGeometry();
+        unpacked.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+        unpacked.setAttribute('normal', new THREE.BufferAttribute(normArr, 3));
+        if (uvArr) unpacked.setAttribute('uv', new THREE.BufferAttribute(uvArr, 2));
+
+        const key = `${mat.uuid}|${uvArr ? '1' : '0'}`;
+        let bucket = buckets.get(key);
+        if (!bucket) {
+            bucket = { material: mat, geoms: [] };
+            buckets.set(key, bucket);
+        }
+        bucket.geoms.push(unpacked);
+    });
+
+    for (const oldGeom of removableGeoms) {
+        oldGeom.dispose();
+    }
+
+    const batchedGroup = new THREE.Group();
+    batchedGroup.name = 'HuscCampusBatched';
+    for (const bucket of buckets.values()) {
+        if (bucket.geoms.length === 0) continue;
+        const mat = bucket.material;
+        const isReflectiveGlass = (mat.metalness || 0) > 0.6 && (mat.roughness || 1) < 0.25;
+        const merged = mergeGeometries(bucket.geoms, false);
+        if (merged) {
+            for (const part of bucket.geoms) part.dispose();
+            merged.computeBoundingBox();
+            merged.computeBoundingSphere();
+            const mesh = new THREE.Mesh(merged, mat);
+            mesh.castShadow = !isReflectiveGlass;
+            mesh.receiveShadow = true;
+            mesh.matrixAutoUpdate = false;
+            mesh.updateMatrix();
+            batchedGroup.add(mesh);
+        } else {
+            // Keep unmerged part meshes rather than ever dropping geometry
+            for (const part of bucket.geoms) {
+                part.computeBoundingBox();
+                part.computeBoundingSphere();
+                const mesh = new THREE.Mesh(part, mat);
+                mesh.castShadow = !isReflectiveGlass;
+                mesh.receiveShadow = true;
+                mesh.matrixAutoUpdate = false;
+                mesh.updateMatrix();
+                batchedGroup.add(mesh);
+            }
+        }
+    }
+    batchedGroup.matrixAutoUpdate = false;
+    batchedGroup.updateMatrix();
+    return batchedGroup.children.length > 0 ? batchedGroup : campusModel;
+}
+
+async function bootstrapCampus3D() {
+    const canvas = document.getElementById('campusCanvas');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingProgressBar = document.getElementById('loadingProgressBar');
+    const loadingProgressText = document.getElementById('loadingProgressText');
+
+    const hardwareProfile = detectHardwareProfile();
+    const { qualityManual, quality: manualQuality } = readManualQualityOverride();
+    let effectiveTier = qualityManual ? manualQuality : hardwareProfile.tier;
+    const activeProfile = { ...hardwareProfile, tier: effectiveTier, defaultTier: hardwareProfile.tier };
+
+    // Initialize WebGLRenderer with hardware-appropriate AA and high-performance power hint
+    let renderer;
+    try {
+        renderer = new THREE.WebGLRenderer({
+            canvas,
+            antialias: effectiveTier === 'high',
+            powerPreference: 'high-performance',
+            preserveDrawingBuffer: false
+        });
+    } catch (err) {
+        if (loadingProgressText) {
+            loadingProgressText.textContent = 'Trình duyệt hoặc thiết bị chưa hỗ trợ WebGL 3D. Vui lòng bật tăng tốc phần cứng.';
+        }
+        return;
+    }
+
+    const capMaxAniso = renderer.capabilities?.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 4;
+    activeProfile.maxAnisotropy = Math.max(1, Math.min(activeProfile.maxAnisotropy, capMaxAniso));
+
+    const maxDpr = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth < 768 ? 1.5 : 2.0;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.2, 650);
+
+    // Resize listener adapting canvas aspect ratio across desktop resize and mobile rotation
+    const handleResize = () => {
+        const w = canvas.clientWidth || window.innerWidth;
+        const h = canvas.clientHeight || window.innerHeight;
+        camera.aspect = w / Math.max(1, h);
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h, false);
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Setup daylight, adaptive shadow maps, sky, gardens, signage, traffic, and instanced foliage
+    const envController = setupCampusEnvironment(scene, renderer, activeProfile);
+
+    // Runtime adaptive FPS governor state preventing hitches on constrained GPUs
+    let govStage = 0;
+    let avgFrameMs = 16.7;
+    let govCooldownUntil = performance.now() + 2600;
+    let isManualLocked = qualityManual;
+
+    // Late-bound HUD reference for keyboard shortcut callbacks
+    let hudController = null;
+    const playerController = setupPlayerAndCamera(scene, camera, canvas, {
+        onIntroComplete: () => {
+            govCooldownUntil = performance.now() + 2600;
+            avgFrameMs = 16.7;
+            if (hudController) {
+                hudController.syncIntroVisibility(false);
+                setTimeout(() => {
+                    if (!playerController.getState().introPlaying) {
+                        hudController.showToast('Chào mừng đến ĐHKH Huế 3D! Đang ở Góc nhìn toàn cảnh', 'info');
+                    }
+                }, 180);
+            }
+        },
+        onInteract: () => hudController && hudController.executeContextAction(),
+        onSnapshot: () => hudController && hudController.triggerSnapshot(),
+        onToggleCamera: () => hudController && hudController.toggleCameraMode(),
+        onIntroSceneChange: (title) => hudController && hudController.setIntroSubTitle(title),
+        onCinematicDip: (cb) => hudController && hudController.triggerCinematicDip(cb),
+        onClearCinematicDip: () => hudController && hudController.clearCinematicDip()
+    });
+
+    // Synchronous on-demand snapshot capture keeping preserveDrawingBuffer=false
+    const captureFrameDataUrl = () => {
+        renderer.render(scene, camera);
+        return canvas.toDataURL('image/png');
+    };
+
+    hudController = setupCampusHud({
+        playerController,
+        envController,
+        hardwareProfile: activeProfile,
+        onCaptureFrame: captureFrameDataUrl,
+        onManualQualityChange: (nextTier) => {
+            isManualLocked = true;
+            effectiveTier = nextTier;
+            govStage = 0;
+            avgFrameMs = 16.7;
+            govCooldownUntil = performance.now() + 5000;
+        },
+        onResetQualityToAuto: (defaultTier) => {
+            isManualLocked = false;
+            effectiveTier = defaultTier;
+            govStage = 0;
+            avgFrameMs = 16.7;
+            govCooldownUntil = performance.now() + 2600;
+        }
+    });
+
+    // Animation loop initialized ONLY after GLB batching, shader compile, and silent warm-up finish
+    let loopStarted = false;
+    let loopPaused = false;
+    let rafId = 0;
+    let isDisposed = false;
+    let lastFrameMs = performance.now();
+    let elapsedSec = 0;
+
+    const pauseLoop = () => {
+        loopPaused = true;
+        if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = 0;
+        }
+    };
+
+    let tickFrame = null;
+    const resumeLoop = () => {
+        if (!loopStarted || isDisposed || !loopPaused) return;
+        loopPaused = false;
+        lastFrameMs = performance.now();
+        if (tickFrame && !rafId) {
+            rafId = requestAnimationFrame(tickFrame);
+        }
+    };
+
+    // Pause render loop completely on hidden tabs or locked screens to prevent thermal drain
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            pauseLoop();
+        } else {
+            resumeLoop();
+        }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Recover gracefully if mobile GPU resets WebGL context under background memory pressure
+    const handleContextLost = (e) => {
+        e.preventDefault();
+        pauseLoop();
+    };
+    const handleContextRestored = () => {
+        envController.requestShadowRefresh();
+        resumeLoop();
+    };
+    canvas.addEventListener('webglcontextlost', handleContextLost, false);
+    canvas.addEventListener('webglcontextrestored', handleContextRestored, false);
+
+    // Dispose all geometries, materials, textures, listeners, and WebGL renderer cleanly on page exit
+    const TEXTURE_SLOTS = ['map', 'bumpMap', 'emissiveMap', 'alphaMap', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'envMap'];
+    const disposeCampusResources = () => {
+        if (isDisposed) return;
+        isDisposed = true;
+        pauseLoop();
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('pagehide', handlePageHide);
+        window.removeEventListener('pageshow', handlePageShow);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
+        canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+        if (playerController && typeof playerController.dispose === 'function') playerController.dispose();
+        if (envController && typeof envController.dispose === 'function') envController.dispose();
+
+        const disposedGeoms = new Set();
+        const disposedMats = new Set();
+        const disposedTexs = new Set();
+        scene.traverse((obj) => {
+            if (obj.geometry && !disposedGeoms.has(obj.geometry)) {
+                disposedGeoms.add(obj.geometry);
+                obj.geometry.dispose();
+            }
+            if (obj.material) {
+                const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+                for (const mat of mats) {
+                    if (!mat || disposedMats.has(mat)) continue;
+                    disposedMats.add(mat);
+                    for (const slot of TEXTURE_SLOTS) {
+                        const tex = mat[slot];
+                        if (tex && typeof tex.dispose === 'function' && !disposedTexs.has(tex)) {
+                            disposedTexs.add(tex);
+                            tex.dispose();
+                        }
+                    }
+                    if (typeof mat.dispose === 'function') mat.dispose();
+                }
+            }
+        });
+        scene.clear();
+        delete window.__campusPerf;
+        renderer.dispose();
+    };
+    const handlePageHide = (e) => {
+        if (e && e.persisted) {
+            pauseLoop();
+            return;
+        }
+        disposeCampusResources();
+    };
+    const handlePageShow = (e) => {
+        if (e && e.persisted && !document.hidden) {
+            envController.requestShadowRefresh();
+            resumeLoop();
+        }
+    };
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
+
+    const stepGovernor = (rawMs, nowMs) => {
+        if (playerController.getState().introPlaying) return;
+        if (rawMs < 200) {
+            avgFrameMs = avgFrameMs * 0.9 + rawMs * 0.1;
+        }
+        if (isManualLocked || nowMs < govCooldownUntil || govStage >= 3) return;
+
+        const w = canvas.clientWidth || window.innerWidth;
+        const h = canvas.clientHeight || window.innerHeight;
+        if (govStage === 0 && avgFrameMs > 36) {
+            govStage = 1;
+            renderer.setPixelRatio(Math.min(renderer.getPixelRatio(), 1.0));
+            renderer.setSize(w, h, false);
+            envController.setShadowCadence(4, false);
+            govCooldownUntil = nowMs + 2800;
+        } else if (govStage === 1 && avgFrameMs > 42) {
+            govStage = 2;
+            renderer.setPixelRatio(Math.min(renderer.getPixelRatio(), 0.85));
+            renderer.setSize(w, h, false);
+            envController.setShadowCadence(8, false);
+            govCooldownUntil = nowMs + 2800;
+        } else if (govStage === 2 && avgFrameMs > 48) {
+            govStage = 3;
+            renderer.setPixelRatio(Math.min(renderer.getPixelRatio(), 0.75));
+            renderer.setSize(w, h, false);
+            envController.setShadowCadence(0, true);
+            govCooldownUntil = nowMs + 5000;
+        }
+    };
+
+    // Zero-allocation rolling frame-time ring buffer powering on-demand window.__campusPerf() diagnostics
+    const PERF_RING_SIZE = 120;
+    const perfFrameBuf = new Float32Array(PERF_RING_SIZE);
+    let perfFrameIdx = 0;
+    let perfFrameCount = 0;
+
+    window.__campusPerf = () => {
+        const sampleCount = Math.min(perfFrameCount, PERF_RING_SIZE);
+        const samples = [];
+        let sum = 0;
+        for (let i = 0; i < sampleCount; i++) {
+            const v = perfFrameBuf[i];
+            samples.push(v);
+            sum += v;
+        }
+        samples.sort((a, b) => a - b);
+        const avgMs = sampleCount > 0 ? sum / sampleCount : 16.7;
+        const p50Ms = sampleCount > 0 ? samples[Math.floor(sampleCount * 0.50)] : 16.7;
+        const p95Ms = sampleCount > 0 ? samples[Math.min(sampleCount - 1, Math.floor(sampleCount * 0.95))] : 16.7;
+        const p99Ms = sampleCount > 0 ? samples[Math.min(sampleCount - 1, Math.floor(sampleCount * 0.99))] : 16.7;
+        const info = renderer.info;
+        const report = {
+            tier: effectiveTier,
+            govStage,
+            pixelRatio: Number(renderer.getPixelRatio().toFixed(2)),
+            viewport: `${canvas.width}x${canvas.height}`,
+            fpsAvg: Number((1000 / Math.max(0.1, avgMs)).toFixed(1)),
+            fpsP50: Number((1000 / Math.max(0.1, p50Ms)).toFixed(1)),
+            fpsP95: Number((1000 / Math.max(0.1, p95Ms)).toFixed(1)),
+            fpsP99: Number((1000 / Math.max(0.1, p99Ms)).toFixed(1)),
+            frameMsAvg: Number(avgMs.toFixed(2)),
+            frameMsP99: Number(p99Ms.toFixed(2)),
+            drawCalls: info.render.calls,
+            triangles: info.render.triangles,
+            lines: info.render.lines,
+            points: info.render.points,
+            geometries: info.memory.geometries,
+            textures: info.memory.textures,
+            programs: info.programs ? info.programs.length : 0,
+            shadowEnabled: renderer.shadowMap.enabled,
+            shadowAutoUpdate: renderer.shadowMap.autoUpdate
+        };
+        if (typeof console.table === 'function') console.table(report);
+        return report;
+    };
+
+    const startAnimationLoop = () => {
+        if (loopStarted || isDisposed) return;
+        loopStarted = true;
+        lastFrameMs = performance.now();
+        govCooldownUntil = lastFrameMs + 2500;
+        tickFrame = () => {
+            rafId = 0;
+            if (loopPaused || isDisposed) return;
+            rafId = requestAnimationFrame(tickFrame);
+            const nowMs = performance.now();
+            const rawMs = nowMs - lastFrameMs;
+            const rawDt = rawMs * 0.001;
+            const dt = Number.isFinite(rawDt) ? Math.max(0.0001, Math.min(0.25, rawDt)) : 0.016;
+            lastFrameMs = nowMs;
+            elapsedSec += dt;
+
+            if (rawMs > 0 && rawMs < 250) {
+                perfFrameBuf[perfFrameIdx] = rawMs;
+                perfFrameIdx = (perfFrameIdx + 1) % PERF_RING_SIZE;
+                if (perfFrameCount < PERF_RING_SIZE) perfFrameCount += 1;
+            }
+
+            stepGovernor(rawMs, nowMs);
+            playerController.update(dt);
+            envController.updateEnvironment(elapsedSec, dt, playerController.getState());
+            hudController.updateFrame(dt);
+            renderer.render(scene, camera);
+        };
+        if (document.hidden) {
+            loopPaused = true;
+        } else {
+            rafId = requestAnimationFrame(tickFrame);
+        }
+    };
+
+    // Load Meshopt-compressed HUSC architecture GLB model and pre-warm pipeline before starting Intro
+    await MeshoptDecoder.ready;
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+
+    const updateProgressUi = (pct, text) => {
+        if (loadingProgressBar) {
+            loadingProgressBar.style.transform = `scaleX(${Math.max(0.08, Math.min(1.0, pct / 100))})`;
+        }
+        if (loadingProgressText && text) {
+            loadingProgressText.textContent = text;
+        }
+    };
+
+    loader.load(
+        '/models/husc-campus.glb',
+        async (gltf) => {
+            updateProgressUi(92, 'Đang tối ưu hình học ĐHKH Huế 3D...');
+
+            applyCampusMaterialEnhancements(gltf.scene, activeProfile.maxAnisotropy);
+            const batchedCampus = batchStaticCampusModel(gltf.scene);
+            scene.add(batchedCampus);
+
+            updateProgressUi(100, '100% · Sẵn sàng khám phá!');
+
+            // Phase 1 Critical First Paint: Render frame 1 immediately to eliminate elementRenderDelay and satisfy LCP
+            playerController.prepareIntroStartFrame();
+            envController.requestShadowRefresh();
+            renderer.render(scene, camera);
+
+            // Dissolve loading curtain immediately so user sees campus frame 1 without delay
+            if (loadingScreen) {
+                loadingScreen.classList.add('is-faded');
+                const onFadeEnd = () => {
+                    loadingScreen.hidden = true;
+                };
+                loadingScreen.addEventListener('transitionend', onFadeEnd, { once: true });
+                setTimeout(onFadeEnd, 240);
+            }
+
+            hudController.syncIntroVisibility(true);
+            playerController.startIntroFlycam();
+            startAnimationLoop();
+
+            // Phase 2 Deferred Background Init: Stream non-critical environment systems across idle frames
+            envController.startDeferred();
+        },
+        (progress) => {
+            if (progress.total > 0) {
+                const pct = Math.min(90, Math.round((progress.loaded / progress.total) * 90));
+                updateProgressUi(pct, `Đang tải mô hình ĐHKH Huế 3D... ${pct}%`);
+            }
+        },
+        (error) => {
+            console.error('Failed to load HUSC 3D GLB model:', error);
+            if (loadingProgressText) {
+                loadingProgressText.textContent = 'Không thể tải mô hình 3D. Vui lòng tải lại trang.';
+            }
+        }
+    );
+}
+
+bootstrapCampus3D();
