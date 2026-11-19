@@ -299,6 +299,32 @@ export async function onRequest(context) {
             }
         }
 
+        // Ensure /husc-campus and static assets don't get trapped with no-store from origin, enabling bfcache
+        if (response.status === 200) {
+            if (url.pathname === '/husc-campus') {
+                const newHeaders = new Headers(response.headers);
+                newHeaders.set('Cache-Control', 'public, max-age=0, must-revalidate');
+                newHeaders.delete('Pragma');
+                newHeaders.delete('Expires');
+                return new Response(response.body, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: newHeaders
+                });
+            }
+            if (/\.(glb|gltf|js|css|png|jpg|jpeg|svg|ico|woff2?|map)$/i.test(url.pathname)) {
+                const newHeaders = new Headers(response.headers);
+                newHeaders.set('Cache-Control', 'public, max-age=31536000, immutable');
+                newHeaders.delete('Pragma');
+                newHeaders.delete('Expires');
+                return new Response(response.body, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: newHeaders
+                });
+            }
+        }
+
         return response;
     } catch (err) {
         // 4. Origin completely unreachable (e.g. Render server offline / timeout)

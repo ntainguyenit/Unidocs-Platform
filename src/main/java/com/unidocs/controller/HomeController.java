@@ -9,6 +9,7 @@ import com.unidocs.domain.University;
 import com.unidocs.repository.FacultyRepository;
 import com.unidocs.repository.UniversityRepository;
 import com.unidocs.service.SeoMetadataService;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 // Controller handling home page requests and main view presentation
@@ -76,6 +77,15 @@ public class HomeController {
 
     // Render standalone interactive 3D HUSC campus explorer view with SEO and GEO AI metadata
     @GetMapping("/husc-campus")
+    public String huscCampus(HttpServletResponse response, Model model) {
+        if (response != null) {
+            // Enable bfcache by allowing client-side caching with immediate revalidation
+            response.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+            response.setHeader("Pragma", "");
+        }
+        return huscCampus(model);
+    }
+
     public String huscCampus(Model model) {
         // Inject dedicated SEO and Schema.org InteractiveModel metadata for /husc-campus
         model.addAttribute("seo", seoMetadataService.buildHuscCampusSeo());

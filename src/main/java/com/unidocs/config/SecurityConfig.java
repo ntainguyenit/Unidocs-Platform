@@ -34,7 +34,9 @@ public class SecurityConfig {
                 .permitAll()
             )
             // Disable CSRF for API endpoints (like upload) which are used publicly
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/admin/api/**"));
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/admin/api/**"))
+            // Disable default no-store cache header so public pages and static assets can leverage bfcache and client caching
+            .headers(headers -> headers.cacheControl(cache -> cache.disable()));
 
         return http.build();
     }
