@@ -167,6 +167,55 @@ function createCeramicTileTextures(maxAnisotropy = 4) {
     return cachedCeramicTileTextures;
 }
 
+// Global registry for night illuminated architectural materials across campus and urban ensemble
+const nightMaterialsRegistry = new Set();
+let activeLightingPreset = 'noon';
+
+function registerNightMaterial(mat) {
+    if (mat) nightMaterialsRegistry.add(mat);
+}
+
+// Procedural warm illuminated classroom window texture for GLB campus buildings
+let cachedCampusWindowEmissiveTex = null;
+function createCampusWindowEmissiveTexture(maxAnisotropy = 4) {
+    if (cachedCampusWindowEmissiveTex) return cachedCampusWindowEmissiveTex;
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // Dark exterior frame border
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Warm classroom interior light gradient
+    const winGrad = ctx.createLinearGradient(0, 12, 0, 244);
+    winGrad.addColorStop(0.0, '#fffbeb');
+    winGrad.addColorStop(0.2, '#fef08a');
+    winGrad.addColorStop(0.65, '#fde047');
+    winGrad.addColorStop(1.0, '#f59e0b');
+    ctx.fillStyle = winGrad;
+    ctx.fillRect(12, 12, 232, 232);
+
+    // Dark central vertical mullion
+    ctx.fillStyle = '#18120c';
+    ctx.fillRect(125, 12, 6, 232);
+
+    // Dark horizontal transom bar
+    ctx.fillRect(12, 78, 232, 5);
+
+    // Soft curtain silhouettes on left and right borders
+    ctx.fillStyle = 'rgba(24, 18, 12, 0.40)';
+    ctx.fillRect(12, 12, 22, 232);
+    ctx.fillRect(222, 12, 22, 232);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = Math.min(8, maxAnisotropy);
+    cachedCampusWindowEmissiveTex = tex;
+    return cachedCampusWindowEmissiveTex;
+}
+
 // Upgrade named GLB materials (e.g. GateCeramicTile) with crisp procedural PBR detail maps
 export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) {
     let tileTextures = null;
@@ -239,6 +288,37 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
                 m.emissiveIntensity = 0.08;
                 m.needsUpdate = true;
                 upgraded.add(m);
+            }
+
+            // Campus window glass material (Mat [6] across all 715 campus building windows)
+            if (m && Math.abs(m.roughness - 0.15) < 0.02 && Math.abs(m.metalness - 0.68) < 0.02 && !upgraded.has(m)) {
+                m.name = 'CampusWindowGlass';
+                m.emissiveMap = createCampusWindowEmissiveTexture(maxAnisotropy);
+                m.emissive = new THREE.Color(0xfef08a);
+                m.userData.nightIntensity = 0.95;
+                m.userData.sunsetIntensity = 0.38;
+                m.userData.nightEmissiveHex = 0xfef08a;
+                m.userData.sunsetEmissiveHex = 0xfbbf24;
+                m.emissiveIntensity = activeLightingPreset === 'night' ? 0.95 : (activeLightingPreset === 'sunset' ? 0.38 : 0.0);
+                m.roughness = 0.22;
+                m.metalness = 0.65;
+                m.needsUpdate = true;
+                upgraded.add(m);
+                registerNightMaterial(m);
+            }
+
+            // Campus Building A wooden French shutters / curtains (Mat [7])
+            if (m && Math.abs(m.roughness - 0.56) < 0.02 && Math.abs(m.metalness - 0.08) < 0.02 && !upgraded.has(m)) {
+                m.name = 'CampusBuildingAShutters';
+                m.emissive = new THREE.Color(0xd97706);
+                m.userData.nightIntensity = 0.30;
+                m.userData.sunsetIntensity = 0.10;
+                m.userData.nightEmissiveHex = 0xd97706;
+                m.userData.sunsetEmissiveHex = 0xb45309;
+                m.emissiveIntensity = activeLightingPreset === 'night' ? 0.30 : (activeLightingPreset === 'sunset' ? 0.10 : 0.0);
+                m.needsUpdate = true;
+                upgraded.add(m);
+                registerNightMaterial(m);
             }
         }
     });
@@ -3091,32 +3171,168 @@ function createNhaDModernBuilding(scene, maxAniso = 4, tier = 'high') {
         return bumpTex;
     };
 
+    // Emissive texture generator for Nha D short facades (warm windows + illuminated signboard on West face)
+    const createNhaDShortEmissiveTexture = (hasSignboard = true) => {
+        const sizeW = 1024;
+        const sizeH = 1344;
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        const bayX = 160;
+        const bayW = 704;
+        const winX = bayX + 26;
+        const winW = bayW - 52;
+        const winH = 175;
+        const floorY = [210, 445, 680, 915];
+        const lobbyY = 1145;
+        const lobbyH = sizeH - lobbyY;
+
+        if (hasSignboard) {
+            const headerY0 = 20;
+            const headerH = 165;
+            const headerCenterY = headerY0 + headerH * 0.5;
+            // Glowing official HUSC shield emblem
+            drawHuscShield(ctx, bayX + 72, headerCenterY, 100);
+
+            // Glowing white illuminated signboard lettering
+            ctx.save();
+            ctx.font = '900 36px "Inter", "Segoe UI", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('TRƯỜNG ĐẠI HỌC KHOA HỌC', bayX + 138, headerCenterY - 14);
+            ctx.font = '800 20px "Inter", "Segoe UI", sans-serif';
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillText('HUE UNIVERSITY OF SCIENCES', bayX + 138, headerCenterY + 22);
+            ctx.restore();
+        }
+
+        // 4 upper floors: illuminated classroom & lab windows
+        for (let f = 0; f < 4; f++) {
+            const fy = floorY[f];
+            const paneW = (winW - 18) / 4;
+            for (let p = 0; p < 4; p++) {
+                const px = winX + p * (paneW + 6);
+                ctx.fillStyle = (f % 2 === 0) ? '#fef08a' : '#fde047';
+                ctx.fillRect(px + 2, fy + 2, paneW - 4, winH - 4);
+                // Dark transom mullion bar
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(px, fy + 42, paneW, 5);
+            }
+        }
+
+        // Ground floor lobby warm illumination
+        ctx.fillStyle = '#fed7aa';
+        ctx.fillRect(winX + 4, lobbyY + 4, winW - 8, lobbyH - 18);
+        // Center double doors divider
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(winX + winW * 0.5 - 3, lobbyY, 6, lobbyH);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = Math.min(8, maxAniso);
+        return tex;
+    };
+
+    // Emissive texture generator for Nha D long facades (warm windows + fluorescent labs)
+    const createNhaDLongEmissiveTexture = () => {
+        const sizeW = 2048;
+        const sizeH = 1344;
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        const bayX = 160;
+        const bayW = sizeW - 320;
+        const pierW = 128;
+        const sectionW = (bayW - pierW - 52) * 0.5;
+        const sec1X = bayX + 26;
+        const pierX = sec1X + sectionW;
+        const sec2X = pierX + pierW;
+        const winH = 175;
+        const floorY = [210, 445, 680, 915];
+        const lobbyY = 1145;
+        const lobbyH = sizeH - lobbyY;
+
+        for (let f = 0; f < 4; f++) {
+            const fy = floorY[f];
+            const paneW = (sectionW - 18) / 4;
+            for (const sx of [sec1X, sec2X]) {
+                for (let p = 0; p < 4; p++) {
+                    const px = sx + p * (paneW + 6);
+                    // Realistic mix of warm classroom glow and cool lab lighting
+                    const isCool = (f === 3 || (f === 1 && p % 2 === 1));
+                    ctx.fillStyle = isCool ? '#bae6fd' : ((p % 2 === 0) ? '#fef08a' : '#fde047');
+                    ctx.fillRect(px + 2, fy + 2, paneW - 4, winH - 4);
+                    // Dark transom bar
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(px, fy + 42, paneW, 5);
+                }
+            }
+        }
+
+        // Ground floor lobby entrance bays
+        for (const sx of [sec1X, sec2X]) {
+            ctx.fillStyle = '#fed7aa';
+            ctx.fillRect(sx + 4, lobbyY + 4, sectionW - 8, lobbyH - 18);
+        }
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = Math.min(8, maxAniso);
+        return tex;
+    };
+
     // Shared materials & textures
     const shortBump = createNhaDShortBumpTexture();
     const longColor = createNhaDLongTexture();
     const longBump = createNhaDLongBumpTexture();
+    const shortEmissiveWest = createNhaDShortEmissiveTexture(true);
+    const shortEmissiveEast = createNhaDShortEmissiveTexture(false);
+    const longEmissive = createNhaDLongEmissiveTexture();
 
     const shortMatWest = new THREE.MeshStandardMaterial({
         map: createNhaDShortTexture(true),
         bumpMap: shortBump,
         bumpScale: 0.018,
+        emissiveMap: shortEmissiveWest,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.95 : (activeLightingPreset === 'sunset' ? 0.35 : 0.0),
         roughness: 0.42,
         metalness: 0.10
     });
+    shortMatWest.userData.nightIntensity = 0.95;
+    shortMatWest.userData.sunsetIntensity = 0.35;
+    registerNightMaterial(shortMatWest);
+
     const shortMatEast = new THREE.MeshStandardMaterial({
         map: createNhaDShortTexture(false),
         bumpMap: shortBump,
         bumpScale: 0.018,
+        emissiveMap: shortEmissiveEast,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.95 : (activeLightingPreset === 'sunset' ? 0.35 : 0.0),
         roughness: 0.42,
         metalness: 0.10
     });
+    shortMatEast.userData.nightIntensity = 0.95;
+    shortMatEast.userData.sunsetIntensity = 0.35;
+    registerNightMaterial(shortMatEast);
+
     const longMat = new THREE.MeshStandardMaterial({
         map: longColor,
         bumpMap: longBump,
         bumpScale: 0.018,
+        emissiveMap: longEmissive,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.95 : (activeLightingPreset === 'sunset' ? 0.35 : 0.0),
         roughness: 0.42,
         metalness: 0.10
     });
+    longMat.userData.nightIntensity = 0.95;
+    longMat.userData.sunsetIntensity = 0.35;
+    registerNightMaterial(longMat);
 
     const bldgW = 22.0;
     const bldgD = 11.5;
@@ -3669,6 +3885,46 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
         return tex;
     };
 
+    // Emissive texture generator for 2nd Floor Loggia interior (warm French doors & glowing HUSC shield)
+    const createLoggiaBackEmissiveTexture = () => {
+        const sizeW = 1024;
+        const sizeH = 512;
+        const { canvas, ctx } = createScaledCanvas(sizeW, sizeH, tier, { mediumScale: 0.5, lowScale: 0.375 });
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, sizeW, sizeH);
+
+        const doorY = 70;
+        const doorH = sizeH - doorY;
+        const doorW = 220;
+        const doorXs = [60, 320, 580];
+
+        doorXs.forEach((dx) => {
+            const leafW = (doorW - 12) * 0.5;
+            for (let leaf = 0; leaf < 2; leaf++) {
+                const lx = dx + leaf * (leafW + 12);
+                const paneW = (leafW - 16) * 0.5;
+                const paneH = (doorH - 40) / 4;
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 0; c < 2; c++) {
+                        const px = lx + 4 + c * (paneW + 6);
+                        const py = doorY + 6 + r * (paneH + 6);
+                        ctx.fillStyle = (r % 2 === 0) ? '#fef08a' : '#fde047';
+                        ctx.fillRect(px, py, paneW, paneH);
+                    }
+                }
+            }
+        });
+
+        const logoX = 900;
+        const logoY = 220;
+        drawHuscShield(ctx, logoX, logoY, 130);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = maxAniso;
+        return tex;
+    };
+
     // Shared architectural materials
     const yellowWallMat = new THREE.MeshStandardMaterial({ color: 0xe5a93c, roughness: 0.72, metalness: 0.05 });
     const basePlinthMat = new THREE.MeshStandardMaterial({ color: 0x8b95a2, roughness: 0.85, metalness: 0.10 });
@@ -3761,7 +4017,18 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
 
     // Left Event Backdrop: "Chào Mừng Ngày Nhà Giáo Việt Nam 20-11"
     const teacherDayTex = createTeacherDayBackdropTexture();
-    const teacherDayMat = new THREE.MeshStandardMaterial({ map: teacherDayTex, roughness: 0.55, metalness: 0.02 });
+    const teacherDayMat = new THREE.MeshStandardMaterial({
+        map: teacherDayTex,
+        roughness: 0.55,
+        metalness: 0.02,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.40 : (activeLightingPreset === 'sunset' ? 0.18 : 0.0)
+    });
+    teacherDayMat.userData.nightIntensity = 0.40;
+    teacherDayMat.userData.sunsetIntensity = 0.18;
+    teacherDayMat.userData.nightEmissiveHex = 0xffffff;
+    teacherDayMat.userData.sunsetEmissiveHex = 0xfff5ea;
+    registerNightMaterial(teacherDayMat);
     const teacherDayMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.25, 2.65), teacherDayMat);
     teacherDayMesh.position.set(-3.35, 2.05, 4.69);
     teacherDayMesh.castShadow = true;
@@ -3769,7 +4036,18 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
 
     // Right Event Backdrop: "IT GAME JAM with AI"
     const gameJamTex = createGameJamBackdropTexture();
-    const gameJamMat = new THREE.MeshStandardMaterial({ map: gameJamTex, roughness: 0.55, metalness: 0.02 });
+    const gameJamMat = new THREE.MeshStandardMaterial({
+        map: gameJamTex,
+        roughness: 0.55,
+        metalness: 0.02,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.40 : (activeLightingPreset === 'sunset' ? 0.18 : 0.0)
+    });
+    gameJamMat.userData.nightIntensity = 0.40;
+    gameJamMat.userData.sunsetIntensity = 0.18;
+    gameJamMat.userData.nightEmissiveHex = 0xffffff;
+    gameJamMat.userData.sunsetEmissiveHex = 0xfff5ea;
+    registerNightMaterial(gameJamMat);
     const gameJamMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.25, 2.65), gameJamMat);
     gameJamMesh.position.set(3.35, 2.05, 4.69);
     gameJamMesh.castShadow = true;
@@ -3846,7 +4124,18 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
 
     // Interior back wall with French doors & HUSC logo (Photo 2)
     const loggiaBackTex = createLoggiaBackWallTexture();
-    const loggiaBackMat = new THREE.MeshStandardMaterial({ map: loggiaBackTex, roughness: 0.50, metalness: 0.05 });
+    const loggiaBackEmissiveTex = createLoggiaBackEmissiveTexture();
+    const loggiaBackMat = new THREE.MeshStandardMaterial({
+        map: loggiaBackTex,
+        emissiveMap: loggiaBackEmissiveTex,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.95 : (activeLightingPreset === 'sunset' ? 0.35 : 0.0),
+        roughness: 0.50,
+        metalness: 0.05
+    });
+    loggiaBackMat.userData.nightIntensity = 0.95;
+    loggiaBackMat.userData.sunsetIntensity = 0.35;
+    registerNightMaterial(loggiaBackMat);
     const loggiaBackMesh = new THREE.Mesh(new THREE.PlaneGeometry(10.40, 3.40), loggiaBackMat);
     loggiaBackMesh.position.set(0, 5.95, 0.02);
     group.add(loggiaBackMesh);
@@ -3990,9 +4279,29 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
 
     // 1. Building A Rooftop 3D Sign (TRƯỜNG ĐẠI HỌC KHOA HỌC) perched crisply on the front concrete cornice (Photos 1-5)
     const roofSignTex = createSignTexture(['TRƯỜNG ĐẠI HỌC KHOA HỌC'], {
-        w: 1024, h: 144, bg: 'transparent', color: '#9f1d1b', fontSizes: [68], maxAnisotropy: maxAniso
+        w: 1024, h: 144, bg: 'transparent', color: '#dc2626', fontSizes: [68], maxAnisotropy: maxAniso
     });
-    addBillboard(roofSignTex, 18.8, 1.75, -13.0, 13.86, 15.96, 0, 0, true);
+    const roofSignMat = new THREE.MeshStandardMaterial({
+        map: roofSignTex,
+        emissiveMap: roofSignTex,
+        emissive: new THREE.Color(0xef4444),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.98 : (activeLightingPreset === 'sunset' ? 0.40 : 0.0),
+        transparent: true,
+        roughness: 0.35
+    });
+    roofSignMat.userData.nightIntensity = 0.98;
+    roofSignMat.userData.sunsetIntensity = 0.40;
+    roofSignMat.userData.nightEmissiveHex = 0xef4444;
+    registerNightMaterial(roofSignMat);
+
+    const roofSignGeom = new THREE.PlaneGeometry(18.8, 1.75);
+    const roofSignMesh = new THREE.Mesh(roofSignGeom, roofSignMat);
+    roofSignMesh.position.set(-13.0, 13.86, 15.96);
+    scene.add(roofSignMesh);
+    const roofSignBack = new THREE.Mesh(roofSignGeom, roofSignMat);
+    roofSignBack.position.set(-13.0, 13.86, 15.96);
+    roofSignBack.rotation.y = Math.PI;
+    scene.add(roofSignBack);
 
     // 2. Building A Portico Marquee Board (TRƯỜNG ĐẠI HỌC KHOA HỌC · ĐẠI HỌC HUẾ)
     const porticoTex = createSignTexture(['TRƯỜNG ĐẠI HỌC KHOA HỌC, ĐẠI HỌC HUẾ'], {
@@ -4464,11 +4773,46 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     goldlandTex.colorSpace = THREE.SRGBColorSpace;
     goldlandTex.anisotropy = Math.min(8, maxAniso);
 
+    // Emissive texture for Goldland Plaza: warm ground floor cafe & multi-floor office windows
+    const { canvas: glEmissiveCanvas, ctx: glEmCtx } = createScaledCanvas(1024, 512, tier, { mediumScale: 0.5, lowScale: 0.375 });
+    glEmCtx.fillStyle = '#000000';
+    glEmCtx.fillRect(0, 0, 1024, 512);
+    for (let b = 0; b < numBays; b++) {
+        const bx = b * bayWidth;
+        // Warm Highlands Coffee cafe interior glow
+        const cafeGrad = glEmCtx.createLinearGradient(bx, 400, bx, 512);
+        cafeGrad.addColorStop(0, '#fef08a');
+        cafeGrad.addColorStop(0.5, '#f59e0b');
+        cafeGrad.addColorStop(1, '#b45309');
+        glEmCtx.fillStyle = cafeGrad;
+        glEmCtx.fillRect(bx + 8, 404, bayWidth - 16, 104);
+
+        // 4 upper floors: vibrant mix of warm golden yellow and cool office lighting
+        for (let f = 0; f < 4; f++) {
+            const fy = 50 + f * 85;
+            const isWarm = (b + f) % 2 === 0;
+            glEmCtx.fillStyle = isWarm ? '#fef08a' : '#bae6fd';
+            glEmCtx.fillRect(bx + 12, fy + 8, bayWidth - 24, 68);
+            // Dark window frame divider
+            glEmCtx.fillStyle = '#000000';
+            glEmCtx.fillRect(bx + 12, fy + 40, bayWidth - 24, 4);
+        }
+    }
+    const glEmissiveTex = new THREE.CanvasTexture(glEmissiveCanvas);
+    glEmissiveTex.colorSpace = THREE.SRGBColorSpace;
+    glEmissiveTex.anisotropy = Math.min(8, maxAniso);
+
     const goldlandMat = new THREE.MeshStandardMaterial({
         map: goldlandTex,
+        emissiveMap: glEmissiveTex,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.92 : (activeLightingPreset === 'sunset' ? 0.32 : 0.0),
         roughness: 0.38,
         metalness: 0.55
     });
+    goldlandMat.userData.nightIntensity = 0.92;
+    goldlandMat.userData.sunsetIntensity = 0.32;
+    registerNightMaterial(goldlandMat);
 
     const whiteTrimMat = new THREE.MeshStandardMaterial({
         color: 0xf8fafc,
@@ -4687,11 +5031,39 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     cgTex.colorSpace = THREE.SRGBColorSpace;
     cgTex.anisotropy = Math.min(8, maxAniso);
 
+    // Emissive texture for Corner Gabled Building: illuminated ground floor storefronts & warm neoclassical windows
+    const { canvas: cgEmissiveCanvas, ctx: cgEmCtx } = createScaledCanvas(1024, 512, tier, { mediumScale: 0.5, lowScale: 0.375 });
+    cgEmCtx.fillStyle = '#000000';
+    cgEmCtx.fillRect(0, 0, 1024, 512);
+    // Ground floor illuminated retail storefronts
+    for (let g = 0; g < 8; g++) {
+        const gx = g * 128 + 26;
+        cgEmCtx.fillStyle = '#fef08a';
+        cgEmCtx.fillRect(gx, 394, 76, 114);
+    }
+    // Upper neoclassical windows
+    for (let w = 0; w < 8; w++) {
+        const wx = w * 128 + 30;
+        cgEmCtx.fillStyle = '#fde047';
+        cgEmCtx.fillRect(wx, 54, 68, 102);
+        cgEmCtx.fillStyle = (w % 2 === 0) ? '#fef08a' : '#fed7aa';
+        cgEmCtx.fillRect(wx, 224, 68, 112);
+    }
+    const cgEmissiveTex = new THREE.CanvasTexture(cgEmissiveCanvas);
+    cgEmissiveTex.colorSpace = THREE.SRGBColorSpace;
+    cgEmissiveTex.anisotropy = Math.min(8, maxAniso);
+
     const cgMat = new THREE.MeshStandardMaterial({
         map: cgTex,
+        emissiveMap: cgEmissiveTex,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.90 : (activeLightingPreset === 'sunset' ? 0.30 : 0.0),
         roughness: 0.65,
         metalness: 0.08
     });
+    cgMat.userData.nightIntensity = 0.90;
+    cgMat.userData.sunsetIntensity = 0.30;
+    registerNightMaterial(cgMat);
 
     // 3-story front corner building body
     const cgbW = 16.0;
@@ -4874,11 +5246,40 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     vtTex.colorSpace = THREE.SRGBColorSpace;
     vtTex.anisotropy = Math.min(8, maxAniso);
 
+    // Emissive texture for Viettel Building: 9 stories of illuminated corporate office ribbon windows
+    const vtEmissiveCanvas = document.createElement('canvas');
+    vtEmissiveCanvas.width = 512;
+    vtEmissiveCanvas.height = 512;
+    const vtEmCtx = vtEmissiveCanvas.getContext('2d');
+    vtEmCtx.fillStyle = '#000000';
+    vtEmCtx.fillRect(0, 0, 512, 512);
+    for (let f = 0; f < vtFloors; f++) {
+        const fy = f * vtFloorH;
+        // Alternating corporate cyan and warm office light
+        const isCyan = f % 2 === 0;
+        vtEmCtx.fillStyle = isCyan ? '#bae6fd' : '#fef3c7';
+        vtEmCtx.fillRect(10, fy + 10, 492, vtFloorH - 18);
+        // Dark mullions
+        vtEmCtx.fillStyle = '#000000';
+        for (let m = 28; m < 512; m += 40) {
+            vtEmCtx.fillRect(m - 1, fy + 8, 3, vtFloorH - 14);
+        }
+    }
+    const vtEmissiveTex = new THREE.CanvasTexture(vtEmissiveCanvas);
+    vtEmissiveTex.colorSpace = THREE.SRGBColorSpace;
+    vtEmissiveTex.anisotropy = Math.min(8, maxAniso);
+
     const vtMat = new THREE.MeshStandardMaterial({
         map: vtTex,
+        emissiveMap: vtEmissiveTex,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.88 : (activeLightingPreset === 'sunset' ? 0.28 : 0.0),
         roughness: 0.22,
         metalness: 0.65
     });
+    vtMat.userData.nightIntensity = 0.88;
+    vtMat.userData.sunsetIntensity = 0.28;
+    registerNightMaterial(vtMat);
 
     const vtBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(vtW, vtH, vtD), vtMat);
     vtBodyMesh.position.set(0, vtH * 0.5, 0);
@@ -4903,7 +5304,17 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     vLogoTex.colorSpace = THREE.SRGBColorSpace;
     vLogoTex.anisotropy = Math.min(8, maxAniso);
 
-    const vLogoMat = new THREE.MeshStandardMaterial({ map: vLogoTex, roughness: 0.4 });
+    const vLogoMat = new THREE.MeshStandardMaterial({
+        map: vLogoTex,
+        emissiveMap: vLogoTex,
+        emissive: new THREE.Color(0xdc2626),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.95 : (activeLightingPreset === 'sunset' ? 0.40 : 0.0),
+        roughness: 0.4
+    });
+    vLogoMat.userData.nightIntensity = 0.95;
+    vLogoMat.userData.sunsetIntensity = 0.40;
+    vLogoMat.userData.nightEmissiveHex = 0xdc2626;
+    registerNightMaterial(vLogoMat);
     const vLogoMesh = new THREE.Mesh(new THREE.BoxGeometry(12.0, 2.2, 0.45), vLogoMat);
     vLogoMesh.position.set(0, vtH + 1.1, vtD * 0.5 + 0.25);
     vtGroup.add(vLogoMesh);
@@ -5293,11 +5704,76 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     tcbTex.colorSpace = THREE.SRGBColorSpace;
     tcbTex.anisotropy = Math.min(8, maxAniso);
 
+    // Emissive texture for Techcombank: ground floor banking hall, glowing red promotional graphic & logo, and office ribbon windows
+    const { canvas: tcbEmissiveCanvas, ctx: tcbEmCtx } = createScaledCanvas(1024, 1024, tier, { mediumScale: 0.5, lowScale: 0.375 });
+    tcbEmCtx.fillStyle = '#000000';
+    tcbEmCtx.fillRect(0, 0, 1024, 1024);
+
+    // Ground floor storefront banking hall
+    for (let sb = 0; sb < numStorefrontBays; sb++) {
+        const sx = sb * bayW;
+        tcbEmCtx.fillStyle = (sb < 3) ? '#fef08a' : '#bae6fd';
+        tcbEmCtx.fillRect(sx + 10, 800, bayW - 20, 210);
+    }
+
+    // Red promotional decal on corner facade glowing
+    tcbEmCtx.fillStyle = '#dc2626';
+    tcbEmCtx.fillRect(bayW * 0.1, 805, bayW * 2.2, 190);
+    tcbEmCtx.fillStyle = '#facc15';
+    tcbEmCtx.fillRect(bayW * 1.6, 805, 18, 190);
+    tcbEmCtx.fillRect(bayW * 0.1, 890, bayW * 2.2, 18);
+    tcbEmCtx.fillStyle = '#ffffff';
+    tcbEmCtx.font = '900 24px "Inter", sans-serif';
+    tcbEmCtx.fillText('TECHCOMBANK', bayW * 0.2, 840);
+
+    // Parapet red diamond logo & TECHCOMBANK sign
+    tcbEmCtx.fillStyle = '#dc2626';
+    tcbEmCtx.beginPath();
+    tcbEmCtx.moveTo(90, 485);
+    tcbEmCtx.lineTo(115, 502);
+    tcbEmCtx.lineTo(90, 520);
+    tcbEmCtx.lineTo(65, 502);
+    tcbEmCtx.closePath();
+    tcbEmCtx.fill();
+    tcbEmCtx.fillStyle = '#ffffff';
+    tcbEmCtx.font = '900 36px "Inter", sans-serif';
+    tcbEmCtx.fillText('TECHCOMBANK', 140, 516);
+
+    // Floors 2, 3, 4 horizontal ribbon windows
+    for (let f = 0; f < 3; f++) {
+        const fy = 550 + f * 75;
+        for (let w = 0; w < 6; w++) {
+            const wx = w * (1024 / 6);
+            tcbEmCtx.fillStyle = (w % 2 === 0) ? '#bae6fd' : '#fef08a';
+            tcbEmCtx.fillRect(wx + 18, fy + 3, 1024 / 6 - 36, 42);
+        }
+    }
+
+    // Upper tower floors 5-10 ribbon windows
+    for (let tf = 0; tf < 6; tf++) {
+        const ty = 50 + tf * 68;
+        for (let tw = 0; tw < 6; tw++) {
+            const twx = tw * (1024 / 6);
+            tcbEmCtx.fillStyle = (tw % 2 === 0) ? '#38bdf8' : '#fef08a';
+            tcbEmCtx.fillRect(twx + 21, ty + 3, 1024 / 6 - 42, 34);
+        }
+    }
+
+    const tcbEmissiveTex = new THREE.CanvasTexture(tcbEmissiveCanvas);
+    tcbEmissiveTex.colorSpace = THREE.SRGBColorSpace;
+    tcbEmissiveTex.anisotropy = Math.min(8, maxAniso);
+
     const tcbMat = new THREE.MeshStandardMaterial({
         map: tcbTex,
+        emissiveMap: tcbEmissiveTex,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.90 : (activeLightingPreset === 'sunset' ? 0.30 : 0.0),
         roughness: 0.35,
         metalness: 0.15
     });
+    tcbMat.userData.nightIntensity = 0.90;
+    tcbMat.userData.sunsetIntensity = 0.30;
+    registerNightMaterial(tcbMat);
 
     // 1. Techcombank 4-story podium base
     const tcbPodiumMesh = new THREE.Mesh(new THREE.BoxGeometry(tcbLen, tcbPodiumH, tcbDepth), tcbMat);
@@ -5480,11 +5956,43 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     daTex.colorSpace = THREE.SRGBColorSpace;
     daTex.anisotropy = Math.min(8, maxAniso);
 
+    // Emissive texture for DongA Bank: illuminated banking hall, curtain wall, and side office windows
+    const { canvas: daEmissiveCanvas, ctx: daEmCtx } = createScaledCanvas(512, 1024, tier, { mediumScale: 0.5, lowScale: 0.5 });
+    daEmCtx.fillStyle = '#000000';
+    daEmCtx.fillRect(0, 0, 512, 1024);
+    // Ground floor banking hall
+    daEmCtx.fillStyle = '#fef08a';
+    daEmCtx.fillRect(20, 830, 472, 180);
+    // Central glass curtain wall
+    daEmCtx.fillStyle = '#38bdf8';
+    daEmCtx.fillRect(174, 124, 164, 692);
+    daEmCtx.fillStyle = '#000000';
+    for (let df = 1; df < 7; df++) {
+        const dfy = 120 + df * (700 / 7);
+        daEmCtx.fillRect(170, dfy - 2, 172, 4);
+    }
+    // Side office windows
+    for (let wf = 1; wf <= 6; wf++) {
+        const wfy = 140 + (wf - 1) * 110;
+        daEmCtx.fillStyle = '#fef08a';
+        daEmCtx.fillRect(44, wfy + 4, 77, 52);
+        daEmCtx.fillRect(391, wfy + 4, 77, 52);
+    }
+    const daEmissiveTex = new THREE.CanvasTexture(daEmissiveCanvas);
+    daEmissiveTex.colorSpace = THREE.SRGBColorSpace;
+    daEmissiveTex.anisotropy = Math.min(8, maxAniso);
+
     const daMat = new THREE.MeshStandardMaterial({
         map: daTex,
+        emissiveMap: daEmissiveTex,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.88 : (activeLightingPreset === 'sunset' ? 0.28 : 0.0),
         roughness: 0.38,
         metalness: 0.2
     });
+    daMat.userData.nightIntensity = 0.88;
+    daMat.userData.sunsetIntensity = 0.28;
+    registerNightMaterial(daMat);
 
     const daBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(daLen, daH, daDepth), daMat);
     daBodyMesh.position.set(0, daH * 0.5, 0);
@@ -5613,11 +6121,41 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     ofTex.colorSpace = THREE.SRGBColorSpace;
     ofTex.anisotropy = Math.min(8, maxAniso);
 
+    // Emissive texture for Office Tower: illuminated lobby and 8 floors of active office windows
+    const { canvas: ofEmissiveCanvas, ctx: ofEmCtx } = createScaledCanvas(1024, 1024, tier, { mediumScale: 0.5, lowScale: 0.375 });
+    ofEmCtx.fillStyle = '#000000';
+    ofEmCtx.fillRect(0, 0, 1024, 1024);
+    // Ground floor lobby entrance
+    for (let gb = 0; gb < 7; gb++) {
+        const gbx = gb * (1024 / 7);
+        ofEmCtx.fillStyle = '#f8fafc';
+        ofEmCtx.fillRect(gbx + 14, 859, 1024 / 7 - 28, 147);
+    }
+    // Floors 2-9 office windows
+    for (let f = 0; f < numOfficeFloors; f++) {
+        const fy = f * floorH;
+        for (let b = 0; b < 7; b++) {
+            const bx = b * (1024 / 7);
+            const isWarm = (b + f * 2) % 3 === 0;
+            ofEmCtx.fillStyle = isWarm ? '#fef08a' : '#bae6fd';
+            ofEmCtx.fillRect(bx + 22, fy + 18, 1024 / 7 - 44, floorH - 40);
+        }
+    }
+    const ofEmissiveTex = new THREE.CanvasTexture(ofEmissiveCanvas);
+    ofEmissiveTex.colorSpace = THREE.SRGBColorSpace;
+    ofEmissiveTex.anisotropy = Math.min(8, maxAniso);
+
     const ofMat = new THREE.MeshStandardMaterial({
         map: ofTex,
+        emissiveMap: ofEmissiveTex,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.90 : (activeLightingPreset === 'sunset' ? 0.30 : 0.0),
         roughness: 0.32,
         metalness: 0.15
     });
+    ofMat.userData.nightIntensity = 0.90;
+    ofMat.userData.sunsetIntensity = 0.30;
+    registerNightMaterial(ofMat);
 
     const ofBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(ofLen, ofH, ofDepth), ofMat);
     ofBodyMesh.position.set(0, ofH * 0.5, 0);
@@ -5696,11 +6234,40 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     cbTex.colorSpace = THREE.SRGBColorSpace;
     cbTex.anisotropy = Math.min(8, maxAniso);
 
+    // Emissive texture for Corner Commercial: illuminated showroom & 5 floors of ribbon windows
+    const { canvas: cbEmissiveCanvas, ctx: cbEmCtx } = createScaledCanvas(1024, 1024, tier, { mediumScale: 0.5, lowScale: 0.375 });
+    cbEmCtx.fillStyle = '#000000';
+    cbEmCtx.fillRect(0, 0, 1024, 1024);
+    // Ground floor showroom display windows
+    for (let sb = 0; sb < 5; sb++) {
+        const sbx = sb * (1024 / 5);
+        cbEmCtx.fillStyle = '#fef08a';
+        cbEmCtx.fillRect(sbx + 16, 850, 1024 / 5 - 32, 160);
+    }
+    // Upper 5 floors ribbon windows
+    for (let cf = 0; cf < numCbFloors; cf++) {
+        const cfy = cf * cbFloorH;
+        for (let w = 0; w < 5; w++) {
+            const wx = w * (1024 / 5);
+            cbEmCtx.fillStyle = (w % 2 === 0) ? '#fde047' : '#bae6fd';
+            cbEmCtx.fillRect(wx + 20, cfy + 22, 1024 / 5 - 40, cbFloorH - 44);
+        }
+    }
+    const cbEmissiveTex = new THREE.CanvasTexture(cbEmissiveCanvas);
+    cbEmissiveTex.colorSpace = THREE.SRGBColorSpace;
+    cbEmissiveTex.anisotropy = Math.min(8, maxAniso);
+
     const cbMat = new THREE.MeshStandardMaterial({
         map: cbTex,
+        emissiveMap: cbEmissiveTex,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.90 : (activeLightingPreset === 'sunset' ? 0.30 : 0.0),
         roughness: 0.36,
         metalness: 0.18
     });
+    cbMat.userData.nightIntensity = 0.90;
+    cbMat.userData.sunsetIntensity = 0.30;
+    registerNightMaterial(cbMat);
 
     const cbBodyMesh = new THREE.Mesh(new THREE.BoxGeometry(cbLen, cbH, cbDepth), cbMat);
     cbBodyMesh.position.set(0, cbH * 0.5, 0);
@@ -6279,6 +6846,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
     };
     applyShadowBias(initShadowSize);
     scene.add(sunLight);
+    nightMaterialsRegistry.clear();
 
     const hemiLight = new THREE.HemisphereLight(0xcbe8ff, 0x76856c, 0.88);
     scene.add(hemiLight);
@@ -6330,6 +6898,7 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
 
     // Apply Noon, Hue Sunset, or Night atmosphere preset dynamically with zero shader recompiles
     const setLightingPreset = (mode) => {
+        activeLightingPreset = mode;
         if (mode === 'sunset') {
             sunLight.position.set(-96, 48, 76);
             sunLight.color.setHex(0xffb478);
@@ -6424,6 +6993,23 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
         }
         if (streetlampBeamMat) {
             streetlampBeamMat.opacity = isNight ? 0.24 : (isSunset ? 0.14 : 0);
+        }
+
+        // Modulate all campus and surrounding urban illuminated building materials
+        for (const mat of nightMaterialsRegistry) {
+            if (isNight) {
+                mat.emissiveIntensity = mat.userData.nightIntensity ?? 0.92;
+                if (mat.userData.nightEmissiveHex !== undefined) {
+                    mat.emissive.setHex(mat.userData.nightEmissiveHex);
+                }
+            } else if (isSunset) {
+                mat.emissiveIntensity = mat.userData.sunsetIntensity ?? 0.32;
+                if (mat.userData.sunsetEmissiveHex !== undefined) {
+                    mat.emissive.setHex(mat.userData.sunsetEmissiveHex);
+                }
+            } else {
+                mat.emissiveIntensity = 0.0;
+            }
         }
 
         renderer.shadowMap.needsUpdate = true;
