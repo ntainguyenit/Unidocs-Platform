@@ -1092,9 +1092,9 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     const isLowTier = tier === 'low';
     const gardenBasePx = isLowTier ? 14 : (tier === 'medium' ? 22 : 32);
     const circularBasePx = isLowTier ? 14 : (tier === 'medium' ? 20 : 28);
-    // 1. Exterior urban surround base plane
+    // 1. Exterior urban surround base plane extending seamlessly into distance fog
     const outerGround = new THREE.Mesh(
-        new THREE.PlaneGeometry(520, 520),
+        new THREE.PlaneGeometry(1600, 1600),
         new THREE.MeshStandardMaterial({ color: 0xd5dfe8, roughness: 0.95 })
     );
     outerGround.rotation.x = -Math.PI * 0.5;
@@ -5949,10 +5949,10 @@ function createLyThuongKietOppositeUrbanEnsemble(scene, hardwareProfile = { tier
     freezeStaticHierarchy(ensembleGroup);
 }
 
-// Create sky dome shader, street lamp posts, and environmental backdrop
+// Create infinite sky dome shader, street lamp posts, and environmental backdrop
 function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
-    // Sky Dome
-    const skyGeom = new THREE.SphereGeometry(420, 20, 12);
+    // Infinite Sky Dome shader projected at far clipping plane (zero translation distortion at any distance)
+    const skyGeom = new THREE.SphereGeometry(1, 32, 16);
     const skyUniforms = {
         uTopColor: { value: new THREE.Color(0x2d7bd6) },
         uBottomColor: { value: new THREE.Color(0xd5ecff) },
@@ -5962,27 +5962,31 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
         uniforms: skyUniforms,
         side: THREE.BackSide,
         depthWrite: false,
+        depthTest: false,
         vertexShader: `
-            varying vec3 vWorldPos;
+            varying vec3 vWorldDir;
             void main() {
-                vec4 worldPos = modelMatrix * vec4(position, 1.0);
-                vWorldPos = worldPos.xyz;
-                gl_Position = projectionMatrix * viewMatrix * worldPos;
+                vWorldDir = position;
+                vec3 viewDir = mat3(viewMatrix) * position;
+                vec4 clipPos = projectionMatrix * vec4(viewDir, 1.0);
+                gl_Position = clipPos.xyww;
             }
         `,
         fragmentShader: `
             uniform vec3 uTopColor;
             uniform vec3 uBottomColor;
             uniform float uExponent;
-            varying vec3 vWorldPos;
+            varying vec3 vWorldDir;
             void main() {
-                float h = normalize(vWorldPos).y;
+                float h = normalize(vWorldDir).y;
                 float t = pow(max(h, 0.0), uExponent);
                 gl_FragColor = vec4(mix(uBottomColor, uTopColor, t), 1.0);
             }
         `
     });
     const skyDome = new THREE.Mesh(skyGeom, skyMat);
+    skyDome.renderOrder = -1000;
+    skyDome.frustumCulled = false;
     scene.add(skyDome);
     freezeStaticHierarchy(skyDome);
 
@@ -6067,7 +6071,8 @@ function createAtmosphereAndProps(scene, hardwareProfile = { tier: 'high', maxAn
             uniform float uTime;
             varying float vTwinkle;
             void main() {
-                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                vec3 viewDir = mat3(viewMatrix) * position;
+                vec4 mvPosition = vec4(viewDir, 1.0);
                 gl_Position = projectionMatrix * mvPosition;
                 float twinkle = 0.5 + 0.5 * sin(uTime * 3.2 + aPhase * 18.8495);
                 vTwinkle = 0.35 + 0.65 * twinkle;
