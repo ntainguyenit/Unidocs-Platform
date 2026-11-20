@@ -2356,73 +2356,7 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     treePitSoilMesh.receiveShadow = true;
     scene.add(treePitSoilMesh);
 
-    // Authentic parked scooters on Gate 77 sidewalk flanking the entrance matching Photo 1
-    const parkedScooters = [
-        // West sidewalk in front of brown marble monument
-        { x: -28.2, z: 75.3, rotY: 0.65, color: 0xdc2626 },
-        { x: -26.9, z: 75.2, rotY: 0.58, color: 0x1e3a8a },
-        { x: -25.6, z: 75.1, rotY: 0.70, color: 0x18181b },
-        { x: -24.3, z: 75.0, rotY: 0.60, color: 0xf8fafc },
-        { x: -23.0, z: 74.9, rotY: 0.64, color: 0x64748b },
-        { x: -21.7, z: 74.8, rotY: 0.68, color: 0xdc2626 },
-        // East sidewalk in front of guard booth
-        { x: -4.8, z: 74.9, rotY: -0.65, color: 0x18181b },
-        { x: -3.5, z: 75.0, rotY: -0.58, color: 0xdc2626 },
-        { x: -2.2, z: 75.1, rotY: -0.70, color: 0x059669 },
-        { x: -0.9, z: 75.2, rotY: -0.62, color: 0xf8fafc }
-    ];
-
-    const motoGroup = new THREE.Group();
-    const bodyMatMap = new Map();
-    const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.65, metalness: 0.35 });
-    const seatMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.85, metalness: 0.05 });
-    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.25, metalness: 0.85 });
-    const tireMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.90, metalness: 0.05 });
-
-    parkedScooters.forEach((s) => {
-        const bike = new THREE.Group();
-        // Body chassis
-        let bMat = bodyMatMap.get(s.color);
-        if (!bMat) {
-            bMat = new THREE.MeshStandardMaterial({ color: s.color, roughness: 0.35, metalness: 0.25 });
-            bodyMatMap.set(s.color, bMat);
-        }
-        const bodyGeom = new THREE.BoxGeometry(0.32, 0.32, 0.85);
-        bodyGeom.translate(0, 0.32, 0);
-        const bodyMesh = new THREE.Mesh(bodyGeom, bMat);
-        bodyMesh.castShadow = tier !== 'low';
-        bike.add(bodyMesh);
-
-        // Dark leather saddle
-        const seatGeom = new THREE.BoxGeometry(0.24, 0.07, 0.46);
-        seatGeom.translate(0, 0.49, -0.10);
-        bike.add(new THREE.Mesh(seatGeom, seatMat));
-
-        // Front handlebar & stem
-        const stemGeom = new THREE.CylinderGeometry(0.016, 0.016, 0.38, 6);
-        stemGeom.translate(0, 0.60, 0.28);
-        bike.add(new THREE.Mesh(stemGeom, frameMat));
-
-        const barGeom = new THREE.BoxGeometry(0.48, 0.03, 0.03);
-        barGeom.translate(0, 0.74, 0.26);
-        bike.add(new THREE.Mesh(barGeom, chromeMat));
-
-        // Front & Rear Wheels
-        const wheelGeom = new THREE.CylinderGeometry(0.17, 0.17, 0.07, 8);
-        wheelGeom.rotateZ(Math.PI * 0.5);
-        const frontWheel = new THREE.Mesh(wheelGeom, tireMat);
-        frontWheel.position.set(0, 0.17, 0.36);
-        const rearWheel = new THREE.Mesh(wheelGeom, tireMat);
-        rearWheel.position.set(0, 0.17, -0.34);
-        bike.add(frontWheel, rearWheel);
-
-        bike.position.set(s.x, 0.005, s.z);
-        bike.rotation.y = s.rotY;
-        motoGroup.add(bike);
-    });
-    scene.add(motoGroup);
-    batchStaticGroupByMaterial(motoGroup);
-    freezeStaticHierarchy(motoGroup);
+    // Parked scooters on Gate 77 sidewalk removed per user request
 
     // 4. Orthogonal Soccer Pitch (San Bong Da) with FIFA turf markings
     const { canvas: pitchCanvas, ctx: fctx } = createScaledCanvas(512, 1024, tier, { mediumScale: 0.5, lowScale: 0.5 });
