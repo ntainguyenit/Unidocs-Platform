@@ -301,11 +301,11 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
             if (m && Math.abs(m.roughness - 0.15) < 0.02 && Math.abs(m.metalness - 0.68) < 0.02 && !upgraded.has(m)) {
                 m.name = 'CampusWindowGlass';
                 m.emissiveMap = createCampusWindowEmissiveTexture(maxAnisotropy);
-                m.emissive = new THREE.Color(0xfef08a);
+                m.emissive = new THREE.Color(0xffffff);
                 m.userData.nightIntensity = 0.95;
                 m.userData.sunsetIntensity = 0.38;
-                m.userData.nightEmissiveHex = 0xfef08a;
-                m.userData.sunsetEmissiveHex = 0xfbbf24;
+                m.userData.nightEmissiveHex = 0xffffff;
+                m.userData.sunsetEmissiveHex = 0xfff3cd;
                 m.emissiveIntensity = activeLightingPreset === 'night' ? 0.95 : (activeLightingPreset === 'sunset' ? 0.38 : 0.0);
                 m.roughness = 0.22;
                 m.metalness = 0.65;
@@ -317,11 +317,11 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
             // Campus Building A wooden French shutters / curtains (Mat [7])
             if (m && Math.abs(m.roughness - 0.56) < 0.02 && Math.abs(m.metalness - 0.08) < 0.02 && !upgraded.has(m)) {
                 m.name = 'CampusBuildingAShutters';
-                m.emissive = new THREE.Color(0xd97706);
+                m.emissive = new THREE.Color(0xffffff);
                 m.userData.nightIntensity = 0.30;
                 m.userData.sunsetIntensity = 0.10;
-                m.userData.nightEmissiveHex = 0xd97706;
-                m.userData.sunsetEmissiveHex = 0xb45309;
+                m.userData.nightEmissiveHex = 0xffffff;
+                m.userData.sunsetEmissiveHex = 0xe8c97a;
                 m.emissiveIntensity = activeLightingPreset === 'night' ? 0.30 : (activeLightingPreset === 'sunset' ? 0.10 : 0.0);
                 m.needsUpdate = true;
                 upgraded.add(m);
