@@ -175,7 +175,7 @@ function registerNightMaterial(mat) {
     if (mat) nightMaterialsRegistry.add(mat);
 }
 
-// Procedural warm illuminated classroom window texture for GLB campus buildings
+// Procedural pure white illuminated classroom window texture for GLB campus buildings
 let cachedCampusWindowEmissiveTex = null;
 function createCampusWindowEmissiveTexture(maxAnisotropy = 4) {
     if (cachedCampusWindowEmissiveTex) return cachedCampusWindowEmissiveTex;
@@ -188,24 +188,24 @@ function createCampusWindowEmissiveTexture(maxAnisotropy = 4) {
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, 256, 256);
 
-    // Warm classroom interior light gradient
+    // Pure white classroom interior light gradient
     const winGrad = ctx.createLinearGradient(0, 12, 0, 244);
-    winGrad.addColorStop(0.0, '#fffbeb');
-    winGrad.addColorStop(0.2, '#fef08a');
-    winGrad.addColorStop(0.65, '#fde047');
-    winGrad.addColorStop(1.0, '#f59e0b');
+    winGrad.addColorStop(0.0, '#ffffff');
+    winGrad.addColorStop(0.25, '#ffffff');
+    winGrad.addColorStop(0.65, '#f8fafc');
+    winGrad.addColorStop(1.0, '#f1f5f9');
     ctx.fillStyle = winGrad;
     ctx.fillRect(12, 12, 232, 232);
 
     // Dark central vertical mullion
-    ctx.fillStyle = '#18120c';
+    ctx.fillStyle = '#0f172a';
     ctx.fillRect(125, 12, 6, 232);
 
     // Dark horizontal transom bar
     ctx.fillRect(12, 78, 232, 5);
 
     // Soft curtain silhouettes on left and right borders
-    ctx.fillStyle = 'rgba(24, 18, 12, 0.40)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
     ctx.fillRect(12, 12, 22, 232);
     ctx.fillRect(222, 12, 22, 232);
 
@@ -305,7 +305,7 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
                 m.userData.nightIntensity = 0.95;
                 m.userData.sunsetIntensity = 0.38;
                 m.userData.nightEmissiveHex = 0xffffff;
-                m.userData.sunsetEmissiveHex = 0xfff3cd;
+                m.userData.sunsetEmissiveHex = 0xffffff;
                 m.emissiveIntensity = activeLightingPreset === 'night' ? 0.95 : (activeLightingPreset === 'sunset' ? 0.38 : 0.0);
                 m.roughness = 0.22;
                 m.metalness = 0.65;
@@ -321,7 +321,7 @@ export function applyCampusMaterialEnhancements(campusModel, maxAnisotropy = 4) 
                 m.userData.nightIntensity = 0.30;
                 m.userData.sunsetIntensity = 0.10;
                 m.userData.nightEmissiveHex = 0xffffff;
-                m.userData.sunsetEmissiveHex = 0xe8c97a;
+                m.userData.sunsetEmissiveHex = 0xffffff;
                 m.emissiveIntensity = activeLightingPreset === 'night' ? 0.30 : (activeLightingPreset === 'sunset' ? 0.10 : 0.0);
                 m.needsUpdate = true;
                 upgraded.add(m);
@@ -3792,7 +3792,7 @@ function createNhaDModernBuilding(scene, maxAniso = 4, tier = 'high') {
             const paneW = (winW - 18) / 4;
             for (let p = 0; p < 4; p++) {
                 const px = winX + p * (paneW + 6);
-                ctx.fillStyle = (f % 2 === 0) ? '#fef08a' : '#fde047';
+                ctx.fillStyle = (f % 2 === 0) ? '#ffffff' : '#f8fafc';
                 ctx.fillRect(px + 2, fy + 2, paneW - 4, winH - 4);
                 // Dark transom mullion bar
                 ctx.fillStyle = '#000000';
@@ -3800,8 +3800,8 @@ function createNhaDModernBuilding(scene, maxAniso = 4, tier = 'high') {
             }
         }
 
-        // Ground floor lobby warm illumination
-        ctx.fillStyle = '#fed7aa';
+        // Ground floor lobby pure white illumination
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(winX + 4, lobbyY + 4, winW - 8, lobbyH - 18);
         // Center double doors divider
         ctx.fillStyle = '#000000';
@@ -3813,7 +3813,7 @@ function createNhaDModernBuilding(scene, maxAniso = 4, tier = 'high') {
         return tex;
     };
 
-    // Emissive texture generator for Nha D long facades (warm windows + fluorescent labs)
+    // Emissive texture generator for Nha D long facades (pure white windows & lab lighting)
     const createNhaDLongEmissiveTexture = () => {
         const sizeW = 2048;
         const sizeH = 1344;
@@ -3839,9 +3839,8 @@ function createNhaDModernBuilding(scene, maxAniso = 4, tier = 'high') {
             for (const sx of [sec1X, sec2X]) {
                 for (let p = 0; p < 4; p++) {
                     const px = sx + p * (paneW + 6);
-                    // Realistic mix of warm classroom glow and cool lab lighting
-                    const isCool = (f === 3 || (f === 1 && p % 2 === 1));
-                    ctx.fillStyle = isCool ? '#bae6fd' : ((p % 2 === 0) ? '#fef08a' : '#fde047');
+                    // Pure white crisp classroom & lab lighting
+                    ctx.fillStyle = (p % 2 === 0) ? '#ffffff' : '#f8fafc';
                     ctx.fillRect(px + 2, fy + 2, paneW - 4, winH - 4);
                     // Dark transom bar
                     ctx.fillStyle = '#000000';
@@ -3852,7 +3851,7 @@ function createNhaDModernBuilding(scene, maxAniso = 4, tier = 'high') {
 
         // Ground floor lobby entrance bays
         for (const sx of [sec1X, sec2X]) {
-            ctx.fillStyle = '#fed7aa';
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(sx + 4, lobbyY + 4, sectionW - 8, lobbyH - 18);
         }
 
@@ -4486,7 +4485,7 @@ function createNhaAConnectorBuilding(scene, maxAniso = 4, tier = 'high') {
                     for (let c = 0; c < 2; c++) {
                         const px = lx + 4 + c * (paneW + 6);
                         const py = doorY + 6 + r * (paneH + 6);
-                        ctx.fillStyle = (r % 2 === 0) ? '#fef08a' : '#fde047';
+                        ctx.fillStyle = (r % 2 === 0) ? '#ffffff' : '#f8fafc';
                         ctx.fillRect(px, py, paneW, paneH);
                     }
                 }
