@@ -1251,6 +1251,32 @@ function createTreePitCurbTexture(maxAnisotropy = 4) {
 const soccerFieldFloodlights = [];
 let soccerFloodlightLumMat = null;
 let soccerFloodlightBeamMat = null;
+let cachedSoccerBeamTexture = null;
+
+// Procedural vertical gradient texture for volumetric floodlight beams (soft atmospheric falloff without harsh edges)
+function createSoccerFloodlightBeamTexture() {
+    if (cachedSoccerBeamTexture) return cachedSoccerBeamTexture;
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    const grad = ctx.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0.00, 'rgba(255, 255, 255, 0.95)');
+    grad.addColorStop(0.12, 'rgba(255, 255, 255, 0.65)');
+    grad.addColorStop(0.35, 'rgba(255, 255, 255, 0.30)');
+    grad.addColorStop(0.70, 'rgba(255, 255, 255, 0.08)');
+    grad.addColorStop(1.00, 'rgba(255, 255, 255, 0.00)');
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 256);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    cachedSoccerBeamTexture = tex;
+    return tex;
+}
 
 // 4 Corner floodlights and 4-sided ball-stop square net fence for soccer pitch matching user request
 function createSoccerFieldCornerFloodlightsAndNetFence(scene, hardwareProfile = { tier: 'high', maxAnisotropy: 4 }) {
@@ -1258,13 +1284,13 @@ function createSoccerFieldCornerFloodlightsAndNetFence(scene, hardwareProfile = 
     const tier = hardwareProfile.tier || 'high';
     const maxAniso = hardwareProfile.maxAnisotropy || 4;
 
-    // Corner positions for the 4 floodlight towers (0.5m clearance outside soccer pitch lines)
+    // Corner positions for the 4 floodlight towers fanning light across all 4 sectors without central hotspot overlap
     // Pitch is centered at (-75.5, 36.5), size 30 x 43
     const corners = [
-        { id: 'nw', x: -91.0, z: 13.8, targetX: -71.0, targetZ: 42.0 },
-        { id: 'ne', x: -60.0, z: 13.8, targetX: -80.0, targetZ: 42.0 },
-        { id: 'se', x: -60.0, z: 59.2, targetX: -80.0, targetZ: 31.0 },
-        { id: 'sw', x: -91.0, z: 59.2, targetX: -71.0, targetZ: 31.0 }
+        { id: 'nw', x: -91.0, z: 13.8, targetX: -71.5, targetZ: 28.0 },
+        { id: 'ne', x: -60.0, z: 13.8, targetX: -79.5, targetZ: 28.0 },
+        { id: 'se', x: -60.0, z: 59.2, targetX: -79.5, targetZ: 45.0 },
+        { id: 'sw', x: -91.0, z: 59.2, targetX: -71.5, targetZ: 45.0 }
     ];
 
     const poleH = 10.5;
@@ -1284,9 +1310,10 @@ function createSoccerFieldCornerFloodlightsAndNetFence(scene, hardwareProfile = 
     });
 
     soccerFloodlightBeamMat = new THREE.MeshBasicMaterial({
+        map: createSoccerFloodlightBeamTexture(),
         color: 0xffffff,
         transparent: true,
-        opacity: 0.20,
+        opacity: activeLightingPreset === 'night' ? 0.16 : 0.0,
         side: THREE.DoubleSide,
         depthWrite: false,
         blending: THREE.AdditiveBlending
@@ -1317,8 +1344,8 @@ function createSoccerFieldCornerFloodlightsAndNetFence(scene, hardwareProfile = 
         mast.receiveShadow = true;
         group.add(mast);
 
-        // Head rack yaw angle facing toward pitch center (-75.5, 36.5)
-        const yawAngle = Math.atan2(36.5 - c.z, -75.5 - c.x);
+        // Head rack yaw angle facing toward sector target
+        const yawAngle = Math.atan2(c.targetZ - c.z, c.targetX - c.x);
         const headGroup = new THREE.Group();
         headGroup.position.set(0, poleH + 0.3, 0);
         headGroup.rotation.y = yawAngle;
@@ -1371,7 +1398,7 @@ function createSoccerFieldCornerFloodlightsAndNetFence(scene, hardwareProfile = 
         scene.add(group);
 
         // SpotLight for real nighttime stadium illumination
-        const spotLight = new THREE.SpotLight(0xffffff, isCurrentNight ? 3.6 : 0.0, 65, Math.PI / 4.2, 0.65, 1.2);
+        const spotLight = new THREE.SpotLight(0xffffff, isCurrentNight ? 2.8 : 0.0, 75, Math.PI / 3.4, 0.85, 1.1);
         spotLight.position.set(c.x, poleH + 0.3, c.z);
         const targetObj = new THREE.Object3D();
         targetObj.position.set(c.targetX, 0.05, c.targetZ);
@@ -1379,13 +1406,13 @@ function createSoccerFieldCornerFloodlightsAndNetFence(scene, hardwareProfile = 
         spotLight.target = targetObj;
         scene.add(spotLight);
 
-        // Volumetric Light Beam Cone (matching Image 1 right diagram, white in night mode)
+        // Volumetric Light Beam Cone with soft vertical gradient falloff
         const pTop = new THREE.Vector3(c.x, poleH + 0.3, c.z);
         const pGround = new THREE.Vector3(c.targetX, 0.05, c.targetZ);
         const beamDist = pTop.distanceTo(pGround);
         const beamMid = new THREE.Vector3().addVectors(pTop, pGround).multiplyScalar(0.5);
 
-        const beamGeom = new THREE.CylinderGeometry(0.45, 9.8, beamDist, 16, 1, true);
+        const beamGeom = new THREE.CylinderGeometry(0.5, 12.0, beamDist, 24, 1, true);
         const beamMesh = new THREE.Mesh(beamGeom, soccerFloodlightBeamMat);
         beamMesh.position.copy(beamMid);
         const upVec = new THREE.Vector3(0, 1, 0);
@@ -2381,9 +2408,22 @@ function createGroundAndGardens(scene, hardwareProfile = { tier: 'high', maxAnis
     pitchTex.colorSpace = THREE.SRGBColorSpace;
     pitchTex.anisotropy = Math.min(4, maxAniso);
 
+    const soccerPitchMat = new THREE.MeshStandardMaterial({
+        map: pitchTex,
+        roughness: 0.92,
+        emissiveMap: pitchTex,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: activeLightingPreset === 'night' ? 0.38 : (activeLightingPreset === 'sunset' ? 0.12 : 0.0)
+    });
+    soccerPitchMat.userData.nightIntensity = 0.38;
+    soccerPitchMat.userData.sunsetIntensity = 0.12;
+    soccerPitchMat.userData.nightEmissiveHex = 0xffffff;
+    soccerPitchMat.userData.sunsetEmissiveHex = 0xfff3cd;
+    registerNightMaterial(soccerPitchMat);
+
     const soccerPitch = new THREE.Mesh(
         new THREE.PlaneGeometry(30.0, 43.0),
-        new THREE.MeshStandardMaterial({ map: pitchTex, roughness: 0.92 })
+        soccerPitchMat
     );
     soccerPitch.rotation.x = -Math.PI * 0.5;
     soccerPitch.position.set(-75.5, 0.035, 36.5);
@@ -7616,14 +7656,14 @@ export function setupCampusEnvironment(scene, renderer, hardwareProfile = { tier
 
         // Soccer field 4-corner floodlights and volumetric white beams (active in night mode)
         for (const fl of soccerFieldFloodlights) {
-            if (fl.spotLight) fl.spotLight.intensity = isNight ? 3.6 : 0.0;
+            if (fl.spotLight) fl.spotLight.intensity = isNight ? 2.8 : 0.0;
             if (fl.beamMesh) fl.beamMesh.visible = isNight;
         }
         if (soccerFloodlightLumMat) {
             soccerFloodlightLumMat.emissiveIntensity = isNight ? 2.5 : 0.0;
         }
         if (soccerFloodlightBeamMat) {
-            soccerFloodlightBeamMat.opacity = isNight ? 0.20 : 0.0;
+            soccerFloodlightBeamMat.opacity = isNight ? 0.16 : 0.0;
         }
 
         // Modulate all campus and surrounding urban illuminated building materials
