@@ -180,6 +180,9 @@ export function setupCampusHud({
 
     // Dialog references
     const mapDialog = document.getElementById('mapDialog');
+    const teleportDialog = document.getElementById('teleportDialog');
+    const teleportLocationsList = document.getElementById('teleportLocationsList');
+    const openTeleportBtn = document.getElementById('openTeleportBtn');
     const galleryDialog = document.getElementById('galleryDialog');
     const quizDialog = document.getElementById('quizDialog');
     const menuDialog = document.getElementById('menuDialog');
@@ -202,16 +205,18 @@ export function setupCampusHud({
         }, 2800);
     };
 
-    // Update live Hue local clock and weather text
+    // Update live Hue local clock and weather text without emoji icons
     const refreshClockLabel = () => {
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, '0');
         const mm = String(now.getMinutes()).padStart(2, '0');
-        let icon = '☀️ Nắng đẹp 29°C';
+        let weather = 'Nắng đẹp 29°C';
         if (state.lighting === 'night') {
-            icon = '🌙 Buổi tối dịu mát 23°C';
+            weather = 'Buổi tối dịu mát 23°C';
         }
-        weatherClockLabel.textContent = `${hh}:${mm} · ${icon}`;
+        if (weatherClockLabel) {
+            weatherClockLabel.textContent = `${hh}:${mm} · ${weather}`;
+        }
     };
     refreshClockLabel();
     setInterval(refreshClockLabel, 15000);
@@ -557,8 +562,14 @@ export function setupCampusHud({
 
     const renderBigMap = () => {
         const ps = playerController.getState();
-        drawSchematicOnCanvas(bigMapCtx, bigMapCanvas.width, ps.x, ps.z, ps.yaw, false);
-        mapLocationsList.innerHTML = '';
+        if (bigMapCtx && bigMapCanvas) {
+            drawSchematicOnCanvas(bigMapCtx, bigMapCanvas.width, ps.x, ps.z, ps.yaw, false);
+        }
+    };
+
+    const renderTeleportList = () => {
+        if (!teleportLocationsList) return;
+        teleportLocationsList.innerHTML = '';
         for (const loc of CAMPUS_LOCATIONS) {
             const done = state.checkedIn.has(loc.id);
             const card = document.createElement('div');
@@ -575,10 +586,10 @@ export function setupCampusHud({
             card.querySelector('.btn-teleport').addEventListener('click', () => {
                 playerController.snapPlayerTo(loc.teleportTarget.x, loc.teleportTarget.z, loc.teleportTarget.yaw);
                 sfx.teleport();
-                mapDialog.close();
+                if (teleportDialog) teleportDialog.close();
                 showToast(`Đã dịch chuyển đến ${loc.name}`, 'success');
             });
-            mapLocationsList.appendChild(card);
+            teleportLocationsList.appendChild(card);
         }
     };
 
@@ -932,6 +943,13 @@ export function setupCampusHud({
         mapDialog.showModal();
     });
 
+    if (openTeleportBtn && teleportDialog) {
+        openTeleportBtn.addEventListener('click', () => {
+            renderTeleportList();
+            teleportDialog.showModal();
+        });
+    }
+
     // Open Photo Souvenir Gallery with clean single click
     const openGalleryBtn = document.getElementById('openGalleryBtn');
     if (openGalleryBtn) {
@@ -944,8 +962,13 @@ export function setupCampusHud({
 
     // Quest Row Click Handlers
     document.getElementById('questRowCheckin').addEventListener('click', () => {
-        renderBigMap();
-        mapDialog.showModal();
+        renderTeleportList();
+        if (teleportDialog) {
+            teleportDialog.showModal();
+        } else {
+            renderBigMap();
+            mapDialog.showModal();
+        }
     });
     document.getElementById('questRowQuiz').addEventListener('click', () => {
         renderQuizList();
