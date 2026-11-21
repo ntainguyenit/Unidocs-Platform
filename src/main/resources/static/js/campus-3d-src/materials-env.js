@@ -5159,7 +5159,7 @@ function createCampusSignageAndFlags(scene, hardwareProfile = { tier: 'high', ma
 
     // 8. Floating crisp building pin sprites above each roof (matching red HUSC pins in Image 1)
     for (const loc of CAMPUS_LOCATIONS) {
-        if (loc.id === 'cong-chinh' || loc.id === 'san-bong-ro') continue;
+        if (loc.id === 'cong-chinh' || loc.id === 'san-bong-ro' || loc.id === 'san-bong-da') continue;
         const c = document.createElement('canvas');
         c.width = 256;
         c.height = 96;
