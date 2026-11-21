@@ -62,9 +62,9 @@ export const CAMPUS_COLLIDERS = [
     { id: 'col_garden_basin_r', cx: 13.5, cz: 41.5, halfW: 2.2, halfD: 2.2, angle: 0 },
     { id: 'col_soccer_fence_w', cx: -91.0, cz: 36.5, halfW: 0.35, halfD: 22.7, angle: 0 },
     { id: 'col_soccer_fence_n', cx: -75.5, cz: 13.8, halfW: 15.5, halfD: 0.35, angle: 0 },
-    { id: 'col_soccer_fence_s', cx: -75.5, cz: 59.2, halfW: 15.5, halfD: 0.35, angle: 0 },
-    { id: 'col_soccer_fence_e1', cx: -60.0, cz: 24.55, halfW: 0.35, halfD: 10.75, angle: 0 },
-    { id: 'col_soccer_fence_e2', cx: -60.0, cz: 48.45, halfW: 0.35, halfD: 10.75, angle: 0 }
+    { id: 'col_soccer_fence_s1', cx: -78.05, cz: 59.2, halfW: 12.95, halfD: 0.35, angle: 0 },
+    { id: 'col_soccer_fence_s2', cx: -61.35, cz: 59.2, halfW: 1.35, halfD: 0.35, angle: 0 },
+    { id: 'col_soccer_fence_e', cx: -60.0, cz: 36.5, halfW: 0.35, halfD: 22.7, angle: 0 }
 ];
 
 // 17 check-inable HUSC landmarks matching every labeled building, gate, and sport field in Plan 61a14ecc
@@ -303,7 +303,7 @@ export const CAMPUS_LOCATIONS = [
         x: -57.5,
         z: 36.5,
         checkinRadius: 18.0,
-        teleportTarget: { x: -57.0, z: 36.5, yaw: 1.57 },
+        teleportTarget: { x: -63.9, z: 61.5, yaw: 0 },
         color: '#2e6f40',
         rect: { cx: -75.5, cz: 36.5, w: 30.0, d: 43.0, angle: 0 },
         description: 'Sân bóng đá rộng lớn chạy thẳng dọc đường Lý Thường Kiệt, nơi diễn ra giải truyền thống sinh viên HUSC.',

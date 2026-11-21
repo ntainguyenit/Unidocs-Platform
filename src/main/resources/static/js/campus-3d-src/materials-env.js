@@ -1498,14 +1498,40 @@ function createSoccerFieldCornerFloodlightsAndNetFence(scene, hardwareProfile = 
         makePost(xMin + (W_pitch * i) / 4.0, zMin);
     }
 
-    // 2. South Wall (along zMax = 59.2)
-    makeNetWall(W_pitch, fenceH, xMid, zMax, 0);
-    makeRail(xMin, zMax, xMax, zMax, fenceH);
-    makeRail(xMin, zMax, xMax, zMax, fenceH * 0.5);
-    makeRail(xMin, zMax, xMax, zMax, 0.08);
-    // Intermediate posts South
+    // 2. South Wall (along zMax = 59.2) with entrance gate opening matching Photo 2 (X in [-65.1, -62.7])
+    const gateX1 = -65.1;
+    const gateX2 = -62.7;
+    const sSeg1Len = gateX1 - xMin; // 25.9m
+    const sSeg2Len = xMax - gateX2; // 2.7m
+
+    makeNetWall(sSeg1Len, fenceH, (xMin + gateX1) * 0.5, zMax, 0);
+    makeRail(xMin, zMax, gateX1, zMax, fenceH);
+    makeRail(xMin, zMax, gateX1, zMax, fenceH * 0.5);
+    makeRail(xMin, zMax, gateX1, zMax, 0.08);
+
+    makeNetWall(sSeg2Len, fenceH, (gateX2 + xMax) * 0.5, zMax, 0);
+    makeRail(gateX2, zMax, xMax, zMax, fenceH);
+    makeRail(gateX2, zMax, xMax, zMax, fenceH * 0.5);
+    makeRail(gateX2, zMax, xMax, zMax, 0.08);
+
+    // Gate lintel rail and overhead net above South entrance
+    makeRail(gateX1, zMax, gateX2, zMax, fenceH);
+    makeRail(gateX1, zMax, gateX2, zMax, 2.4); // Gate top header bar at 2.4m clearance
+    const lintelH = fenceH - 2.4;
+    const lintelGeom = new THREE.PlaneGeometry(gateX2 - gateX1, lintelH);
+    const lintelUvs = lintelGeom.attributes.uv;
+    for (let i = 0; i < lintelUvs.count; i++) {
+        lintelUvs.setXY(i, lintelUvs.getX(i) * ((gateX2 - gateX1) / cellScale), lintelUvs.getY(i) * (lintelH / cellScale));
+    }
+    lintelUvs.needsUpdate = true;
+    lintelGeom.translate((gateX1 + gateX2) * 0.5, 2.4 + lintelH * 0.5, zMax);
+    fenceGeoms.push(lintelGeom);
+
+    // Gate posts and intermediate posts South
+    makePost(gateX1, zMax);
+    makePost(gateX2, zMax);
     for (let i = 1; i <= 3; i++) {
-        makePost(xMin + (W_pitch * i) / 4.0, zMax);
+        makePost(xMin + (sSeg1Len * i) / 4.0, zMax);
     }
 
     // 3. West Wall (along xMin = -91.0)
@@ -1518,42 +1544,14 @@ function createSoccerFieldCornerFloodlightsAndNetFence(scene, hardwareProfile = 
         makePost(xMin, zMin + (D_pitch * i) / 6.0);
     }
 
-    // 4. East Wall (along xMax = -60.0) with central entrance gate opening (Z in [35.3, 37.7])
-    const gateZ1 = 35.3;
-    const gateZ2 = 37.7;
-    const seg1Len = gateZ1 - zMin; // 21.5m
-    const seg2Len = zMax - gateZ2; // 21.5m
-
-    makeNetWall(seg1Len, fenceH, xMax, (zMin + gateZ1) * 0.5, Math.PI * 0.5);
-    makeRail(xMax, zMin, xMax, gateZ1, fenceH);
-    makeRail(xMax, zMin, xMax, gateZ1, fenceH * 0.5);
-    makeRail(xMax, zMin, xMax, gateZ1, 0.08);
-
-    makeNetWall(seg2Len, fenceH, xMax, (gateZ2 + zMax) * 0.5, Math.PI * 0.5);
-    makeRail(xMax, gateZ2, xMax, zMax, fenceH);
-    makeRail(xMax, gateZ2, xMax, zMax, fenceH * 0.5);
-    makeRail(xMax, gateZ2, xMax, zMax, 0.08);
-
-    // Gate lintel rail and overhead net above entrance
-    makeRail(xMax, gateZ1, xMax, gateZ2, fenceH);
-    makeRail(xMax, gateZ1, xMax, gateZ2, 2.4); // Gate top header bar at 2.4m clearance
-    const lintelH = fenceH - 2.4;
-    const lintelGeom = new THREE.PlaneGeometry(gateZ2 - gateZ1, lintelH);
-    const lintelUvs = lintelGeom.attributes.uv;
-    for (let i = 0; i < lintelUvs.count; i++) {
-        lintelUvs.setXY(i, lintelUvs.getX(i) * ((gateZ2 - gateZ1) / cellScale), lintelUvs.getY(i) * (lintelH / cellScale));
-    }
-    lintelUvs.needsUpdate = true;
-    lintelGeom.rotateY(Math.PI * 0.5);
-    lintelGeom.translate(xMax, 2.4 + lintelH * 0.5, (gateZ1 + gateZ2) * 0.5);
-    fenceGeoms.push(lintelGeom);
-
-    // Gate posts and intermediate posts East
-    makePost(xMax, gateZ1);
-    makePost(xMax, gateZ2);
-    for (let i = 1; i <= 2; i++) {
-        makePost(xMax, zMin + (seg1Len * i) / 3.0);
-        makePost(xMax, gateZ2 + (seg2Len * i) / 3.0);
+    // 4. East Wall (along xMax = -60.0) - continuous full-height net wall
+    makeNetWall(D_pitch, fenceH, xMax, (zMin + zMax) * 0.5, Math.PI * 0.5);
+    makeRail(xMax, zMin, xMax, zMax, fenceH);
+    makeRail(xMax, zMin, xMax, zMax, fenceH * 0.5);
+    makeRail(xMax, zMin, xMax, zMax, 0.08);
+    // Intermediate posts East
+    for (let i = 1; i <= 5; i++) {
+        makePost(xMax, zMin + (D_pitch * i) / 6.0);
     }
 
     // Merge and add all net meshes & posts
